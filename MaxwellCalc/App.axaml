@@ -1,0 +1,19 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MaxwellCalc.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <FluentTheme />
+      <StyleInclude Source="/UI/ResultBox.axaml"/>
+    </Application.Styles>
+
+  <Application.Resources>
+    <SolidColorBrush x:Key="ResultBackground">White</SolidColorBrush>
+    <SolidColorBrush x:Key="ResultInputForeground">#aaaaaa</SolidColorBrush>
+    <SolidColorBrush x:Key="ResultOutputForeground">Black</SolidColorBrush>
+    <SolidColorBrush x:Key="ResultBorderBrush">#dddddd</SolidColorBrush>
+    <FontFamily x:Key="ResultFontFamily">MS Shell Dlg 2</FontFamily>
+  </Application.Resources>
+</Application>

@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:MaxwellCalc"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="MaxwellCalc.MainWindow"
+        Title="MaxwellCalc">
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="File">
+        <MenuItem Header="_New" />
+        <MenuItem Header="_Load" />
+        <MenuItem Header="_Save" />
+        <Separator />
+        <MenuItem Header="_Quit" />
+      </MenuItem>
+      <MenuItem Header="Settings">
+        <MenuItem Header="Format">
+          <MenuItem Header="Decimal">
+            <MenuItem Header="Significant digits" />
+            <MenuItem Header="0 digits" />
+          </MenuItem>
+        </MenuItem>
+      </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="About"/>
+      </MenuItem>
+    </Menu>
+    <SplitView DockPanel.Dock="Bottom" PanePlacement="Right" IsPaneOpen="False">
+      <SplitView.Pane>
+        <Label Content="Test" />
+      </SplitView.Pane>
+      <ScrollViewer Name="WorkspaceScroller">
+        <StackPanel Name="WorkspacePanel">
+          <TextBox Name="Input" FontFamily="{DynamicResource ResultFontFamily}" Margin="5" KeyUp="Input_KeyUp" />
+        </StackPanel>
+      </ScrollViewer>
+    </SplitView>
+  </DockPanel>
+</Window>
