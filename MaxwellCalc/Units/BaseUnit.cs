@@ -109,11 +109,8 @@ namespace MaxwellCalc.Units
         public override int GetHashCode()
         {
             int hash = 0;
-            foreach (var item in Dimension.OrderBy(d => d.Key))
-            {
-                hash = (hash * 1021) ^ item.Key.GetHashCode();
-                hash = (hash * 1021) ^ item.Value.GetHashCode();
-            }
+            foreach (var item in Dimension)
+                hash ^= (item.Key.GetHashCode() * 1021) ^ item.Value.GetHashCode();
             return hash;
         }
 

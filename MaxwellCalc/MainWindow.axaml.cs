@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using MaxwellCalc.Parsers;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
@@ -31,7 +32,39 @@ namespace MaxwellCalc
                 var resultNode = Parser.Parse(lexer, workspace);
                 var resolver = new RealResolver();
                 ResultBox rb;
-                if (!resultNode.TryResolve(resolver, workspace, out var result))
+
+                if (resultNode is BinaryNode bn && bn.Type == BinaryOperatorTypes.InUnit)
+                {
+                    if (!bn.Right.TryResolve(resolver, workspace, out var unit) ||
+                        !bn.Left.TryResolve(resolver, workspace, out var value))
+                    {
+                        rb = new ResultBox()
+                        {
+                            Input = input,
+                            Output = "Failed"
+                        };
+                    }
+                    else if (unit.Unit.BaseUnits != value.Unit.BaseUnits)
+                    {
+                        rb = new ResultBox()
+                        {
+                            Input = input,
+                            Output = "Failed"
+                        };
+                    }
+                    else
+                    {
+                        var result = new Quantity<double>(
+                            value.Scalar * value.Unit.Modifier / (unit.Scalar * unit.Unit.Modifier),
+                            new Unit(1.0, new((bn.Right.Content.ToString(), 1))));
+                        rb = new ResultBox()
+                        {
+                            Input = input,
+                            Output = result
+                        };
+                    }
+                }
+                else if (!resultNode.TryResolve(resolver, workspace, out var result))
                 {
                     rb = new ResultBox()
                     {
@@ -42,8 +75,6 @@ namespace MaxwellCalc
                 else
                 {
                     workspace.TryResolveNaming(result, out result);
-
-                    // Create the output
                     rb = new ResultBox()
                     {
                         Input = input,
