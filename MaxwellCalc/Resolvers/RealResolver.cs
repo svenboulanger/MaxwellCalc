@@ -57,14 +57,14 @@ namespace MaxwellCalc.Resolvers
         public bool TryAdd(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // Check units
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Units should match!
                 result = Default;
                 return false;
             }
 
-            result = new Quantity<double>(a.Scalar * a.Unit.Modifier + b.Scalar * b.Unit.Modifier, new Unit(1.0, a.Unit.SIUnits, null));
+            result = new Quantity<double>(a.Scalar * a.Unit.Modifier + b.Scalar * b.Unit.Modifier, new Unit(1.0, a.Unit.BaseUnits));
             return true;
         }
 
@@ -72,13 +72,13 @@ namespace MaxwellCalc.Resolvers
         public bool TrySubtract(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // Check units
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Units should match!
                 result = Default;
                 return false;
             }
-            result = new Quantity<double>(a.Scalar * a.Unit.Modifier - b.Scalar * b.Unit.Modifier, new Unit(1.0, a.Unit.SIUnits, null));
+            result = new Quantity<double>(a.Scalar * a.Unit.Modifier - b.Scalar * b.Unit.Modifier, new Unit(1.0, a.Unit.BaseUnits));
             return true;
         }
 
@@ -87,7 +87,7 @@ namespace MaxwellCalc.Resolvers
         {
             result = new Quantity<double>(
                 a.Scalar * a.Unit.Modifier * b.Scalar * b.Unit.Modifier,
-                new Unit(1.0, a.Unit.SIUnits * b.Unit.SIUnits, null));
+                new Unit(1.0, a.Unit.BaseUnits * b.Unit.BaseUnits));
             return true;
         }
 
@@ -96,7 +96,7 @@ namespace MaxwellCalc.Resolvers
         {
             result = new Quantity<double>(
                 a.Scalar * a.Unit.Modifier / (b.Scalar * b.Unit.Modifier),
-                new Unit(1.0, a.Unit.SIUnits / b.Unit.SIUnits, null));
+                new Unit(1.0, a.Unit.BaseUnits / b.Unit.BaseUnits));
             return true;
         }
 
@@ -105,7 +105,7 @@ namespace MaxwellCalc.Resolvers
         {
             result = new Quantity<double>(
                 Math.IEEERemainder(a.Scalar * a.Unit.Modifier, b.Scalar * b.Unit.Modifier),
-                new Unit(1.0, a.Unit.SIUnits, null));
+                new Unit(1.0, a.Unit.BaseUnits));
             return true;
         }
 
@@ -114,7 +114,7 @@ namespace MaxwellCalc.Resolvers
         {
             result = new Quantity<double>(
                 Math.Truncate(a.Scalar * a.Unit.Modifier / (b.Scalar * b.Unit.Modifier)),
-                new Unit(1.0, a.Unit.SIUnits / b.Unit.SIUnits, null));
+                new Unit(1.0, a.Unit.BaseUnits / b.Unit.BaseUnits));
             return true;
         }
 
@@ -122,7 +122,7 @@ namespace MaxwellCalc.Resolvers
         public bool TryExp(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // Exponentiation can only happen with numbers that don't have units
-            if (b.Unit.SIUnits != BaseUnit.UnitNone)
+            if (b.Unit.BaseUnits != BaseUnit.UnitNone)
             {
                 // Cannot use exponent with units
                 result = Default;
@@ -136,12 +136,12 @@ namespace MaxwellCalc.Resolvers
                 return true;
             }
 
-            if (a.Unit.SIUnits == BaseUnit.UnitNone)
+            if (a.Unit.BaseUnits == BaseUnit.UnitNone)
             {
                 // The base does not have units, so we can simply raise to the power
                 result = new Quantity<double>(
                     Math.Pow(a.Scalar * a.Unit.Modifier, exp),
-                    new Unit(1.0, a.Unit.SIUnits, null));
+                    new Unit(1.0, a.Unit.BaseUnits));
             }
             else
             {
@@ -155,7 +155,7 @@ namespace MaxwellCalc.Resolvers
 
                 result = new Quantity<double>(
                     Math.Pow(a.Scalar * a.Unit.Modifier, exp),
-                    new Unit(1.0, BaseUnit.Pow(a.Unit.SIUnits, fraction), null));
+                    new Unit(1.0, BaseUnit.Pow(a.Unit.BaseUnits, fraction)));
             }
             return true;
         }
@@ -163,16 +163,16 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryInUnit(Quantity<double> a, Quantity<double> b, ReadOnlyMemory<char> content, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
-                // Should be same units
+                // Should be same units in order to compute
                 result = Default;
                 return false;
             }
 
             result = new Quantity<double>(
                 a.Scalar * a.Unit.Modifier / (b.Scalar * b.Unit.Modifier),
-                new Unit(b.Scalar * b.Unit.Modifier, b.Unit.SIUnits, content.ToString()));
+                new Unit(b.Scalar * b.Unit.Modifier, b.Unit.BaseUnits));
             return true;
         }
 
@@ -180,7 +180,7 @@ namespace MaxwellCalc.Resolvers
         public bool TryBitwiseOr(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // First convert to integer
-            if (a.Unit.SIUnits != BaseUnit.UnitNone || b.Unit.SIUnits != BaseUnit.UnitNone)
+            if (a.Unit.BaseUnits != BaseUnit.UnitNone || b.Unit.BaseUnits != BaseUnit.UnitNone)
             {
                 // Don't know what to do here
                 result = Default;
@@ -196,7 +196,7 @@ namespace MaxwellCalc.Resolvers
         public bool TryBitwiseAnd(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // First convert to integer
-            if (a.Unit.SIUnits != BaseUnit.UnitNone || b.Unit.SIUnits != BaseUnit.UnitNone)
+            if (a.Unit.BaseUnits != BaseUnit.UnitNone || b.Unit.BaseUnits != BaseUnit.UnitNone)
             {
                 // Don't know what to do here
                 result = Default;
@@ -212,7 +212,7 @@ namespace MaxwellCalc.Resolvers
         public bool TryLeftShift(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // First convert to integer
-            if (a.Unit.SIUnits != BaseUnit.UnitNone || b.Unit.SIUnits != BaseUnit.UnitNone)
+            if (a.Unit.BaseUnits != BaseUnit.UnitNone || b.Unit.BaseUnits != BaseUnit.UnitNone)
             {
                 // Don't know what to do here
                 result = Default;
@@ -228,7 +228,7 @@ namespace MaxwellCalc.Resolvers
         public bool TryRightShift(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
             // First convert to integer
-            if (a.Unit.SIUnits != BaseUnit.UnitNone || b.Unit.SIUnits != BaseUnit.UnitNone)
+            if (a.Unit.BaseUnits != BaseUnit.UnitNone || b.Unit.BaseUnits != BaseUnit.UnitNone)
             {
                 // Don't know what to do here
                 result = Default;
@@ -243,7 +243,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryGreaterThan(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Cannot compare quantities with different units
                 result = Default;
@@ -256,7 +256,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryGreaterThanOrEqual(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Cannot compare quantities with different units
                 result = Default;
@@ -269,7 +269,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryLessThan(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Cannot compare quantities with different units
                 result = Default;
@@ -282,7 +282,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryLessThanOrEqual(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Cannot compare quantities with different units
                 result = Default;
@@ -295,7 +295,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryEquals(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Cannot compare quantities with different units
                 result = Default;
@@ -308,7 +308,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryNotEquals(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
         {
-            if (a.Unit.SIUnits != b.Unit.SIUnits)
+            if (a.Unit.BaseUnits != b.Unit.BaseUnits)
             {
                 // Cannot compare quantities with different units
                 result = Default;

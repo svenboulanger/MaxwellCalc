@@ -111,54 +111,42 @@ public class ResultBox : TemplatedControl
         }
 
         // Deal with the units
-        if (quantity.Unit.Name is not null)
+        if (!quantity.Unit.Modifier.Equals(1.0))
         {
+            // Account for weird modifiers
             var run = new Run()
             {
-                Text = " " + quantity.Unit.Name,
-                Foreground = UnitForeground
+                Text = " " + quantity.Unit.Modifier.ToString(),
+                Foreground = UnitForeground,
+                FontSize = 12
             };
             _output?.Inlines?.Add(run);
         }
-        else
+
+        // We will show the dimension as is
+        if (quantity.Unit.BaseUnits.Dimension is not null)
         {
-            if (!quantity.Unit.Modifier.Equals(1.0))
+            foreach (var p in quantity.Unit.BaseUnits.Dimension.OrderBy(p => p.Key))
             {
-                // Account for weird modifiers
+                // Base
                 var run = new Run()
                 {
-                    Text = " " + quantity.Unit.Modifier.ToString(),
-                    Foreground = UnitForeground,
-                    FontSize = 12
+                    Text = " " + p.Key,
+                    Foreground = UnitForeground
                 };
                 _output?.Inlines?.Add(run);
-            }
 
-            // We will show the dimension as is
-            if (quantity.Unit.SIUnits.Dimension is not null)
-            {
-                foreach (var p in quantity.Unit.SIUnits.Dimension.OrderBy(p => p.Key))
+                // Exponent
+                if (p.Value != Fraction.One)
                 {
-                    // Base
-                    var run = new Run()
+                    run = new Run()
                     {
-                        Text = " " + p.Key,
-                        Foreground = UnitForeground
+                        Text = p.Value.ToString(),
+                        BaselineAlignment = BaselineAlignment.Top,
+                        Foreground = UnitForeground,
+                        FontSize = 12
                     };
                     _output?.Inlines?.Add(run);
-
-                    // Exponent
-                    if (p.Value != Fraction.One)
-                    {
-                        run = new Run()
-                        {
-                            Text = p.Value.ToString(),
-                            BaselineAlignment = BaselineAlignment.Top,
-                            Foreground = UnitForeground,
-                            FontSize = 12
-                        };
-                        _output?.Inlines?.Add(run);
-                    }
                 }
             }
         }

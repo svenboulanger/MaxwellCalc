@@ -1,5 +1,4 @@
-﻿using Avalonia.Win32.Interop.Automation;
-using MaxwellCalc.Units;
+﻿using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 
@@ -13,15 +12,7 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Gets a dictionary of units for input.
         /// </summary>
-        public Dictionary<string, Unit> InputUnits { get; } = new() {
-            { "meter", new Unit(1.0, BaseUnit.UnitMeter, "m") },
-            { "kilogram", new Unit(1.0, BaseUnit.UnitKilogram, "kg") },
-            { "second", new Unit(1.0, BaseUnit.UnitSeconds, "s") },
-            { "mol", new Unit(1.0, BaseUnit.UnitMole, "mol") },
-            { "ampere", new Unit(1.0, BaseUnit.UnitAmperes, "A") },
-            { "kelvin", new Unit(1.0, BaseUnit.UnitKelvin, "K") },
-            { "radian", new Unit(1.0, BaseUnit.UnitRadian, "rad") }
-        };
+        public Dictionary<string, Unit> InputUnits { get; } = [];
 
         /// <summary>
         /// Gets a dictionary of units for output.
@@ -112,20 +103,20 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryRegisterOutputUnit(string name, Unit unit)
+        public bool TryRegisterDerivedUnit(BaseUnit key, Unit value)
         {
-            if (!OutputUnits.TryGetValue(unit.SIUnits, out var list))
+            if (!OutputUnits.TryGetValue(key, out var list))
             {
-                list = new HashSet<Unit>();
-                OutputUnits.Add(unit.SIUnits, list);
+                list = [];
+                OutputUnits.Add(key, list);
             }
-            list.Add(unit);
+            list.Add(value);
             return true;
         }
 
-        private void TrackBestUnit(double scalar, Unit unit, ref double bestScalar, ref Unit bestUnit)
+        private static void TrackBestScalar(double scalar, Unit unit, ref double bestScalar, ref Unit bestUnit)
         {
-            double newScalar = scalar / unit.Modifier;
+            double newScalar = scalar * unit.Modifier;
             if (double.IsNaN(bestScalar))
             {
                 bestScalar = newScalar;
@@ -133,7 +124,7 @@ namespace MaxwellCalc.Workspaces
             }
             else
             {
-                if (newScalar > 1.0)
+                if (newScalar >= 1.0)
                 {
                     if (newScalar < 1000.0)
                     {
@@ -166,15 +157,14 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryResolveNaming(Quantity<double> quantity, out Quantity<double> result)
         {
-            if (quantity.Unit.Name is not null)
+            if (quantity.Unit.BaseUnits.Dimension is null || quantity.Unit.BaseUnits.Dimension.Count == 0)
             {
-                // The name is already given, don't overwrite it
                 result = quantity;
                 return true;
             }
 
             // The output units are only expressable in base units, let's see if we can find some output for it
-            if (!OutputUnits.TryGetValue(quantity.Unit.SIUnits, out var eligible) || eligible.Count == 0)
+            if (!OutputUnits.TryGetValue(quantity.Unit.BaseUnits, out var eligible) || eligible.Count == 0)
             {
                 result = quantity;
                 return false;
@@ -187,11 +177,11 @@ namespace MaxwellCalc.Workspaces
             Unit bestUnit = quantity.Unit;
             foreach (var unit in eligible)
             {
-                TrackBestUnit(scalar, unit, ref bestScalar, ref bestUnit);
+                TrackBestScalar(scalar, unit, ref bestScalar, ref bestUnit);
             }
 
             // Make a quantity for it
-            result = new Quantity<double>(bestScalar, bestUnit);
+            result = new Quantity<double>(bestScalar, new Unit(1.0, bestUnit.BaseUnits));
             return true;
         }
     }

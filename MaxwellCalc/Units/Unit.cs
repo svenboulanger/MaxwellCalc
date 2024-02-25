@@ -9,13 +9,13 @@ namespace MaxwellCalc.Units
     /// <param name="modifier">The modifier.</param>
     /// <param name="units">The SI units.</param>
     /// <param name="name">The name of units.</param>
-    public readonly struct Unit(double modifier, BaseUnit units, string? name)
+    public readonly struct Unit(double modifier, BaseUnit units)
         : IEquatable<Unit>
     {
         /// <summary>
         /// A unit for scalars.
         /// </summary>
-        public static Unit Scalar { get; } = new Unit(1.0, BaseUnit.UnitNone, null);
+        public static Unit Scalar { get; } = new Unit(1.0, BaseUnit.UnitNone);
 
         /// <summary>
         /// Gets the unit modifier.
@@ -23,14 +23,9 @@ namespace MaxwellCalc.Units
         public double Modifier { get; } = modifier;
 
         /// <summary>
-        /// Gets the SI units.
+        /// Gets the base units.
         /// </summary>
-        public BaseUnit SIUnits { get; } = units;
-
-        /// <summary>
-        /// Gets the name of the unit.
-        /// </summary>
-        public string? Name { get; } = name;
+        public BaseUnit BaseUnits { get; } = units;
 
         /// <summary>
         /// Gets the hash code.
@@ -39,8 +34,7 @@ namespace MaxwellCalc.Units
         public override int GetHashCode()
         {
             int hash = Modifier.GetHashCode();
-            hash = hash * 1021 ^ SIUnits.GetHashCode();
-            hash = hash * 1021 ^ (Name?.GetHashCode() ?? 0);
+            hash = (hash * 1021) ^ BaseUnits.GetHashCode();
             return hash;
         }
 
@@ -53,9 +47,7 @@ namespace MaxwellCalc.Units
         {
             if (!Modifier.Equals(other.Modifier))
                 return false;
-            if (SIUnits != other.SIUnits)
-                return false;
-            if (!StringComparer.Ordinal.Equals(Name, other.Name))
+            if (BaseUnits != other.BaseUnits)
                 return false;
             return true;
         }
@@ -71,7 +63,7 @@ namespace MaxwellCalc.Units
             double modifier = unit.Modifier;
             if (!modifier.Equals(1.0))
                 modifier = Math.Pow(modifier, (double)exponent.Numerator / exponent.Denominator);
-            return new Unit(modifier, BaseUnit.Pow(unit.SIUnits, exponent), null);
+            return new Unit(modifier, BaseUnit.Pow(unit.BaseUnits, exponent));
         }
 
         /// <summary>

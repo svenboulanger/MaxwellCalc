@@ -1,5 +1,4 @@
 ﻿using MaxwellCalc.Units;
-using System;
 using System.Collections.Generic;
 
 namespace MaxwellCalc.Workspaces
@@ -25,12 +24,12 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterInputUnit(string name, Unit unit);
 
         /// <summary>
-        /// Tries to register a unit that can be used for output.
+        /// Tries to register a derived that can be used to format the output unit dimension.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="unit">The unit.</param>
+        /// <param name="input">The base unit that this unit is derived from.</param>
+        /// <param name="unit">The resulting unit. Should be specified such that this unit is equal to <paramref name="input"/>.</param>
         /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterOutputUnit(string name, Unit unit);
+        public bool TryRegisterDerivedUnit(BaseUnit input, Unit unit);
 
         /// <summary>
         /// Determines whether a string represents a variable.
