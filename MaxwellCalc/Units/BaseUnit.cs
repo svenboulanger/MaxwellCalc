@@ -204,7 +204,13 @@ namespace MaxwellCalc.Units
                 foreach (var pair in right.Dimension)
                 {
                     if (dict.TryGetValue(pair.Key, out var existing))
-                        dict[pair.Key] = existing + pair.Value;
+                    {
+                        var newFraction = existing + pair.Value;
+                        if (newFraction.Numerator == 0)
+                            dict.Remove(pair.Key);
+                        else
+                            dict[pair.Key] = newFraction;
+                    }
                     else
                         dict.Add(pair.Key, pair.Value);
                 }
@@ -231,7 +237,13 @@ namespace MaxwellCalc.Units
                 foreach (var pair in right.Dimension)
                 {
                     if (dict.TryGetValue(pair.Key, out var existing))
-                        dict[pair.Key] = existing - pair.Value;
+                    {
+                        var newFraction = existing - pair.Value;
+                        if (newFraction.Numerator == 0)
+                            dict.Remove(pair.Key);
+                        else
+                            dict[pair.Key] = newFraction;
+                    }
                     else
                         dict.Add(pair.Key, new(-pair.Value.Numerator, pair.Value.Denominator));
                 }

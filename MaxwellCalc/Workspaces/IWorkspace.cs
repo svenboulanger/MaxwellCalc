@@ -51,7 +51,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="name">The name of the unit.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the unit was found; otherwise, <c>false</c>.</returns>
-        public bool TryGetUnit(string name, out T result);
+        public bool TryGetUnit(string name, out Quantity<T> result);
 
         /// <summary>
         /// Tries to get a variable value from the workspace.
@@ -59,7 +59,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="name">The name of the variable.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the variable was found; otherwise, <c>false</c>.</returns>
-        public bool TryGetVariable(string name, out T result);
+        public bool TryGetVariable(string name, out Quantity<T> result);
 
         /// <summary>
         /// Tries to update a variable value from the workspace.
@@ -67,7 +67,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
         /// <returns>Returns <c>true</c> if the variable was updated; otherwise, <c>false</c>.</returns>
-        public bool TrySetVariable(string name, T value);
+        public bool TrySetVariable(string name, Quantity<T> value);
 
         /// <summary>
         /// A delegate for functions.
@@ -76,7 +76,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated correctly; otherwise, <c>false</c>.</returns>
-        public delegate bool FunctionDelegate(IReadOnlyList<T> list, IWorkspace<T> workspace, out T result);
+        public delegate bool FunctionDelegate(IReadOnlyList<Quantity<T>> list, IWorkspace<T> workspace, out Quantity<T> result);
 
         /// <summary>
         /// Tries to register a function under the given name.
@@ -93,6 +93,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="arguments">The arguments.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        public bool TryFunction(string name, IReadOnlyList<T> arguments, out T result);
+        public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, out Quantity<T> result);
+
+        /// <summary>
+        /// Tries to resolve the naming of .
+        /// </summary>
+        /// <param name="quantity">The quantity.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if a naming was found; otherwise, <c>false</c>.</returns>
+        public bool TryResolveNaming(Quantity<T> quantity, out Quantity<T> result);
     }
 }

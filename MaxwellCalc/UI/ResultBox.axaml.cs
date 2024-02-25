@@ -79,7 +79,10 @@ public class ResultBox : TemplatedControl
 
         // No output to show
         if (Output is null)
+        {
+            _output.Inlines.Add(new Run());
             return;
+        }
 
         // First add the scalar
         if (Output is IQuantity quantity)
@@ -88,7 +91,7 @@ public class ResultBox : TemplatedControl
         {
             var run = new Run()
             {
-                Text = _output.ToString(),
+                Text = Output.ToString(),
                 Foreground = OutputForeground
             };
             _output.Inlines.Add(run);

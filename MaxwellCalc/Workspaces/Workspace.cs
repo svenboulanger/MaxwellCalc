@@ -1,4 +1,5 @@
-﻿using MaxwellCalc.Units;
+﻿using Avalonia.Win32.Interop.Automation;
+using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 
@@ -7,7 +8,7 @@ namespace MaxwellCalc.Workspaces
     /// <summary>
     /// A workspace.
     /// </summary>
-    public class Workspace : IWorkspace, IWorkspace<Quantity<double>>
+    public class Workspace : IWorkspace, IWorkspace<double>
     {
         /// <summary>
         /// Gets a dictionary of units for input.
@@ -25,7 +26,7 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Gets a dictionary of units for output.
         /// </summary>
-        public Dictionary<BaseUnit, List<Unit>> OutputUnits { get; } = [];
+        public Dictionary<BaseUnit, HashSet<Unit>> OutputUnits { get; } = [];
 
         /// <summary>
         /// Gets a dictionary of variables.
@@ -38,7 +39,7 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Gets a dictionary of functions that work on real quantities.
         /// </summary>
-        public Dictionary<string, IWorkspace<Quantity<double>>.FunctionDelegate> RealFunctions { get; } = [];
+        public Dictionary<string, IWorkspace<double>.FunctionDelegate> RealFunctions { get; } = [];
 
         /// <inheritdoc />
         public bool IsUnit(string name) => InputUnits.ContainsKey(name);
@@ -86,7 +87,7 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryRegisterFunction(string name, IWorkspace<Quantity<double>>.FunctionDelegate function)
+        public bool TryRegisterFunction(string name, IWorkspace<double>.FunctionDelegate function)
         {
             RealFunctions[name] = function;
             return true;
@@ -115,10 +116,82 @@ namespace MaxwellCalc.Workspaces
         {
             if (!OutputUnits.TryGetValue(unit.SIUnits, out var list))
             {
-                list = new List<Unit>();
+                list = new HashSet<Unit>();
                 OutputUnits.Add(unit.SIUnits, list);
             }
             list.Add(unit);
+            return true;
+        }
+
+        private void TrackBestUnit(double scalar, Unit unit, ref double bestScalar, ref Unit bestUnit)
+        {
+            double newScalar = scalar / unit.Modifier;
+            if (double.IsNaN(bestScalar))
+            {
+                bestScalar = newScalar;
+                bestUnit = unit;
+            }
+            else
+            {
+                if (newScalar > 1.0)
+                {
+                    if (newScalar < 1000.0)
+                    {
+                        // The new scalar is actually kind of a best fix
+                        if (bestScalar < 1.0 || bestScalar >= 1000.0 ||
+                            newScalar < bestScalar)
+                        {
+                            // The best scalar was not in the range 1-1000, or otherwise,
+                            // let's choose the one that is the best match
+                            bestUnit = unit;
+                            bestScalar = newScalar;
+                        }
+                    }
+                    else if (newScalar < bestScalar)
+                    {
+                        // The new scalar is too big, let's only take it if the best scalar was even bigger
+                        bestUnit = unit;
+                        bestScalar = newScalar;
+                    }
+                }
+                else if (newScalar > bestScalar)
+                {
+                    // The new scalar is too small, let's only take it if the best scalar was even smaller
+                    bestUnit = unit;
+                    bestScalar = newScalar;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public bool TryResolveNaming(Quantity<double> quantity, out Quantity<double> result)
+        {
+            if (quantity.Unit.Name is not null)
+            {
+                // The name is already given, don't overwrite it
+                result = quantity;
+                return true;
+            }
+
+            // The output units are only expressable in base units, let's see if we can find some output for it
+            if (!OutputUnits.TryGetValue(quantity.Unit.SIUnits, out var eligible) || eligible.Count == 0)
+            {
+                result = quantity;
+                return false;
+            }
+
+            // There should be a fit for the quantity
+            // Let's find the closest one that would lead to a scalar of 1-1000
+            double scalar = Math.Abs(quantity.Scalar * quantity.Unit.Modifier);
+            double bestScalar = double.NaN;
+            Unit bestUnit = quantity.Unit;
+            foreach (var unit in eligible)
+            {
+                TrackBestUnit(scalar, unit, ref bestScalar, ref bestUnit);
+            }
+
+            // Make a quantity for it
+            result = new Quantity<double>(bestScalar, bestUnit);
             return true;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using MaxwellCalc.Resolvers;
+using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
@@ -27,10 +28,10 @@ namespace MaxwellCalc.Parsers.Nodes
         public IReadOnlyList<INode> Arguments { get; } = arguments is not null ? arguments.AsReadOnly() : Array.Empty<INode>();
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T> workspace, out T result)
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T> workspace, out Quantity<T> result)
         {
             // Evaluate the arguments
-            var args = new List<T>(Arguments.Count);
+            var args = new List<Quantity<T>>(Arguments.Count);
             for (int i = 0; i < Arguments.Count; i++)
             {
                 if (!Arguments[i].TryResolve(resolver, workspace, out var arg))

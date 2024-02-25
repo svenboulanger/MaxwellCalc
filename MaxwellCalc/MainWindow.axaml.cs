@@ -26,7 +26,7 @@ namespace MaxwellCalc
                 var workspace = new Workspace();
                 UnitHelper.RegisterSIUnits(workspace);
                 UnitHelper.RegisterShortSIUnits(workspace);
-                UnitHelper.RegisterCommonUnits(workspace);
+                UnitHelper.RegisterCommonElectricalUnits(workspace);
                 RealMathHelper.RegisterFunctions(workspace);
                 var resultNode = Parser.Parse(lexer, workspace);
                 var resolver = new RealResolver();
@@ -41,6 +41,8 @@ namespace MaxwellCalc
                 }
                 else
                 {
+                    workspace.TryResolveNaming(result, out result);
+
                     // Create the output
                     rb = new ResultBox()
                     {
