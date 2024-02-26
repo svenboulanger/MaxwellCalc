@@ -9,7 +9,7 @@ namespace MaxwellCalc.Workspaces
     /// </summary>
     public static class RealMathHelper
     {
-        private static readonly Quantity<double> _invalid = new(double.NaN, Unit.Scalar);
+        private static readonly Quantity<double> _invalid = new(double.NaN, Unit.UnitNone);
 
         /// <summary>
         /// Registers the functions in the class to a workspace.
@@ -45,7 +45,7 @@ namespace MaxwellCalc.Workspaces
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Abs(args[0].Scalar * args[0].Unit.Modifier), new Unit(1.0, args[0].Unit.BaseUnits));
+            result = new Quantity<double>(Math.Abs(args[0].Scalar), args[0].Unit);
             return true;
         }
 
@@ -65,13 +65,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone && arg.Unit.BaseUnits != BaseUnit.UnitRadian)
+            if (arg.Unit != Unit.UnitNone && arg.Unit != Unit.UnitRadian)
             {
                 // Cannot 
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Sin(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Sin(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -91,13 +91,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone && arg.Unit.BaseUnits != BaseUnit.UnitRadian)
+            if (arg.Unit != Unit.UnitNone && arg.Unit != Unit.UnitRadian)
             {
                 // Cannot 
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Cos(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Cos(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -117,13 +117,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone && arg.Unit.BaseUnits != BaseUnit.UnitRadian)
+            if (arg.Unit != Unit.UnitNone && arg.Unit != Unit.UnitRadian)
             {
                 // Cannot 
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Tan(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Tan(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -143,13 +143,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone && arg.Unit.BaseUnits != BaseUnit.UnitRadian)
+            if (arg.Unit != Unit.UnitNone && arg.Unit != Unit.UnitRadian)
             {
                 // Cannot 
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Sinh(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Sinh(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -169,13 +169,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone && arg.Unit.BaseUnits != BaseUnit.UnitRadian)
+            if (arg.Unit != Unit.UnitNone && arg.Unit != Unit.UnitRadian)
             {
                 // Cannot 
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Cosh(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Cosh(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -195,13 +195,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone && arg.Unit.BaseUnits != BaseUnit.UnitRadian)
+            if (arg.Unit != Unit.UnitNone && arg.Unit != Unit.UnitRadian)
             {
                 // Cannot 
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Tanh(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Tanh(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -221,13 +221,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone)
+            if (arg.Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Exp(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Exp(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -247,13 +247,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone)
+            if (arg.Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Log(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Log(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -273,13 +273,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone)
+            if (arg.Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Log10(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Log10(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -299,13 +299,13 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             var arg = args[0];
-            if (arg.Unit.BaseUnits != BaseUnit.UnitNone)
+            if (arg.Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
                 return false;
             }
-            result = new Quantity<double>(Math.Log2(args[0].Scalar * args[0].Unit.Modifier), Unit.Scalar);
+            result = new Quantity<double>(Math.Log2(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -326,8 +326,8 @@ namespace MaxwellCalc.Workspaces
             }
             var arg = args[0];
             result = new Quantity<double>(
-                Math.Sqrt(args[0].Scalar * args[0].Unit.Modifier),
-                new Unit(1.0, BaseUnit.Pow(arg.Unit.BaseUnits, new Fraction(1, 2))));
+                Math.Sqrt(args[0].Scalar),
+                Unit.Pow(arg.Unit, new Fraction(1, 2)));
             return true;
         }
     }

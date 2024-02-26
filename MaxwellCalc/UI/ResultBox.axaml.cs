@@ -110,23 +110,10 @@ public class ResultBox : TemplatedControl
             _output?.Inlines?.Add(run);
         }
 
-        // Deal with the units
-        if (!quantity.Unit.Modifier.Equals(1.0))
-        {
-            // Account for weird modifiers
-            var run = new Run()
-            {
-                Text = " " + quantity.Unit.Modifier.ToString(),
-                Foreground = UnitForeground,
-                FontSize = 12
-            };
-            _output?.Inlines?.Add(run);
-        }
-
         // We will show the dimension as is
-        if (quantity.Unit.BaseUnits.Dimension is not null)
+        if (quantity.Unit.Dimension is not null)
         {
-            foreach (var p in quantity.Unit.BaseUnits.Dimension.OrderBy(p => p.Key))
+            foreach (var p in quantity.Unit.Dimension.OrderBy(p => p.Key))
             {
                 // Base
                 var run = new Run()

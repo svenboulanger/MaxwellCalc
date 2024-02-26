@@ -44,7 +44,7 @@ namespace MaxwellCalc
                             Output = "Failed"
                         };
                     }
-                    else if (unit.Unit.BaseUnits != value.Unit.BaseUnits)
+                    else if (unit.Unit != value.Unit)
                     {
                         rb = new ResultBox()
                         {
@@ -55,8 +55,8 @@ namespace MaxwellCalc
                     else
                     {
                         var result = new Quantity<double>(
-                            value.Scalar * value.Unit.Modifier / (unit.Scalar * unit.Unit.Modifier),
-                            new Unit(1.0, new((bn.Right.Content.ToString(), 1))));
+                            value.Scalar / unit.Scalar,
+                            new((bn.Right.Content.ToString(), 1)));
                         rb = new ResultBox()
                         {
                             Input = input,

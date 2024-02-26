@@ -8,11 +8,11 @@ using System.Text;
 namespace MaxwellCalc.Units
 {
     /// <summary>
-    /// Creates a new <see cref="BaseUnit"/>.
+    /// Creates a new <see cref="Unit"/>.
     /// </summary>
     /// <param name="dimension">The dimension of the base units.</param>
-    public readonly struct BaseUnit(params (string, Fraction)[] dimension)
-        : IEquatable<BaseUnit>
+    public readonly struct Unit(params (string, Fraction)[] dimension)
+        : IEquatable<Unit>
     {
         /// <summary>
         /// Gets a standard name of the base unit for meters.
@@ -57,42 +57,42 @@ namespace MaxwellCalc.Units
         /// <summary>
         /// Gets a unitless unit.
         /// </summary>
-        public static BaseUnit UnitNone { get; } = new();
+        public static Unit UnitNone { get; } = new([]);
 
         /// <summary>
         /// Gets the unit for meters.
         /// </summary>
-        public static BaseUnit UnitMeter { get; } = new((Meter, 1));
+        public static Unit UnitMeter { get; } = new((Meter, 1));
 
         /// <summary>
         /// Gets the unit for seconds.
         /// </summary>
-        public static BaseUnit UnitSeconds { get; } = new((Second, 1));
+        public static Unit UnitSeconds { get; } = new((Second, 1));
 
         /// <summary>
         /// Gets the unit for amperes.
         /// </summary>
-        public static BaseUnit UnitAmperes { get; } = new((Ampere, 1));
+        public static Unit UnitAmperes { get; } = new((Ampere, 1));
 
         /// <summary>
         /// Gets the unit for Kelvin.
         /// </summary>
-        public static BaseUnit UnitKelvin { get; } = new((Kelvin, 1));
+        public static Unit UnitKelvin { get; } = new((Kelvin, 1));
 
         /// <summary>
         /// Gets the unit for moles.
         /// </summary>
-        public static BaseUnit UnitMole { get; } = new((Mole, 1));
+        public static Unit UnitMole { get; } = new((Mole, 1));
 
         /// <summary>
         /// Gets the unit for candela.
         /// </summary>
-        public static BaseUnit UnitCandela { get; } = new((Candela, 1));
+        public static Unit UnitCandela { get; } = new((Candela, 1));
 
         /// <summary>
         /// Gets the unit for kilogram.
         /// </summary>
-        public static BaseUnit UnitKilogram { get; } = new((Kilogram, 1));
+        public static Unit UnitKilogram { get; } = new((Kilogram, 1));
 
         /// <summary>
         /// Gets the unit for radians.
@@ -100,10 +100,12 @@ namespace MaxwellCalc.Units
         /// <remarks>
         /// This is not really an SI unit, but useful nonetheless.
         /// </remarks>
-        public static BaseUnit UnitRadian { get; } = new((Radian, 1));
+        public static Unit UnitRadian { get; } = new((Radian, 1));
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, Fraction> Dimension { get; } = dimension.ToImmutableDictionary(k => k.Item1, k => k.Item2);
+        public IReadOnlyDictionary<string, Fraction> Dimension { get; } = dimension is null || dimension.Length == 0 ? 
+            ImmutableDictionary<string, Fraction>.Empty : 
+            dimension.ToImmutableDictionary(k => k.Item1, k => k.Item2);
 
         /// <inheritdoc />
         public override int GetHashCode()
@@ -116,16 +118,11 @@ namespace MaxwellCalc.Units
 
         /// <inheritdoc />
         public override bool Equals([NotNullWhen(true)] object? obj)
-            => obj is BaseUnit u && Equals(u);
+            => obj is Unit u && Equals(u);
 
         /// <inheritdoc />
-        public bool Equals(BaseUnit other)
+        public bool Equals(Unit other)
         {
-            if (Dimension is null)
-                return other.Dimension is null;
-            else if (other.Dimension is null)
-                return false;
-
             if (Dimension.Count != other.Dimension.Count)
                 return false;
             foreach (var pair in Dimension)
@@ -142,8 +139,11 @@ namespace MaxwellCalc.Units
         public override string ToString()
         {
             var sb = new StringBuilder();
-            foreach (var unit in Dimension.OrderBy(p => p.Key))
-                AppendUnit(sb, unit.Key, unit.Value);
+            if (Dimension is not null)
+            {
+                foreach (var unit in Dimension.OrderBy(p => p.Key))
+                    AppendUnit(sb, unit.Key, unit.Value);
+            }
             return sb.ToString();
         }
 
@@ -163,7 +163,7 @@ namespace MaxwellCalc.Units
         }
 
         /// <inheritdoc />
-        public static BaseUnit Pow(BaseUnit unit, Fraction exponent) =>
+        public static Unit Pow(Unit unit, Fraction exponent) =>
             new(unit.Dimension?.Select(p => (p.Key, p.Value * exponent))?.ToArray() ?? Array.Empty<(string, Fraction)>());
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace MaxwellCalc.Units
         /// <param name="left">The left argument.</param>
         /// <param name="right">The right argument.</param>
         /// <returns>Returns <c>true</c> if both fractions are equal; otherwise, <c>false</c>.</returns>
-        public static bool operator ==(BaseUnit left, BaseUnit right) => left.Equals(right);
+        public static bool operator ==(Unit left, Unit right) => left.Equals(right);
 
         /// <summary>
         /// Inequality between SI units.
@@ -180,7 +180,7 @@ namespace MaxwellCalc.Units
         /// <param name="left">The left argument.</param>
         /// <param name="right">The right argument.</param>
         /// <returns>Returns <c>true</c> if both fractions are not equal; otherwise, <c>false</c>.</returns>
-        public static bool operator !=(BaseUnit left, BaseUnit right) => !(left == right);
+        public static bool operator !=(Unit left, Unit right) => !(left == right);
 
         /// <summary>
         /// Multiplies SI units
@@ -188,7 +188,7 @@ namespace MaxwellCalc.Units
         /// <param name="left">The left SI unit.</param>
         /// <param name="right">The right SI unit.</param>
         /// <returns>Returns the multiplied SI units.</returns>
-        public static BaseUnit operator *(BaseUnit left, BaseUnit right)
+        public static Unit operator *(Unit left, Unit right)
         {
             var dict = new Dictionary<string, Fraction>();
             if (left.Dimension is not null)
@@ -212,7 +212,7 @@ namespace MaxwellCalc.Units
                         dict.Add(pair.Key, pair.Value);
                 }
             }
-            return new BaseUnit(dict.Select(p => (p.Key, p.Value)).ToArray());
+            return new Unit(dict.Select(p => (p.Key, p.Value)).ToArray());
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace MaxwellCalc.Units
         /// <param name="left">The left SI unit.</param>
         /// <param name="right">The right SI unit.</param>
         /// <returns>Returns the divided SI units.</returns>
-        public static BaseUnit operator /(BaseUnit left, BaseUnit right)
+        public static Unit operator /(Unit left, Unit right)
         {
             var dict = new Dictionary<string, Fraction>();
             if (left.Dimension is not null)
@@ -245,7 +245,7 @@ namespace MaxwellCalc.Units
                         dict.Add(pair.Key, new(-pair.Value.Numerator, pair.Value.Denominator));
                 }
             }
-            return new BaseUnit(dict.Select(p => (p.Key, p.Value)).ToArray());
+            return new Unit(dict.Select(p => (p.Key, p.Value)).ToArray());
         }
     }
 }

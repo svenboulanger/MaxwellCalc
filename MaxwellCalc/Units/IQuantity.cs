@@ -6,7 +6,7 @@
     public interface IQuantity
     {
         /// <summary>
-        /// Gets the unit.
+        /// Gets the units.
         /// </summary>
         public Unit Unit { get; }
 

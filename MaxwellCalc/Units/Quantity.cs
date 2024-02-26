@@ -52,12 +52,10 @@ namespace MaxwellCalc.Units
         /// <inheritdoc />
         public override string ToString()
         {
-            if (Unit.BaseUnits == BaseUnit.UnitNone)
+            if (Unit == Unit.UnitNone)
                 return Scalar?.ToString() ?? "0";
-            else if (Unit.Modifier.Equals(1.0))
-                return $"{Scalar?.ToString() ?? "0"} {Unit.BaseUnits}";
             else
-                return $"{Scalar?.ToString() ?? "0"} {Unit.Modifier} {Unit.BaseUnits}";
+                return $"{Scalar?.ToString() ?? "0"} {Unit}";
         }
 
         /// <summary>

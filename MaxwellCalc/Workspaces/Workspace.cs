@@ -1,7 +1,6 @@
 ﻿using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -10,22 +9,15 @@ namespace MaxwellCalc.Workspaces
     /// </summary>
     public class Workspace : IWorkspace, IWorkspace<double>
     {
-        /// <summary>
-        /// Gets a dictionary of units for input.
-        /// </summary>
-        public Dictionary<string, Unit> InputUnits { get; } = [];
-
-        /// <summary>
-        /// Gets a dictionary of units for output.
-        /// </summary>
-        public Dictionary<BaseUnit, HashSet<Unit>> OutputUnits { get; } = [];
+        private readonly Dictionary<string, (double, Unit)> _inputUnits = [];
+        private readonly Dictionary<Unit, HashSet<(double, Unit)>> _outputUnits = [];
 
         /// <summary>
         /// Gets a dictionary of variables.
         /// </summary>
         public Dictionary<string, object> Variables { get; } = new() {
-            { "pi", new Quantity<double>(Math.PI, Unit.Scalar) },
-            { "e", new Quantity<double>(Math.E, Unit.Scalar) },
+            { "pi", new Quantity<double>(Math.PI, Unit.UnitNone) },
+            { "e", new Quantity<double>(Math.E, Unit.UnitNone) },
         };
 
         /// <summary>
@@ -34,7 +26,7 @@ namespace MaxwellCalc.Workspaces
         public Dictionary<string, IWorkspace<double>.FunctionDelegate> RealFunctions { get; } = [];
 
         /// <inheritdoc />
-        public bool IsUnit(string name) => InputUnits.ContainsKey(name);
+        public bool IsUnit(string name) => _inputUnits.ContainsKey(name);
 
         /// <inheritdoc />
         public bool IsVariable(string name) => Variables.ContainsKey(name);
@@ -42,12 +34,12 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryGetUnit(string name, out Quantity<double> result)
         {
-            if (InputUnits.TryGetValue(name, out var found))
+            if (_inputUnits.TryGetValue(name, out var found))
             {
-                result = new Quantity<double>(1.0, found);
+                result = new Quantity<double>(found.Item1, found.Item2);
                 return true;
             }
-            result = new Quantity<double>(double.NaN, Unit.Scalar);
+            result = new Quantity<double>(double.NaN, Unit.UnitNone);
             return false;
         }
 
@@ -56,7 +48,7 @@ namespace MaxwellCalc.Workspaces
         {
             if (!Variables.TryGetValue(name, out var found))
             {
-                result = new Quantity<double>(double.NaN, Unit.Scalar);
+                result = new Quantity<double>(double.NaN, Unit.UnitNone);
                 return false;
             }
             switch (found)
@@ -66,7 +58,7 @@ namespace MaxwellCalc.Workspaces
                     return true;
 
                 default:
-                    result = new Quantity<double>(double.NaN, Unit.Scalar);
+                    result = new Quantity<double>(double.NaN, Unit.UnitNone);
                     return false;
             }
         }
@@ -97,27 +89,27 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryRegisterInputUnit(string name, Unit unit)
+        public bool TryRegisterInputUnit(string name, double modifier, Unit unit)
         {
-            InputUnits[name] = unit;
+            _inputUnits[name] = (modifier, unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryRegisterDerivedUnit(BaseUnit key, Unit value)
+        public bool TryRegisterDerivedUnit(Unit key, double modifier, Unit value)
         {
-            if (!OutputUnits.TryGetValue(key, out var list))
+            if (!_outputUnits.TryGetValue(key, out var list))
             {
                 list = [];
-                OutputUnits.Add(key, list);
+                _outputUnits.Add(key, list);
             }
-            list.Add(value);
+            list.Add((modifier, value));
             return true;
         }
 
-        private static void TrackBestScalar(double scalar, Unit unit, ref double bestScalar, ref Unit bestUnit)
+        private static void TrackBestScalar(double scalar, double modifier, Unit unit, ref double bestScalar, ref Unit bestUnit)
         {
-            double newScalar = scalar * unit.Modifier;
+            double newScalar = scalar * modifier;
             if (double.IsNaN(bestScalar))
             {
                 bestScalar = newScalar;
@@ -158,14 +150,14 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryResolveNaming(Quantity<double> quantity, out Quantity<double> result)
         {
-            if (quantity.Unit.BaseUnits.Dimension is null || quantity.Unit.BaseUnits.Dimension.Count == 0)
+            if (quantity.Unit.Dimension is null || quantity.Unit.Dimension.Count == 0)
             {
                 result = quantity;
                 return true;
             }
 
             // The output units are only expressable in base units, let's see if we can find some output for it
-            if (!OutputUnits.TryGetValue(quantity.Unit.BaseUnits, out var eligible) || eligible.Count == 0)
+            if (!_outputUnits.TryGetValue(quantity.Unit, out var eligible) || eligible.Count == 0)
             {
                 result = quantity;
                 return false;
@@ -173,16 +165,16 @@ namespace MaxwellCalc.Workspaces
 
             // There should be a fit for the quantity
             // Let's find the closest one that would lead to a scalar of 1-1000
-            double scalar = Math.Abs(quantity.Scalar * quantity.Unit.Modifier);
+            double scalar = Math.Abs(quantity.Scalar);
             double bestScalar = double.NaN;
             Unit bestUnit = quantity.Unit;
-            foreach (var unit in eligible)
+            foreach (var pair in eligible)
             {
-                TrackBestScalar(scalar, unit, ref bestScalar, ref bestUnit);
+                TrackBestScalar(scalar, pair.Item1, pair.Item2, ref bestScalar, ref bestUnit);
             }
 
             // Make a quantity for it
-            result = new Quantity<double>(bestScalar, new Unit(1.0, bestUnit.BaseUnits));
+            result = new Quantity<double>(bestScalar, bestUnit);
             return true;
         }
     }

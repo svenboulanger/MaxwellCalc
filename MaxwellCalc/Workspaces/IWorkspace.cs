@@ -16,22 +16,6 @@ namespace MaxwellCalc.Workspaces
         public bool IsUnit(string name);
 
         /// <summary>
-        /// Tries to register a unit for the workspace.
-        /// </summary>
-        /// <param name="name">The name of the unit.</param>
-        /// <param name="unit">The unit.</param>
-        /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterInputUnit(string name, Unit unit);
-
-        /// <summary>
-        /// Tries to register a derived that can be used to format the output unit dimension.
-        /// </summary>
-        /// <param name="input">The base unit that this unit is derived from.</param>
-        /// <param name="unit">The resulting unit. Should be specified such that this unit is equal to <paramref name="input"/>.</param>
-        /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterDerivedUnit(BaseUnit input, Unit unit);
-
-        /// <summary>
         /// Determines whether a string represents a variable.
         /// </summary>
         /// <param name="name">The variable name.</param>
@@ -67,6 +51,23 @@ namespace MaxwellCalc.Workspaces
         /// <param name="value">The value.</param>
         /// <returns>Returns <c>true</c> if the variable was updated; otherwise, <c>false</c>.</returns>
         public bool TrySetVariable(string name, Quantity<T> value);
+
+        /// <summary>
+        /// Tries to register a unit for the workspace.
+        /// </summary>
+        /// <param name="name">The name of the unit.</param>
+        /// <param name="unit">The unit.</param>
+        /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
+        public bool TryRegisterInputUnit(string name, T modifier, Unit unit);
+
+        /// <summary>
+        /// Tries to register a derived that can be used to format the output unit dimension.
+        /// </summary>
+        /// <param name="key">The base unit that this unit is derived from.</param>
+        /// <param name="modifier">The modifier.</param>
+        /// <param name="value">The resulting unit. Should be specified such that <paramref name="modifier"/> times <paramref name="value"/> is equal to <paramref name="input"/>.</param>
+        /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
+        public bool TryRegisterDerivedUnit(Unit key, T modifier, Unit value);
 
         /// <summary>
         /// A delegate for functions.
