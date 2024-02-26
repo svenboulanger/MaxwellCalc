@@ -58,6 +58,7 @@ namespace MaxwellCalc.Units
             RegisterModifierUnits(workspace, "A", 1.0, Unit.UnitAmperes);
 
             // Kelvin
+            workspace.TryRegisterInputUnit("mK", 1e-3, Unit.UnitKelvin);
             workspace.TryRegisterInputUnit("K", 1.0, Unit.UnitKelvin);
 
             // Candela
@@ -66,6 +67,24 @@ namespace MaxwellCalc.Units
             // Angle
             workspace.TryRegisterInputUnit("rad", 1.0, Unit.UnitRadian);
             workspace.TryRegisterInputUnit("deg", Math.PI / 180.0, Unit.UnitRadian);
+        }
+
+        /// <summary>
+        /// Registers a unit for both input and output, such that
+        /// <paramref name="key"/> = <paramref name="modifier"/> * <paramref name="value"/>.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="key">The base unit that is used behind the scenes.</param>
+        /// <param name="modifier">The modifier.</param>
+        /// <param name="value">The unit that can be used for formatting.</param>
+        public static void RegisterInputOutputUnit(IWorkspace<double> workspace,
+            Unit key, double modifier, Unit value)
+        {
+            if (value.Dimension.Count != 1)
+                throw new ArgumentException("Expected a unit with one dimension", nameof(value));
+            string name = value.Dimension.First().Key;
+            workspace.TryRegisterInputUnit(name, 1.0 / modifier, key);
+            workspace.TryRegisterDerivedUnit(key, modifier, value);
         }
 
         /// <summary>
@@ -209,6 +228,10 @@ namespace MaxwellCalc.Units
         /// <param name="workspace">The workspace.</param>
         public static void RegisterCommonElectricalUnits(IWorkspace<double> workspace)
         {
+            // Coulomb
+            RegisterModifierUnits(workspace, "C",
+                1.0, new Unit((Unit.Ampere, 1), (Unit.Second, 1)));
+
             // Volts
             RegisterModifierUnits(workspace, "V",
                 1.0, new Unit(
@@ -267,6 +290,43 @@ namespace MaxwellCalc.Units
                     (Unit.Meter, 2),
                     (Unit.Second, -3),
                     (Unit.Ampere, -2)));
+
+            // Siemens
+            RegisterModifierUnits(workspace, "S",
+                1.0, new Unit(
+                    (Unit.Kilogram, -1),
+                    (Unit.Meter, -2),
+                    (Unit.Second, 3),
+                    (Unit.Ampere, 2)));
+
+            // Hertz
+            RegisterModifierUnits(workspace, "Hz",
+                1.0, new Unit((Unit.Second, -1)));
+
+            // Bits
+            var b = new Unit(("bit", 1));
+            double m = 1024.0;
+            workspace.TryRegisterInputUnit("b", 1.0, b);
+            workspace.TryRegisterInputUnit("B", 8.0, b);
+            workspace.TryRegisterInputUnit("kB", 8.0 * m, b);
+            workspace.TryRegisterInputUnit("MB", 8.0 * m * m, b);
+            workspace.TryRegisterInputUnit("GB", 8.0 * m * m * m, b);
+            workspace.TryRegisterInputUnit("TB", 8.0 * m * m * m * m, b);
+            workspace.TryRegisterInputUnit("PB", 8.0 * m * m * m * m * m, b);
+            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0, new Unit(("B", 1)));
+            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m, new Unit(("kB", 1)));
+            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m, new Unit(("MB", 1)));
+            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m / m, new Unit(("GB", 1)));
+            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m / m / m, new Unit(("TB", 1)));
+            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m / m / m / m, new Unit(("PB", 1)));
+
+            // Bits per second
+            var bps = new Unit(("bit", 1), (Unit.Second, -1));
+            RegisterInputOutputUnit(workspace, bps, 1, new Unit(("bps", 1)));
+            RegisterInputOutputUnit(workspace, bps, 1.0 / m, new Unit(("kbps", 1)));
+            RegisterInputOutputUnit(workspace, bps, 1.0 / m / m, new Unit(("Mbps", 1)));
+            RegisterInputOutputUnit(workspace, bps, 1.0 / m / m / m, new Unit(("Gbps", 1)));
+            RegisterInputOutputUnit(workspace, bps, 1.0 / m / m / m / m, new Unit(("Tbps", 1)));
         }
     }
 }

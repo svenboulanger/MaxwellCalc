@@ -1,5 +1,4 @@
-﻿using MaxwellCalc.Parsers;
-using MaxwellCalc.Units;
+﻿using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
@@ -16,6 +15,11 @@ namespace MaxwellCalc.Resolvers
         /// Gets a default value to return.
         /// </summary>
         public Quantity<T> Default { get; }
+
+        /// <summary>
+        /// Gets or sets the error message.
+        /// </summary>
+        public string Error { get; }
 
         /// <summary>
         /// Evaluates a scalar value.

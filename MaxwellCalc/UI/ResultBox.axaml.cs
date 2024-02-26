@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using MaxwellCalc.Units;
 using System.Linq;
+using System.Numerics;
 
 namespace MaxwellCalc;
 
@@ -102,9 +103,29 @@ public class ResultBox : TemplatedControl
     {
         if (quantity.Scalar is not null)
         {
+            string formatted = string.Empty;
+            switch (quantity.Scalar)
+            {
+                case double dbl:
+                    formatted = dbl.ToString();
+                    break;
+
+                case Complex cplx:
+                    if (cplx.Imaginary.Equals(0.0))
+                        formatted = cplx.Real.ToString();
+                    else if (cplx.Real.Equals(0.0))
+                        formatted = $"{cplx.Imaginary} i";
+                    else
+                        formatted = $"{cplx.Real} + {cplx.Imaginary} i";
+                    break;
+
+                default:
+                    formatted = "Unrecognized";
+                    break;
+            }
             var run = new Run()
             {
-                Text = quantity.Scalar.ToString(),
+                Text = formatted,
                 Foreground = OutputForeground
             };
             _output?.Inlines?.Add(run);

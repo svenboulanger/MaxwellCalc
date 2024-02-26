@@ -4,6 +4,7 @@ using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
+using System.Numerics;
 
 namespace MaxwellCalc
 {
@@ -23,9 +24,9 @@ namespace MaxwellCalc
             switch (e.Key)
             {
                 case Avalonia.Input.Key.Return:
-                    _historyFill = WorkspacePanel.Children.Count - 1;
-                    _tmpLastInput = string.Empty;
                     Resolve();
+                    _tmpLastInput = string.Empty;
+                    _historyFill = WorkspacePanel.Children.Count - 1;
                     break;
 
                 case Avalonia.Input.Key.Up:
@@ -65,8 +66,9 @@ namespace MaxwellCalc
             UnitHelper.RegisterShortSIUnits(workspace);
             UnitHelper.RegisterCommonElectricalUnits(workspace);
             RealMathHelper.RegisterFunctions(workspace);
+            ComplexMathHelper.RegisterFunctions(workspace);
             var resultNode = Parser.Parse(lexer, workspace);
-            var resolver = new RealResolver();
+            var resolver = new ComplexResolver();
             ResultBox rb;
 
             if (resultNode is BinaryNode bn && bn.Type == BinaryOperatorTypes.InUnit)
@@ -77,7 +79,7 @@ namespace MaxwellCalc
                     rb = new ResultBox()
                     {
                         Input = input,
-                        Output = "Failed"
+                        Output = resolver.Error
                     };
                 }
                 else if (unit.Unit != value.Unit)
@@ -85,12 +87,12 @@ namespace MaxwellCalc
                     rb = new ResultBox()
                     {
                         Input = input,
-                        Output = "Failed"
+                        Output = "Cannot convert units as units don't match."
                     };
                 }
                 else
                 {
-                    var result = new Quantity<double>(
+                    var result = new Quantity<Complex>(
                         value.Scalar / unit.Scalar,
                         new((bn.Right.Content.ToString(), 1)));
                     rb = new ResultBox()
@@ -105,12 +107,12 @@ namespace MaxwellCalc
                 rb = new ResultBox()
                 {
                     Input = input,
-                    Output = "Failed"
+                    Output = resolver.Error
                 };
             }
             else
             {
-                workspace.TryResolveNaming(result, out result);
+                ((IWorkspace<Complex>)workspace).TryResolveNaming(result, out result);
                 rb = new ResultBox()
                 {
                     Input = input,
