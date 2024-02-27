@@ -1,12 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
-using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 
 namespace MaxwellCalc
 {
