@@ -1,4 +1,6 @@
-﻿using MaxwellCalc.Units;
+﻿using MaxwellCalc.Parsers.Nodes;
+using MaxwellCalc.Resolvers;
+using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -14,11 +16,16 @@ namespace MaxwellCalc.Workspaces
     {
         private readonly Dictionary<string, (double, Unit)> _inputUnits = [];
         private readonly Dictionary<Unit, HashSet<(double, Unit)>> _outputUnits = [];
+        private readonly Stack<VariableScope> _scope = new();
 
-        /// <summary>
-        /// Gets a dictionary of variables.
-        /// </summary>
-        public Dictionary<string, IQuantity> Variables { get; } = [];
+        /// <inheritdoc />
+        public VariableScope Variables => _scope.Peek();
+
+        /// <inheritdoc />
+        IVariableScope<double> IWorkspace<double>.Variables => _scope.Peek();
+
+        /// <inheritdoc />
+        IVariableScope<Complex> IWorkspace<Complex>.Variables => _scope.Peek();
 
         /// <summary>
         /// Gets a dictionary of functions that work on real quantities.
@@ -31,22 +38,32 @@ namespace MaxwellCalc.Workspaces
         public Dictionary<string, IWorkspace<Complex>.FunctionDelegate> ComplexFunctions { get; } = [];
 
         /// <summary>
+        /// Gets a dictionary of user functions.
+        /// </summary>
+        public Dictionary<(string, int), (string[], INode)> UserFunctions { get; } = [];
+
+        /// <summary>
+        /// Creates a new <see cref="Workspace"/>.
+        /// </summary>
+        public Workspace()
+        {
+            _scope.Push(new VariableScope());
+        }
+
+        /// <summary>
         /// Clears all variables, units and functions.
         /// </summary>
         public void Clear()
         {
             _inputUnits.Clear();
             _outputUnits.Clear();
-            Variables.Clear();
             RealFunctions.Clear();
             ComplexFunctions.Clear();
+            UserFunctions.Clear();
         }
 
         /// <inheritdoc />
         public bool IsUnit(string name) => _inputUnits.ContainsKey(name);
-
-        /// <inheritdoc />
-        public bool IsVariable(string name) => Variables.ContainsKey(name);
 
         /// <inheritdoc />
         public bool TryRegisterInputUnit(string name, double modifier, Unit unit)
@@ -80,37 +97,6 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        bool IWorkspace<double>.TryGetVariable(string name, out Quantity<double> result)
-        {
-            if (!Variables.TryGetValue(name, out var found))
-            {
-                result = new Quantity<double>(double.NaN, Unit.UnitNone);
-                return false;
-            }
-            switch (found)
-            {
-                case Quantity<double> dbl:
-                    result = dbl;
-                    return true;
-
-                case Quantity<Complex> cplx:
-                    result = new Quantity<double>(cplx.Scalar.Real, cplx.Unit);
-                    return true;
-
-                default:
-                    result = new Quantity<double>(double.NaN, Unit.UnitNone);
-                    return false;
-            }
-        }
-
-        /// <inheritdoc />
-        bool IWorkspace<double>.TrySetVariable(string name, Quantity<double> value)
-        {
-            Variables[name] = value;
-            return true;
-        }
-
-        /// <inheritdoc />
         bool IWorkspace<double>.TryRegisterFunction(string name, IWorkspace<double>.FunctionDelegate function)
         {
             RealFunctions[name] = function;
@@ -118,14 +104,28 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        bool IWorkspace<double>.TryFunction(string name, IReadOnlyList<Quantity<double>> arguments, out Quantity<double> result)
+        bool IWorkspace<double>.TryFunction(string name, IReadOnlyList<Quantity<double>> arguments, IResolver<double> resolver, out Quantity<double> result)
         {
-            if (!RealFunctions.TryGetValue(name, out var function))
+            if (UserFunctions.TryGetValue((name, arguments.Count), out var userFunction))
             {
-                result = default;
-                return false;
+                _scope.Push(Variables.CreateLocal());
+                for (int i = 0; i < arguments.Count; i++)
+                {
+                    if (!((IVariableScope<double>)Variables).TrySetVariable(userFunction.Item1[i], arguments[i]))
+                    {
+                        result = resolver.Default;
+                        return false;
+                    }
+                }
+                bool r = userFunction.Item2.TryResolve(resolver, this, out result);
+                _scope.Pop();
+                return r;
             }
-            return function(arguments, this, out result);
+            if (RealFunctions.TryGetValue(name, out var function))
+                return function(arguments, this, out result);
+            resolver.Error = $"Cannot find function '{name}' with {arguments.Count} argument(s).";
+            result = default;
+            return false;
         }
 
         private static void TrackBestScalar(double scalar, double modifier, Unit unit, ref double bestScalar, ref Unit bestUnit)
@@ -212,37 +212,6 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        bool IWorkspace<Complex>.TryGetVariable(string name, out Quantity<Complex> result)
-        {
-            if (!Variables.TryGetValue(name, out var found))
-            {
-                result = new Quantity<Complex>(double.NaN, Unit.UnitNone);
-                return false;
-            }
-            switch (found)
-            {
-                case Quantity<double> dbl:
-                    result = new Quantity<Complex>(dbl.Scalar, dbl.Unit);
-                    return true;
-
-                case Quantity<Complex> cplx:
-                    result = cplx;
-                    return true;
-
-                default:
-                    result = new Quantity<Complex>(double.NaN, Unit.UnitNone);
-                    return false;
-            }
-        }
-
-        /// <inheritdoc />
-        bool IWorkspace<Complex>.TrySetVariable(string name, Quantity<Complex> value)
-        {
-            Variables[name] = value;
-            return true;
-        }
-
-        /// <inheritdoc />
         bool IWorkspace<Complex>.TryRegisterInputUnit(string name, Complex modifier, Unit unit)
         {
             // We will share units with doubles
@@ -264,14 +233,29 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        bool IWorkspace<Complex>.TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, out Quantity<Complex> result)
+        bool IWorkspace<Complex>.TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, IResolver<Complex> resolver, out Quantity<Complex> result)
         {
-            if (!ComplexFunctions.TryGetValue(name, out var function))
+            if (UserFunctions.TryGetValue((name, arguments.Count), out var userFunction))
             {
-                result = default;
-                return false;
+                _scope.Push(Variables.CreateLocal());
+                for (int i = 0; i < arguments.Count; i++)
+                {
+                    if (!((IVariableScope<Complex>)Variables).TrySetVariable(userFunction.Item1[i], arguments[i]))
+                    {
+                        result = resolver.Default;
+                        return false;
+                    }
+                }
+                bool r = userFunction.Item2.TryResolve(resolver, this, out result);
+                _scope.Pop();
+                return r;
             }
-            return function(arguments, this, out result);
+
+            if (ComplexFunctions.TryGetValue(name, out var function))
+                return function(arguments, this, out result);
+            resolver.Error = $"Cannot find function '{name}' with {arguments.Count} argument(s).";
+            result = default;
+            return false;
         }
 
 
@@ -345,6 +329,13 @@ namespace MaxwellCalc.Workspaces
 
             // Make a quantity for it
             result = new Quantity<Complex>(bestScalar, bestUnit);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryRegisterUserFunction(string name, List<string> arguments, INode expression)
+        {
+            UserFunctions[(name, arguments.Count)] = (arguments.ToArray(), expression);
             return true;
         }
     }

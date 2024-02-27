@@ -41,7 +41,7 @@ namespace MaxwellCalc.Parsers.Nodes
                 }
                 args.Add(arg);
             }
-            return workspace.TryFunction(Name, args, out result);
+            return workspace.TryFunction(Name, args, resolver, out result);
         }
     }
 }

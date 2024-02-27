@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
@@ -41,7 +42,7 @@ namespace MaxwellCalc.Parsers.Nodes
                 if (Left is VariableNode variable)
                 {
                     if (!Right.TryResolve(resolver, workspace, out result) ||
-                        !workspace.TrySetVariable(variable.Content.ToString(), result))
+                        !workspace.Variables.TrySetVariable(variable.Content.ToString(), result))
                     {
                         result = resolver.Default;
                         return false;
@@ -50,7 +51,27 @@ namespace MaxwellCalc.Parsers.Nodes
                 }
                 else if (Left is FunctionNode function)
                 {
-                    throw new NotImplementedException();
+                    var args = new List<string>();
+                    for (int i = 0; i < function.Arguments.Count; i++)
+                    {
+                        if (function.Arguments[i] is not VariableNode argNode)
+                        {
+                            resolver.Error = "Function argument has to be a simple variable.";
+                            result = resolver.Default;
+                            return false;
+                        }
+                        args.Add(argNode.Content.ToString());
+                    }
+                    if (!workspace.TryRegisterUserFunction(function.Name, args, Right))
+                    {
+                        result = resolver.Default;
+                        return false;
+                    }
+                    else
+                    {
+                        result = resolver.Default;
+                        return true;
+                    }
                 }
                 else
                 {

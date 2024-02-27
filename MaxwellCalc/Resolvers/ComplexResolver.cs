@@ -40,7 +40,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryVariable(string variable, IWorkspace<Complex> workspace, out Quantity<Complex> result)
         {
-            if (workspace.TryGetVariable(variable, out result))
+            if (workspace.Variables.TryGetVariable(variable, out result))
                 return true;
             if (variable == "i" || variable == "j")
             {
@@ -357,7 +357,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryAssign(string name, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
         {
-            if (workspace.TrySetVariable(name, b))
+            if (workspace.Variables.TrySetVariable(name, b))
             {
                 result = b;
                 return true;
@@ -371,7 +371,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, IWorkspace<Complex> workspace, out Quantity<Complex> result)
         {
-            if (workspace.TryFunction(name, arguments, out result))
+            if (workspace.TryFunction(name, arguments, this, out result))
                 return true;
             Error = $"Cannot find function '{name}' for the given arguments.";
             return false;

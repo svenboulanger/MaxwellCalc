@@ -209,6 +209,11 @@ namespace MaxwellCalc.Parsers
                     Continue();
                     break;
 
+                case char s when s == Separator:
+                    Type = TokenTypes.Separator;
+                    Continue();
+                    break;
+
                 case char w when char.IsLetter(w):
                     Type = TokenTypes.Word;
                     Continue();
