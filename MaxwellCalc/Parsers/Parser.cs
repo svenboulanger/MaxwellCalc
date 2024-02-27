@@ -162,6 +162,12 @@ namespace MaxwellCalc.Parsers
                 lexer.Next();
                 return new UnaryNode(UnaryOperatorTypes.Minus, ParseUnary(lexer, workspace), lexer.Track(start));
             }
+            if (lexer.Type == TokenTypes.Quote)
+            {
+                int start = lexer.Column;
+                lexer.Next();
+                return new UnaryNode(UnaryOperatorTypes.RemoveUnits, ParseUnary(lexer, workspace), lexer.Track(start));
+            }
             return ParseExponentiation(lexer, workspace);
         }
 

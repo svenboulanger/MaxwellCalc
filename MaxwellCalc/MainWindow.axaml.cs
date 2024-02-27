@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Parsers.Nodes;
@@ -17,6 +18,7 @@ namespace MaxwellCalc
         public MainWindow()
         {
             InitializeComponent();
+            Input.AttachedToVisualTree += (sender, args) => Input.Focus();
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
             _workspace = new Workspace();

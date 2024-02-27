@@ -38,112 +38,117 @@
         /// <summary>
         /// Division operator.
         /// </summary>
-        Divide = 1 << 7,
+        Divide = 1 << 6,
         
         /// <summary>
         /// Exponentiation/power operator.
         /// </summary>
-        Power = 1 << 8,
+        Power = 1 << 7,
         
         /// <summary>
         /// Modulo operator.
         /// </summary>
-        Modulo = 1 << 9,
+        Modulo = 1 << 8,
 
         /// <summary>
         /// Bitwise and.
         /// </summary>
-        BitwiseAnd = 1 << 10,
+        BitwiseAnd = 1 << 9,
 
         /// <summary>
         /// Bitwise or.
         /// </summary>
-        BitwiseOr = 1 << 11,
+        BitwiseOr = 1 << 10,
 
         /// <summary>
         /// Arithmetic shift.
         /// </summary>
-        ArithmeticShift = 1 << 12,
+        ArithmeticShift = 1 << 11,
 
         /// <summary>
         /// Integer division.
         /// </summary>
-        IntegerDivision = 1 << 13,
+        IntegerDivision = 1 << 12,
 
         /// <summary>
         /// Exclamation mark.
         /// </summary>
-        Exclamation = 1 << 14,
+        Exclamation = 1 << 13,
 
         /// <summary>
         /// Opening parenthesis.
         /// </summary>
-        OpenParenthesis = 1 << 15,
+        OpenParenthesis = 1 << 14,
         
         /// <summary>
         /// Closing parenthesis.
         /// </summary>
-        CloseParenthesis = 1 << 16,
+        CloseParenthesis = 1 << 15,
         
         /// <summary>
         /// Opening square bracket.
         /// </summary>
-        OpenSquareBracket = 1 << 17,
+        OpenSquareBracket = 1 << 16,
         
         /// <summary>
         /// Closing square bracket.
         /// </summary>
-        CloseSquareBracket = 1 << 18,
+        CloseSquareBracket = 1 << 17,
 
         /// <summary>
         /// An argument separator.
         /// </summary>
-        Separator = 1 << 19,
+        Separator = 1 << 18,
 
         /// <summary>
         /// A greater than.
         /// </summary>
-        GreaterThan = 1 << 20,
+        GreaterThan = 1 << 19,
 
         /// <summary>
         /// A greater than or equal sign.
         /// </summary>
-        GreaterThanOrEqual = 1 << 21,
+        GreaterThanOrEqual = 1 << 20,
 
         /// <summary>
         /// A less than.
         /// </summary>
-        LessThan = 1 << 22,
+        LessThan = 1 << 21,
 
         /// <summary>
         /// A less than or equal sign.
         /// </summary>
-        LessThanOrEqual = 1 << 23,
+        LessThanOrEqual = 1 << 22,
 
         /// <summary>
         /// Equality.
         /// </summary>
-        Equal = 1 << 24,
+        Equal = 1 << 23,
 
         /// <summary>
         /// Inequality.
         /// </summary>
-        NotEqual = 1 << 25,
+        NotEqual = 1 << 24,
 
         /// <summary>
         /// Question mark.
         /// </summary>
-        Question = 1 << 26,
+        Question = 1 << 25,
 
         /// <summary>
         /// Colon.
         /// </summary>
-        Colon = 1 << 27,
+        Colon = 1 << 26,
 
         /// <summary>
         /// Assignment sign.
         /// </summary>
-        Assignment = 1 << 28,
+        Assignment = 1 << 27,
+
+        /// <summary>
+        /// Quotation.
+        /// </summary>
+        Quote = 1 << 28,
 
         /// <summary>
         /// An unknown token.

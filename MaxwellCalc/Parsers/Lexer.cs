@@ -203,6 +203,12 @@ namespace MaxwellCalc.Parsers
                     Continue();
                     break;
 
+                case '\'':
+                case '"':
+                    Type = TokenTypes.Quote;
+                    Continue();
+                    break;
+
                 case char w when char.IsLetter(w):
                     Type = TokenTypes.Word;
                     Continue();

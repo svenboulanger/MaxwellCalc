@@ -14,7 +14,7 @@ namespace MaxwellCalc.Resolvers
         public Quantity<double> Default { get; } = new Quantity<double>(0.0, Unit.UnitNone);
 
         /// <inheritdoc />
-        public string Error { get; private set; } = string.Empty;
+        public string Error { get; set; } = string.Empty;
 
         /// <inheritdoc />
         public bool TryScalar(string scalar, IWorkspace<double> workspace, out Quantity<double> result)
@@ -59,6 +59,13 @@ namespace MaxwellCalc.Resolvers
         public bool TryMinus(Quantity<double> a, IWorkspace<double> workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(-a.Scalar, a.Unit);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryRemoveUnits(Quantity<double> a, IWorkspace<double> workspace, out Quantity<double> result)
+        {
+            result = new Quantity<double>(a.Scalar, Unit.UnitNone);
             return true;
         }
 

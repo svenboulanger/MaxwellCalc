@@ -19,5 +19,10 @@
         /// Factorial (a!).
         /// </summary>
         Factorial,
+
+        /// <summary>
+        /// Remove units operator ('a).
+        /// </summary>
+        RemoveUnits,
     }
 }

@@ -19,7 +19,7 @@ namespace MaxwellCalc.Resolvers
         /// <summary>
         /// Gets or sets the error message.
         /// </summary>
-        public string Error { get; }
+        public string Error { get; set; }
 
         /// <summary>
         /// Evaluates a scalar value.
@@ -65,6 +65,15 @@ namespace MaxwellCalc.Resolvers
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
         public bool TryMinus(Quantity<T> a, IWorkspace<T> workspace, out Quantity<T> result);
+
+        /// <summary>
+        /// Remove the units from al quantity.
+        /// </summary>
+        /// <param name="a">The argument.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveUnits(Quantity<T> a, IWorkspace<T> workspace, out Quantity<T> result);
 
         /// <summary>
         /// Evaluates the unary factorial operator.

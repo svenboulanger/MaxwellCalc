@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
@@ -35,11 +36,36 @@ namespace MaxwellCalc.Parsers.Nodes
                 return false;
             }
 
+            // If the argument is requested from something in different units, then let's convert it now!
+            if (Type == UnaryOperatorTypes.RemoveUnits && Argument is BinaryNode bn && bn.Type == BinaryOperatorTypes.InUnit)
+            {
+                if (!bn.Right.TryResolve(resolver, workspace, out var unit) ||
+                    !bn.Left.TryResolve(resolver, workspace, out var value))
+                {
+                    result = resolver.Default;
+                    return false;
+                }
+                else if (unit.Unit != value.Unit)
+                {
+                    resolver.Error = "Cannot convert units as units don't match.";
+                    result = resolver.Default;
+                    return false;
+                }
+                else
+                {
+                    if (!resolver.TryDivide(value, unit, workspace, out result))
+                        return false;
+                    result = new Quantity<T>(result.Scalar, Unit.UnitNone);
+                    return true;
+                }
+            }
+
             return Type switch
             {
                 UnaryOperatorTypes.Plus => resolver.TryPlus(arg, workspace, out result),
                 UnaryOperatorTypes.Minus => resolver.TryMinus(arg, workspace, out result),
                 UnaryOperatorTypes.Factorial => resolver.TryFactorial(arg, workspace, out result),
+                UnaryOperatorTypes.RemoveUnits => resolver.TryRemoveUnits(arg, workspace, out result),
                 _ => throw new NotImplementedException(),
             };
         }
