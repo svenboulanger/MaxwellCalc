@@ -5,6 +5,7 @@ using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
+using System.Linq;
 using System.Numerics;
 
 namespace MaxwellCalc
@@ -155,7 +156,10 @@ namespace MaxwellCalc
             // Use the history to repeat
             var item = WorkspacePanel.Children[_historyFill] as ResultBox;
             if (item is not null)
+            {
                 Input.Text = item.Input;
+                Input.CaretIndex = item.Input.Length;
+            }
         }
     }
 }

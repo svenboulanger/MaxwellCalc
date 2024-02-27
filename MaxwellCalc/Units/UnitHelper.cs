@@ -243,6 +243,20 @@ namespace MaxwellCalc.Units
             RegisterModifierUnits(workspace, "C",
                 1.0, new Unit((Unit.Ampere, 1), (Unit.Second, 1)));
 
+            // Coulomb meter - electric dipole moment
+            workspace.TryRegisterDerivedUnit(new Unit(
+                (Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, 1)),
+                1.0, new Unit(("C", 1), (Unit.Meter, 1)));
+
+            // Coulomb per meter - charge density
+            workspace.TryRegisterDerivedUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1)), 1.0, new Unit(("C", 1), (Unit.Meter, -1)));
+
+            // Coulomb per square meter - charge density
+            workspace.TryRegisterDerivedUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2)), 1.0, new Unit(("C", 1), (Unit.Meter, -2)));
+
+            // Coulomb per cubic meter - charge density
+            workspace.TryRegisterDerivedUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3)), 1.0, new Unit(("C", 1), (Unit.Meter, -3)));
+
             // Volts
             RegisterModifierUnits(workspace, "V",
                 1.0, new Unit(
@@ -251,7 +265,7 @@ namespace MaxwellCalc.Units
                     (Unit.Second, -3),
                     (Unit.Ampere, -1)));
 
-            // Electric field
+            // Volts per meter - electric field
             RegisterModifierDerivedUnits(workspace,
                 new Unit(
                     (Unit.Kilogram, 1),
@@ -259,6 +273,13 @@ namespace MaxwellCalc.Units
                     (Unit.Second, -3),
                     (Unit.Ampere, -1)),
                 1.0, new Unit(("V", 1), (Unit.Meter, -1)), "V");
+
+            // Volts per square meter - electric field gradient
+            workspace.TryRegisterDerivedUnit(new Unit(
+                    (Unit.Kilogram, 1),
+                    (Unit.Meter, 1),
+                    (Unit.Second, -3),
+                    (Unit.Ampere, -1)), 1.0, new Unit(("V", 1), (Unit.Meter, -2)));
             
             // Ampere
             RegisterModifierUnits(workspace, "A",
@@ -277,7 +298,14 @@ namespace MaxwellCalc.Units
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
                     (Unit.Second, -2)));
-            
+
+            // Joules seconds (Planck constant)
+            workspace.TryRegisterDerivedUnit(
+                new Unit(
+                    (Unit.Kilogram, 1),
+                    (Unit.Meter, 2),
+                    (Unit.Second, -1)), 1.0, new Unit(("J", 1), (Unit.Second, 1)));
+
             // Farad
             RegisterModifierUnits(workspace, "F",
                 1.0, new Unit(
@@ -309,6 +337,14 @@ namespace MaxwellCalc.Units
                     (Unit.Meter, 2),
                     (Unit.Second, -2),
                     (Unit.Ampere, -2)));
+
+            // Weber
+            RegisterModifierDerivedUnits(workspace, new Unit(
+                    (Unit.Kilogram, 1),
+                    (Unit.Meter, 2),
+                    (Unit.Second, -2),
+                    (Unit.Ampere, -1)),
+                    1.0, new Unit(("Wb", 1)), "Wb");
             
             // Ohm = A-2 kg m2 s-3
             RegisterModifierUnits(workspace, "ohm",
