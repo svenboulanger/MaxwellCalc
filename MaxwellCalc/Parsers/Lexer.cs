@@ -227,7 +227,7 @@ namespace MaxwellCalc.Parsers
                     }
 
                     // We might have an exponent after it.
-                    if (Char == 'e')
+                    if (Char == 'e' || Char == 'E')
                     {
                         char la = LookAhead(1);
                         if ((la == '+' || la == '-') &&
@@ -235,6 +235,13 @@ namespace MaxwellCalc.Parsers
                         {
                             Continue(); // Consume 'e'
                             Continue(); // Consume '+' or '-'
+                            Continue(); // Consume the digit
+                            while (char.IsDigit(Char))
+                                Continue();
+                        }
+                        else if (char.IsDigit(la))
+                        {
+                            Continue(); // Consume "e"
                             Continue(); // Consume the digit
                             while (char.IsDigit(Char))
                                 Continue();

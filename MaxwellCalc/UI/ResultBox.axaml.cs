@@ -107,16 +107,16 @@ public class ResultBox : TemplatedControl
             switch (quantity.Scalar)
             {
                 case double dbl:
-                    formatted = dbl.ToString();
+                    formatted = dbl.ToString("g10");
                     break;
 
                 case Complex cplx:
                     if (cplx.Imaginary.Equals(0.0))
-                        formatted = cplx.Real.ToString();
+                        formatted = cplx.Real.ToString("g10");
                     else if (cplx.Real.Equals(0.0))
-                        formatted = $"{cplx.Imaginary} i";
+                        formatted = $"{cplx.Imaginary:g10} i";
                     else
-                        formatted = $"{cplx.Real} + {cplx.Imaginary} i";
+                        formatted = $"{cplx.Real:g10} + {cplx.Imaginary:g10} i";
                     break;
 
                 default:

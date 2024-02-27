@@ -21,7 +21,7 @@ namespace MaxwellCalc
 
             _workspace = new Workspace();
             UnitHelper.RegisterSIUnits(_workspace);
-            UnitHelper.RegisterShortSIUnits(_workspace);
+            UnitHelper.RegisterCommonUnits(_workspace);
             UnitHelper.RegisterCommonElectronicsUnits(_workspace);
 
             RealHelper.RegisterCommonConstants(_workspace);

@@ -27,49 +27,6 @@ namespace MaxwellCalc.Units
         }
 
         /// <summary>
-        /// Register shorthand SI units.
-        /// </summary>
-        /// <param name="workspace">The workspace.</param>
-        public static void RegisterShortSIUnits(IWorkspace<double> workspace)
-        {
-            // Length
-            RegisterModifierUnits(workspace, "m", 1.0, Unit.UnitMeter);
-            workspace.TryRegisterInputUnit("cm", 1e-2, Unit.UnitMeter);
-
-            // Mass
-            workspace.TryRegisterInputUnit("ng", 1e-12, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("ug", 1e-9, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("mg", 1e-6, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("g", 1e-3, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("kg", 1.0, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("ton", 1e3, Unit.UnitKilogram);
-
-            // Time
-            RegisterModifierUnits(workspace, "s", 1.0, Unit.UnitSeconds,
-                atto: false, kilo: false, mega: false, giga: false, tera: false, peta: false);
-            workspace.TryRegisterInputUnit("min", 60.0, Unit.UnitSeconds);
-            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 60.0, new Unit(("min", 1)));
-            workspace.TryRegisterInputUnit("hour", 3600.0, Unit.UnitSeconds);
-            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 3600.0, new Unit(("hour", 1)));
-            workspace.TryRegisterInputUnit("day", 24.0 * 3600.0, Unit.UnitSeconds);
-            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 24.0 / 3600.0, new Unit(("day", 1)));
-
-            // Ampere
-            RegisterModifierUnits(workspace, "A", 1.0, Unit.UnitAmperes);
-
-            // Kelvin
-            workspace.TryRegisterInputUnit("mK", 1e-3, Unit.UnitKelvin);
-            workspace.TryRegisterInputUnit("K", 1.0, Unit.UnitKelvin);
-
-            // Candela
-            workspace.TryRegisterInputUnit("cd", 1.0, Unit.UnitCandela);
-
-            // Angle
-            workspace.TryRegisterInputUnit("rad", 1.0, Unit.UnitRadian);
-            workspace.TryRegisterInputUnit("deg", Math.PI / 180.0, Unit.UnitRadian);
-        }
-
-        /// <summary>
         /// Registers a unit for both input and output, such that
         /// <paramref name="key"/> = <paramref name="modifier"/> * <paramref name="value"/>.
         /// </summary>
@@ -114,6 +71,7 @@ namespace MaxwellCalc.Units
             bool nano = true,
             bool micro = true,
             bool milli = true,
+            bool centi = false,
             bool kilo = true,
             bool mega = true,
             bool giga = true,
@@ -139,6 +97,8 @@ namespace MaxwellCalc.Units
                 Add($"u{name}", 1e-6 * modifier, unit);
             if (milli)
                 Add($"m{name}", 1e-3 * modifier, unit);
+            if (centi)
+                Add($"c{name}", 1e-2 * modifier, unit);
             workspace.TryRegisterInputUnit(name, modifier, unit);
             workspace.TryRegisterDerivedUnit(unit, 1.0 / modifier, new Unit((name, 1)));
             if (kilo)
@@ -184,7 +144,7 @@ namespace MaxwellCalc.Units
             bool mega = true,
             bool giga = true,
             bool tera = true,
-            bool peta = true)
+            bool peta = false)
         {
             if (value.Dimension is null)
                 throw new ArgumentException("Dimension cannot be null", nameof(value));
@@ -223,6 +183,54 @@ namespace MaxwellCalc.Units
                 Add("T", 1e12);
             if (peta)
                 Add("P", 1e15);
+        }
+
+        /// <summary>
+        /// Registers common units.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        public static void RegisterCommonUnits(IWorkspace<double> workspace)
+        {
+            // Length
+            RegisterModifierUnits(workspace, "m", 1.0, Unit.UnitMeter,
+                centi: true, mega: false, giga: false, peta: false);
+
+            // Speed
+            RegisterModifierDerivedUnits(workspace,
+                new Unit((Unit.Meter, 1), (Unit.Second, -1)), 1.0, new Unit((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter,
+                centi: true, mega: false, giga: false, peta: false);
+
+            // Mass
+            workspace.TryRegisterInputUnit("ng", 1e-12, Unit.UnitKilogram);
+            workspace.TryRegisterInputUnit("ug", 1e-9, Unit.UnitKilogram);
+            workspace.TryRegisterInputUnit("mg", 1e-6, Unit.UnitKilogram);
+            workspace.TryRegisterInputUnit("g", 1e-3, Unit.UnitKilogram);
+            workspace.TryRegisterInputUnit("kg", 1.0, Unit.UnitKilogram);
+            workspace.TryRegisterInputUnit("ton", 1e3, Unit.UnitKilogram);
+
+            // Time
+            RegisterModifierUnits(workspace, "s", 1.0, Unit.UnitSeconds,
+                atto: false, kilo: false, mega: false, giga: false, tera: false, peta: false);
+            workspace.TryRegisterInputUnit("min", 60.0, Unit.UnitSeconds);
+            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 60.0, new Unit(("min", 1)));
+            workspace.TryRegisterInputUnit("hour", 3600.0, Unit.UnitSeconds);
+            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 3600.0, new Unit(("hour", 1)));
+            workspace.TryRegisterInputUnit("day", 24.0 * 3600.0, Unit.UnitSeconds);
+            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 24.0 / 3600.0, new Unit(("day", 1)));
+
+            // Ampere
+            RegisterModifierUnits(workspace, "A", 1.0, Unit.UnitAmperes);
+
+            // Kelvin
+            workspace.TryRegisterInputUnit("mK", 1e-3, Unit.UnitKelvin);
+            workspace.TryRegisterInputUnit("K", 1.0, Unit.UnitKelvin);
+
+            // Candela
+            workspace.TryRegisterInputUnit("cd", 1.0, Unit.UnitCandela);
+
+            // Angle
+            workspace.TryRegisterInputUnit("rad", 1.0, Unit.UnitRadian);
+            workspace.TryRegisterInputUnit("deg", Math.PI / 180.0, Unit.UnitRadian);
         }
 
         /// <summary>

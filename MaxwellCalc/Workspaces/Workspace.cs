@@ -278,8 +278,8 @@ namespace MaxwellCalc.Workspaces
         private static void TrackBestScalar(Complex scalar, double modifier, Unit unit, ref Complex bestComplexScalar, ref Unit bestUnit)
         {
             var mult = scalar * modifier;
-            double newScalar = Math.Max(mult.Real, mult.Imaginary);
-            double bestScalar = Math.Max(bestComplexScalar.Real, bestComplexScalar.Imaginary);
+            double newScalar = Math.Max(Math.Abs(mult.Real), Math.Abs(mult.Imaginary));
+            double bestScalar = Math.Max(Math.Abs(bestComplexScalar.Real), Math.Abs(bestComplexScalar.Imaginary));
             if (double.IsNaN(bestScalar))
             {
                 bestComplexScalar = mult;
