@@ -17,7 +17,21 @@ namespace MaxwellCalc.Parsers
         /// <param name="workspace">The workspace.</param>
         /// <returns>Returns the node.</returns>
         public static INode Parse(Lexer lexer, IWorkspace workspace)
-            => ParseUnitConversion(lexer, workspace);
+            => ParseAssignment(lexer, workspace);
+
+        private static INode ParseAssignment(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Column;
+            var result = ParseUnitConversion(lexer, workspace);
+            if (lexer.Type == TokenTypes.Assignment)
+            {
+                // Right associative
+                lexer.Next();
+                var b = ParseAssignment(lexer, workspace);
+                result = new BinaryNode(BinaryOperatorTypes.Assign, result, b, lexer.Track(start));
+            }
+            return result;
+        }
 
         private static INode ParseUnitConversion(Lexer lexer, IWorkspace workspace)
         {
@@ -124,7 +138,7 @@ namespace MaxwellCalc.Parsers
                     case TokenTypes.OpenParenthesis:
                         // Implicit multiplication
                         lexer.Next();
-                        b = ParseUnitConversion(lexer, workspace);
+                        b = ParseAssignment(lexer, workspace);
                         if (lexer.Type != TokenTypes.CloseParenthesis)
                             throw new ArgumentException("Unclosed parenthesis");
                         lexer.Next();
@@ -202,7 +216,7 @@ namespace MaxwellCalc.Parsers
             if (lexer.Type == TokenTypes.OpenParenthesis)
             {
                 lexer.Next();
-                var result = ParseUnitConversion(lexer, workspace);
+                var result = ParseAssignment(lexer, workspace);
                 if (lexer.Type != TokenTypes.CloseParenthesis)
                     throw new ArgumentException("Unclosed parenthesis");
                 lexer.Next();
@@ -245,12 +259,12 @@ namespace MaxwellCalc.Parsers
                     {
                         var arguments = new List<INode>
                         {
-                            ParseUnitConversion(lexer, workspace)
+                            ParseAssignment(lexer, workspace)
                         };
                         while (lexer.Type == TokenTypes.Separator)
                         {
                             lexer.Next();
-                            arguments.Add(ParseUnitConversion(lexer, workspace));
+                            arguments.Add(ParseAssignment(lexer, workspace));
                         }
                         if (lexer.Type != TokenTypes.CloseParenthesis)
                             throw new ArgumentException("Unclosed parenthesis");

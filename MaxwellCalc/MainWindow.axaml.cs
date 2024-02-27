@@ -85,6 +85,7 @@ namespace MaxwellCalc
                 if (!bn.Right.TryResolve(resolver, _workspace, out var unit) ||
                     !bn.Left.TryResolve(resolver, _workspace, out var value))
                 {
+                    ((IWorkspace<Complex>)_workspace).TrySetVariable("ans", resolver.Default);
                     rb = new ResultBox()
                     {
                         Input = input,
@@ -93,6 +94,7 @@ namespace MaxwellCalc
                 }
                 else if (unit.Unit != value.Unit)
                 {
+                    ((IWorkspace<Complex>)_workspace).TrySetVariable("ans", resolver.Default);
                     rb = new ResultBox()
                     {
                         Input = input,
@@ -101,6 +103,7 @@ namespace MaxwellCalc
                 }
                 else
                 {
+                    ((IWorkspace<Complex>)_workspace).TrySetVariable("ans", value);
                     var result = new Quantity<Complex>(
                         value.Scalar / unit.Scalar,
                         new((bn.Right.Content.ToString(), 1)));
@@ -121,6 +124,7 @@ namespace MaxwellCalc
             }
             else
             {
+                ((IWorkspace<Complex>)_workspace).TrySetVariable("ans", result);
                 ((IWorkspace<Complex>)_workspace).TryResolveNaming(result, out result);
                 rb = new ResultBox()
                 {

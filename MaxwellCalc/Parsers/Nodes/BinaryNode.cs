@@ -35,6 +35,31 @@ namespace MaxwellCalc.Parsers.Nodes
         /// <inheritdoc />
         public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T> workspace, out Quantity<T> result)
         {
+            // Assignment is special
+            if (Type == BinaryOperatorTypes.Assign)
+            {
+                if (Left is VariableNode variable)
+                {
+                    if (!Right.TryResolve(resolver, workspace, out result) ||
+                        !workspace.TrySetVariable(variable.Content.ToString(), result))
+                    {
+                        result = resolver.Default;
+                        return false;
+                    }
+                    return true;
+                }
+                else if (Left is FunctionNode function)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    resolver.Error = "Can only assign to variables or functions.";
+                    result = resolver.Default;
+                    return false;
+                }
+            }
+
             // Evaluate the left argument
             if (!Left.TryResolve(resolver, workspace, out var left) ||
                 !Right.TryResolve(resolver, workspace, out var right))

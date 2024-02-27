@@ -94,5 +94,10 @@
         /// Inequality (a != b).
         /// </summary>
         NotEqual,
+
+        /// <summary>
+        /// Assignment.
+        /// </summary>
+        Assign,
     }
 }
