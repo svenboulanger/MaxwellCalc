@@ -18,10 +18,7 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Gets a dictionary of variables.
         /// </summary>
-        public Dictionary<string, IQuantity> Variables { get; } = new() {
-            { "pi", new Quantity<double>(Math.PI, Unit.UnitNone) },
-            { "e", new Quantity<double>(Math.E, Unit.UnitNone) },
-        };
+        public Dictionary<string, IQuantity> Variables { get; } = [];
 
         /// <summary>
         /// Gets a dictionary of functions that work on real quantities.
@@ -32,6 +29,18 @@ namespace MaxwellCalc.Workspaces
         /// Gets a dictionary of functions that work on complex quantities.
         /// </summary>
         public Dictionary<string, IWorkspace<Complex>.FunctionDelegate> ComplexFunctions { get; } = [];
+
+        /// <summary>
+        /// Clears all variables, units and functions.
+        /// </summary>
+        public void Clear()
+        {
+            _inputUnits.Clear();
+            _outputUnits.Clear();
+            Variables.Clear();
+            RealFunctions.Clear();
+            ComplexFunctions.Clear();
+        }
 
         /// <inheritdoc />
         public bool IsUnit(string name) => _inputUnits.ContainsKey(name);

@@ -118,7 +118,7 @@ namespace MaxwellCalc.Units
             bool mega = true,
             bool giga = true,
             bool tera = true,
-            bool peta = true)
+            bool peta = false)
         {
             void Add(string n, double m, Unit u)
             {
@@ -179,6 +179,7 @@ namespace MaxwellCalc.Units
             bool nano = true,
             bool micro = true,
             bool milli = true,
+            bool centi = false,
             bool kilo = true,
             bool mega = true,
             bool giga = true,
@@ -209,6 +210,8 @@ namespace MaxwellCalc.Units
                 Add("u", 1e-6);
             if (milli)
                 Add("m", 1e-3);
+            if (centi)
+                Add("c", 1e-2);
             workspace.TryRegisterDerivedUnit(key, modifier, value);
             if (kilo)
                 Add("k", 1e3);
@@ -226,7 +229,7 @@ namespace MaxwellCalc.Units
         /// Registers common units used by electrical/electronics engineers.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        public static void RegisterCommonElectricalUnits(IWorkspace<double> workspace)
+        public static void RegisterCommonElectronicsUnits(IWorkspace<double> workspace)
         {
             // Coulomb
             RegisterModifierUnits(workspace, "C",
@@ -274,7 +277,23 @@ namespace MaxwellCalc.Units
                     (Unit.Meter, -2),
                     (Unit.Second, 4),
                     (Unit.Ampere, 2)));
-            
+
+            // Farad per meter
+            RegisterModifierDerivedUnits(workspace,
+                new Unit(
+                    (Unit.Kilogram, -1),
+                    (Unit.Meter, -3),
+                    (Unit.Second, 4),
+                    (Unit.Ampere, 2)), 1.0, new Unit(("F", 1), (Unit.Meter, -1)), Unit.Meter, centi: true);
+
+            // Farad per square meter
+            RegisterModifierDerivedUnits(workspace,
+                new Unit(
+                    (Unit.Kilogram, -1),
+                    (Unit.Meter, -4),
+                    (Unit.Second, 4),
+                    (Unit.Ampere, 2)), 1.0, new Unit(("F", 1), (Unit.Meter, -2)), Unit.Meter, centi: true);
+
             // Henry
             RegisterModifierUnits(workspace, "H",
                 1.0, new Unit(

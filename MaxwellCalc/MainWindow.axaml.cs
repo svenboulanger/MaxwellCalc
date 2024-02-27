@@ -12,11 +12,23 @@ namespace MaxwellCalc
     {
         private int _historyFill = -1;
         private string _tmpLastInput = string.Empty;
+        private readonly Workspace _workspace = new();
 
         public MainWindow()
         {
             InitializeComponent();
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+
+            _workspace = new Workspace();
+            UnitHelper.RegisterSIUnits(_workspace);
+            UnitHelper.RegisterShortSIUnits(_workspace);
+            UnitHelper.RegisterCommonElectronicsUnits(_workspace);
+
+            RealHelper.RegisterCommonConstants(_workspace);
+            RealHelper.RegisterCommonElectronicsConstants(_workspace);
+
+            RealMathHelper.RegisterFunctions(_workspace);
+            ComplexMathHelper.RegisterFunctions(_workspace);
         }
 
         private void Input_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -61,20 +73,14 @@ namespace MaxwellCalc
 
             // Lexer
             var lexer = new Lexer(input);
-            var workspace = new Workspace();
-            UnitHelper.RegisterSIUnits(workspace);
-            UnitHelper.RegisterShortSIUnits(workspace);
-            UnitHelper.RegisterCommonElectricalUnits(workspace);
-            RealMathHelper.RegisterFunctions(workspace);
-            ComplexMathHelper.RegisterFunctions(workspace);
-            var resultNode = Parser.Parse(lexer, workspace);
+            var resultNode = Parser.Parse(lexer, _workspace);
             var resolver = new ComplexResolver();
             ResultBox rb;
 
             if (resultNode is BinaryNode bn && bn.Type == BinaryOperatorTypes.InUnit)
             {
-                if (!bn.Right.TryResolve(resolver, workspace, out var unit) ||
-                    !bn.Left.TryResolve(resolver, workspace, out var value))
+                if (!bn.Right.TryResolve(resolver, _workspace, out var unit) ||
+                    !bn.Left.TryResolve(resolver, _workspace, out var value))
                 {
                     rb = new ResultBox()
                     {
@@ -102,7 +108,7 @@ namespace MaxwellCalc
                     };
                 }
             }
-            else if (!resultNode.TryResolve(resolver, workspace, out var result))
+            else if (!resultNode.TryResolve(resolver, _workspace, out var result))
             {
                 rb = new ResultBox()
                 {
@@ -112,7 +118,7 @@ namespace MaxwellCalc
             }
             else
             {
-                ((IWorkspace<Complex>)workspace).TryResolveNaming(result, out result);
+                ((IWorkspace<Complex>)_workspace).TryResolveNaming(result, out result);
                 rb = new ResultBox()
                 {
                     Input = input,
