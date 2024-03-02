@@ -123,6 +123,14 @@ namespace MaxwellCalc.Units
         /// <inheritdoc />
         public bool Equals(Unit other)
         {
+            if (Dimension is null)
+            {
+                if (other.Dimension is null)
+                    return true;
+                return false;
+            }
+            else if (other.Dimension is null)
+                return false;
             if (Dimension.Count != other.Dimension.Count)
                 return false;
             foreach (var pair in Dimension)

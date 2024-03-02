@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:MaxwellCalc">
+  <Design.PreviewWith>
+    <controls:BaseUnit />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|BaseUnit">
+    <Setter Property="BorderBrush" Value="{DynamicResource ResultBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource ResultBackground}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource ResultFontFamily}"/>
+    <Setter Property="InputForeground" Value="{DynamicResource ResultInputForeground}"/>
+    <Setter Property="OutputForeground" Value="{DynamicResource ResultOutputForeground}"/>
+
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Margin="2"
+                Padding="2">
+          <SelectableTextBlock Foreground="{TemplateBinding Foreground}"
+                               Text="{TemplateBinding Unit}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

@@ -4,6 +4,7 @@ using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
+using System;
 using System.Numerics;
 using System.Text.Json;
 
@@ -14,6 +15,7 @@ namespace MaxwellCalc
         private int _historyFill = -1;
         private string _tmpLastInput = string.Empty;
         private readonly Workspace _workspace = new();
+        private SettingsWindow? _settings = null;
 
         public MainWindow()
         {
@@ -162,6 +164,19 @@ namespace MaxwellCalc
             {
                 Input.Text = item.Input;
                 Input.CaretIndex = item.Input.Length;
+            }
+        }
+
+        private void OpenUnitSettings(object? sender, Avalonia.Interactivity.RoutedEventArgs args)
+        {
+            if (_settings is null)
+            {
+                _settings = new SettingsWindow()
+                {
+                    Workspace = _workspace
+                };
+                _settings.Closed += (sender, args) => _settings = null;
+                _settings.Show();
             }
         }
     }

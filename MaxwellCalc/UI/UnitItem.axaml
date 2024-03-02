@@ -1,0 +1,31 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:controls="using:MaxwellCalc">
+  <Design.PreviewWith>
+    <controls:UnitItem />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|UnitItem">
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="#eef" CornerRadius="4" Margin="2">
+          <Grid RowDefinitions="*" ColumnDefinitions="*,auto" Margin="3">
+            
+            <SelectableTextBlock
+              Name ="DescriptionBlock"
+              Foreground="{TemplateBinding UnitForeground}"
+              VerticalAlignment="Center"
+              FontWeight="Bold"
+              Grid.Column="0" />
+
+            <Button Grid.Column="1" Margin="5, 0, 0, 0" Name="RemoveButton">
+              <PathIcon Width="{TemplateBinding FontSize}" Height="{TemplateBinding FontSize}" Data="{StaticResource trash}"/>
+            </Button>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

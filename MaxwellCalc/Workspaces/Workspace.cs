@@ -1,8 +1,10 @@
 ﻿using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace MaxwellCalc.Workspaces
@@ -14,8 +16,8 @@ namespace MaxwellCalc.Workspaces
         IWorkspace<double>,
         IWorkspace<Complex>
     {
-        private readonly Dictionary<string, (double, Unit)> _inputUnits = [];
-        private readonly Dictionary<Unit, HashSet<(double, Unit)>> _outputUnits = [];
+        private readonly Dictionary<string, Quantity<double>> _inputUnits = [];
+        private readonly Dictionary<Unit, HashSet<Quantity<double>>> _outputUnits = [];
         private readonly Stack<VariableScope> _scope = new();
 
         /// <inheritdoc />
@@ -26,6 +28,22 @@ namespace MaxwellCalc.Workspaces
 
         /// <inheritdoc />
         IVariableScope<Complex> IWorkspace<Complex>.Variables => _scope.Peek();
+
+        /// <inheritdoc />
+        IEnumerable<(string, Quantity<double>)> IWorkspace<double>.InputUnits
+            => _inputUnits.Select(p => (p.Key, p.Value));
+
+        /// <inheritdoc />
+        IEnumerable<(Unit, Quantity<double>)> IWorkspace<double>.OutputUnits
+            => _outputUnits.SelectMany(p => p.Value.Select(p2 => (p.Key, p2)));
+
+        /// <inheritdoc />
+        IEnumerable<(string, Quantity<Complex>)> IWorkspace<Complex>.InputUnits
+            => _inputUnits.Select(p => (p.Key, new Quantity<Complex>(p.Value.Scalar, p.Value.Unit)));
+
+        /// <inheritdoc />
+        IEnumerable<(Unit, Quantity<Complex>)> IWorkspace<Complex>.OutputUnits
+            => _outputUnits.SelectMany(p => p.Value.Select(p2 => (p.Key, new Quantity<Complex>(p2.Scalar, p2.Unit))));
 
         /// <summary>
         /// Gets a dictionary of functions that work on real quantities.
@@ -66,44 +84,54 @@ namespace MaxwellCalc.Workspaces
         public bool IsUnit(string name) => _inputUnits.ContainsKey(name);
 
         /// <inheritdoc />
-        public bool TryRegisterInputUnit(string name, double modifier, Unit unit)
+        public bool TryRegisterInputUnit(string name, Quantity<double> quantity)
         {
-            _inputUnits[name] = (modifier, unit);
+            _inputUnits[name] = quantity;
             return true;
         }
 
+        public bool TryRemoveInputUnit(string name)
+            => _inputUnits.Remove(name);
+
         /// <inheritdoc />
-        public bool TryRegisterDerivedUnit(Unit key, double modifier, Unit value)
+        public bool TryRegisterOutputUnit(Unit key, Quantity<double> quantity)
         {
             if (!_outputUnits.TryGetValue(key, out var list))
             {
                 list = [];
                 _outputUnits.Add(key, list);
             }
-            list.Add((modifier, value));
+            list.Add(quantity);
             return true;
         }
 
         /// <inheritdoc />
+        public bool TryRemoveOutputUnit(Unit key, Quantity<double> quantity)
+        {
+            if (!_outputUnits.TryGetValue(key, out var set))
+                return false;
+            if (!set.Remove(quantity))
+                return false;
+
+            if (set.Count == 0)
+                _outputUnits.Remove(key);
+            return true;
+        }
         bool IWorkspace<double>.TryGetUnit(string name, out Quantity<double> result)
         {
             if (_inputUnits.TryGetValue(name, out var found))
             {
-                result = new Quantity<double>(found.Item1, found.Item2);
+                result = found;
                 return true;
             }
             result = new Quantity<double>(double.NaN, Unit.UnitNone);
             return false;
         }
-
-        /// <inheritdoc />
         bool IWorkspace<double>.TryRegisterFunction(string name, IWorkspace<double>.FunctionDelegate function)
         {
             RealFunctions[name] = function;
             return true;
         }
-
-        /// <inheritdoc />
         bool IWorkspace<double>.TryFunction(string name, IReadOnlyList<Quantity<double>> arguments, IResolver<double> resolver, out Quantity<double> result)
         {
             if (UserFunctions.TryGetValue((name, arguments.Count), out var userFunction))
@@ -168,7 +196,6 @@ namespace MaxwellCalc.Workspaces
             }
         }
 
-        /// <inheritdoc />
         bool IWorkspace<double>.TryResolveNaming(Quantity<double> quantity, out Quantity<double> result)
         {
             if (quantity.Unit.Dimension is null || quantity.Unit.Dimension.Count == 0)
@@ -189,50 +216,34 @@ namespace MaxwellCalc.Workspaces
             double scalar = Math.Abs(quantity.Scalar);
             double bestScalar = double.NaN;
             Unit bestUnit = quantity.Unit;
-            foreach (var pair in eligible)
+            foreach (var q in eligible)
             {
-                TrackBestScalar(scalar, pair.Item1, pair.Item2, ref bestScalar, ref bestUnit);
+                TrackBestScalar(scalar, q.Scalar, q.Unit, ref bestScalar, ref bestUnit);
             }
 
             // Make a quantity for it
             result = new Quantity<double>(bestScalar, bestUnit);
             return true;
         }
-
-        /// <inheritdoc />
         bool IWorkspace<Complex>.TryGetUnit(string name, out Quantity<Complex> result)
         {
             if (_inputUnits.TryGetValue(name, out var found))
             {
-                result = new Quantity<Complex>(found.Item1, found.Item2);
+                result = new Quantity<Complex>(found.Scalar, found.Unit);
                 return true;
             }
             result = new Quantity<Complex>(double.NaN, Unit.UnitNone);
             return false;
         }
-
-        /// <inheritdoc />
-        bool IWorkspace<Complex>.TryRegisterInputUnit(string name, Complex modifier, Unit unit)
-        {
-            // We will share units with doubles
-            return false;
-        }
-
-        /// <inheritdoc />
-        bool IWorkspace<Complex>.TryRegisterDerivedUnit(Unit key, Complex modifier, Unit value)
-        {
-            // We will share units with doubles
-            return false;
-        }
-
-        /// <inheritdoc />
+        bool IWorkspace<Complex>.TryRegisterInputUnit(string name, Quantity<Complex> quantity) => false;
+        bool IWorkspace<Complex>.TryRemoveInputUnit(string name) => false;
+        bool IWorkspace<Complex>.TryRegisterOutputUnit(Unit key, Quantity<Complex> quantity) => false;
+        bool IWorkspace<Complex>.TryRemoveOutputUnit(Unit key, Quantity<System.Numerics.Complex> quantity) => false;
         bool IWorkspace<Complex>.TryRegisterFunction(string name, IWorkspace<Complex>.FunctionDelegate function)
         {
             ComplexFunctions[name] = function;
             return true;
         }
-
-        /// <inheritdoc />
         bool IWorkspace<Complex>.TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, IResolver<Complex> resolver, out Quantity<Complex> result)
         {
             if (UserFunctions.TryGetValue((name, arguments.Count), out var userFunction))
@@ -257,7 +268,6 @@ namespace MaxwellCalc.Workspaces
             result = default;
             return false;
         }
-
 
         private static void TrackBestScalar(Complex scalar, double modifier, Unit unit, ref Complex bestComplexScalar, ref Unit bestUnit)
         {
@@ -301,7 +311,6 @@ namespace MaxwellCalc.Workspaces
             }
         }
 
-        /// <inheritdoc />
         bool IWorkspace<Complex>.TryResolveNaming(Quantity<Complex> quantity, out Quantity<Complex> result)
         {
             if (quantity.Unit.Dimension is null || quantity.Unit.Dimension.Count == 0)
@@ -322,9 +331,9 @@ namespace MaxwellCalc.Workspaces
             Complex scalar = quantity.Scalar;
             Complex bestScalar = double.NaN;
             Unit bestUnit = quantity.Unit;
-            foreach (var pair in eligible)
+            foreach (var q in eligible)
             {
-                TrackBestScalar(scalar, pair.Item1, pair.Item2, ref bestScalar, ref bestUnit);
+                TrackBestScalar(scalar, q.Scalar, q.Unit, ref bestScalar, ref bestUnit);
             }
 
             // Make a quantity for it

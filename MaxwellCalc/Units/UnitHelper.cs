@@ -15,15 +15,15 @@ namespace MaxwellCalc.Units
         /// <param name="workspace">The workspace.</param>
         public static void RegisterSIUnits(IWorkspace<double> workspace)
         {
-            workspace.TryRegisterInputUnit("meter", 1.0, Unit.UnitMeter);
-            workspace.TryRegisterInputUnit("kilogram", 1.0, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("second", 1.0, Unit.UnitSeconds);
-            workspace.TryRegisterInputUnit("mol", 1.0, Unit.UnitMole);
-            workspace.TryRegisterInputUnit("ampere", 1.0, Unit.UnitAmperes);
-            workspace.TryRegisterInputUnit("kelvin", 1.0, Unit.UnitKelvin);
-            workspace.TryRegisterInputUnit("candela", 1.0, Unit.UnitCandela);
-            workspace.TryRegisterInputUnit("radian", 1.0, Unit.UnitRadian);
-            workspace.TryRegisterInputUnit("degree", Math.PI / 180.0, Unit.UnitRadian);
+            workspace.TryRegisterInputUnit("meter", new Quantity<double>(1.0, Unit.UnitMeter));
+            workspace.TryRegisterInputUnit("kilogram", new Quantity<double>(1.0, Unit.UnitKilogram));
+            workspace.TryRegisterInputUnit("second", new Quantity<double>(1.0, Unit.UnitSeconds));
+            workspace.TryRegisterInputUnit("mol", new Quantity<double>(1.0, Unit.UnitMole));
+            workspace.TryRegisterInputUnit("ampere", new Quantity<double>(1.0, Unit.UnitAmperes));
+            workspace.TryRegisterInputUnit("kelvin", new Quantity<double>(1.0, Unit.UnitKelvin));
+            workspace.TryRegisterInputUnit("candela", new Quantity<double>(1.0, Unit.UnitCandela));
+            workspace.TryRegisterInputUnit("radian", new Quantity<double>(1.0, Unit.UnitRadian));
+            workspace.TryRegisterInputUnit("degree", new Quantity<double>(Math.PI / 180.0, Unit.UnitRadian));
         }
 
         /// <summary>
@@ -40,8 +40,8 @@ namespace MaxwellCalc.Units
             if (value.Dimension.Count != 1)
                 throw new ArgumentException("Expected a unit with one dimension", nameof(value));
             string name = value.Dimension.First().Key;
-            workspace.TryRegisterInputUnit(name, 1.0 / modifier, key);
-            workspace.TryRegisterDerivedUnit(key, modifier, value);
+            workspace.TryRegisterInputUnit(name, new Quantity<double>(1.0 / modifier, key));
+            workspace.TryRegisterOutputUnit(key, new Quantity<double>(modifier, value));
         }
 
         /// <summary>
@@ -80,9 +80,9 @@ namespace MaxwellCalc.Units
         {
             void Add(string n, double m, Unit u)
             {
-                workspace.TryRegisterInputUnit(n, m, u);
+                workspace.TryRegisterInputUnit(n, new Quantity<double>(m, u));
                 if (includeOutputs)
-                    workspace.TryRegisterDerivedUnit(u, 1.0 / m, new Unit((n, 1)));
+                    workspace.TryRegisterOutputUnit(u, new Quantity<double>(1.0 / m, new Unit((n, 1))));
             }
 
             if (atto)
@@ -99,8 +99,8 @@ namespace MaxwellCalc.Units
                 Add($"m{name}", 1e-3 * modifier, unit);
             if (centi)
                 Add($"c{name}", 1e-2 * modifier, unit);
-            workspace.TryRegisterInputUnit(name, modifier, unit);
-            workspace.TryRegisterDerivedUnit(unit, 1.0 / modifier, new Unit((name, 1)));
+            workspace.TryRegisterInputUnit(name, new Quantity<double>(modifier, unit));
+            workspace.TryRegisterOutputUnit(unit, new Quantity<double>(1.0 / modifier, new Unit((name, 1))));
             if (kilo)
                 Add($"k{name}", 1e3 * modifier, unit);
             if (mega)
@@ -155,7 +155,7 @@ namespace MaxwellCalc.Units
                 // Create a modified unit for this modifier
                 double nm = modifier * Math.Pow(m, -power);
                 var nu = new Unit(value.Dimension.Select(p => (p.Key == dimension ? $"{prefix}{p.Key}" : p.Key, p.Value)).ToArray());
-                workspace.TryRegisterDerivedUnit(key, nm, nu);
+                workspace.TryRegisterOutputUnit(key, new Quantity<double>(nm, nu));
             }
 
             if (atto)
@@ -172,7 +172,7 @@ namespace MaxwellCalc.Units
                 Add("m", 1e-3);
             if (centi)
                 Add("c", 1e-2);
-            workspace.TryRegisterDerivedUnit(key, modifier, value);
+            workspace.TryRegisterOutputUnit(key, new Quantity<double>(modifier, value));
             if (kilo)
                 Add("k", 1e3);
             if (mega)
@@ -201,36 +201,36 @@ namespace MaxwellCalc.Units
                 centi: true, mega: false, giga: false, peta: false);
 
             // Mass
-            workspace.TryRegisterInputUnit("ng", 1e-12, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("ug", 1e-9, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("mg", 1e-6, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("g", 1e-3, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("kg", 1.0, Unit.UnitKilogram);
-            workspace.TryRegisterInputUnit("ton", 1e3, Unit.UnitKilogram);
+            workspace.TryRegisterInputUnit("ng", new Quantity<double>(1e-12, Unit.UnitKilogram));
+            workspace.TryRegisterInputUnit("ug", new Quantity<double>(1e-9, Unit.UnitKilogram));
+            workspace.TryRegisterInputUnit("mg", new Quantity<double>(1e-6, Unit.UnitKilogram));
+            workspace.TryRegisterInputUnit("g", new Quantity<double>(1e-3, Unit.UnitKilogram));
+            workspace.TryRegisterInputUnit("kg", new Quantity<double>(1.0, Unit.UnitKilogram));
+            workspace.TryRegisterInputUnit("ton", new Quantity<double>(1e3, Unit.UnitKilogram));
 
             // Time
             RegisterModifierUnits(workspace, "s", 1.0, Unit.UnitSeconds,
                 atto: false, kilo: false, mega: false, giga: false, tera: false, peta: false);
-            workspace.TryRegisterInputUnit("min", 60.0, Unit.UnitSeconds);
-            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 60.0, new Unit(("min", 1)));
-            workspace.TryRegisterInputUnit("hour", 3600.0, Unit.UnitSeconds);
-            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 3600.0, new Unit(("hour", 1)));
-            workspace.TryRegisterInputUnit("day", 24.0 * 3600.0, Unit.UnitSeconds);
-            workspace.TryRegisterDerivedUnit(Unit.UnitSeconds, 1.0 / 24.0 / 3600.0, new Unit(("day", 1)));
+            workspace.TryRegisterInputUnit("min", new Quantity<double>(60.0, Unit.UnitSeconds));
+            workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 60.0, new Unit(("min", 1))));
+            workspace.TryRegisterInputUnit("hour", new Quantity<double>(3600.0, Unit.UnitSeconds));
+            workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 3600.0, new Unit(("hour", 1))));
+            workspace.TryRegisterInputUnit("day", new Quantity<double>(24.0 * 3600.0, Unit.UnitSeconds));
+            workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 24.0 / 3600.0, new Unit(("day", 1))));
 
             // Ampere
             RegisterModifierUnits(workspace, "A", 1.0, Unit.UnitAmperes);
 
             // Kelvin
-            workspace.TryRegisterInputUnit("mK", 1e-3, Unit.UnitKelvin);
-            workspace.TryRegisterInputUnit("K", 1.0, Unit.UnitKelvin);
+            workspace.TryRegisterInputUnit("mK", new Quantity<double>(1e-3, Unit.UnitKelvin));
+            workspace.TryRegisterInputUnit("K", new Quantity<double>(1.0, Unit.UnitKelvin));
 
             // Candela
-            workspace.TryRegisterInputUnit("cd", 1.0, Unit.UnitCandela);
+            workspace.TryRegisterInputUnit("cd", new Quantity<double>(1.0, Unit.UnitCandela));
 
             // Angle
-            workspace.TryRegisterInputUnit("rad", 1.0, Unit.UnitRadian);
-            workspace.TryRegisterInputUnit("deg", Math.PI / 180.0, Unit.UnitRadian);
+            workspace.TryRegisterInputUnit("rad", new Quantity<double>(1.0, Unit.UnitRadian));
+            workspace.TryRegisterInputUnit("deg", new Quantity<double>(Math.PI / 180.0, Unit.UnitRadian));
         }
 
         /// <summary>
@@ -244,18 +244,21 @@ namespace MaxwellCalc.Units
                 1.0, new Unit((Unit.Ampere, 1), (Unit.Second, 1)));
 
             // Coulomb meter - electric dipole moment
-            workspace.TryRegisterDerivedUnit(new Unit(
+            workspace.TryRegisterOutputUnit(new Unit(
                 (Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, 1)),
-                1.0, new Unit(("C", 1), (Unit.Meter, 1)));
+                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, 1))));
 
             // Coulomb per meter - charge density
-            workspace.TryRegisterDerivedUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1)), 1.0, new Unit(("C", 1), (Unit.Meter, -1)));
+            workspace.TryRegisterOutputUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1)),
+                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -1))));
 
             // Coulomb per square meter - charge density
-            workspace.TryRegisterDerivedUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2)), 1.0, new Unit(("C", 1), (Unit.Meter, -2)));
+            workspace.TryRegisterOutputUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2)),
+                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -2))));
 
             // Coulomb per cubic meter - charge density
-            workspace.TryRegisterDerivedUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3)), 1.0, new Unit(("C", 1), (Unit.Meter, -3)));
+            workspace.TryRegisterOutputUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3)),
+                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -3))));
 
             // Volts
             RegisterModifierUnits(workspace, "V",
@@ -275,11 +278,12 @@ namespace MaxwellCalc.Units
                 1.0, new Unit(("V", 1), (Unit.Meter, -1)), "V");
 
             // Volts per square meter - electric field gradient
-            workspace.TryRegisterDerivedUnit(new Unit(
+            workspace.TryRegisterOutputUnit(new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 1),
                     (Unit.Second, -3),
-                    (Unit.Ampere, -1)), 1.0, new Unit(("V", 1), (Unit.Meter, -2)));
+                    (Unit.Ampere, -1)), 
+                    new Quantity<double>(1.0, new Unit(("V", 1), (Unit.Meter, -2))));
             
             // Ampere
             RegisterModifierUnits(workspace, "A",
@@ -300,11 +304,12 @@ namespace MaxwellCalc.Units
                     (Unit.Second, -2)));
 
             // Joules seconds (Planck constant)
-            workspace.TryRegisterDerivedUnit(
+            workspace.TryRegisterOutputUnit(
                 new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
-                    (Unit.Second, -1)), 1.0, new Unit(("J", 1), (Unit.Second, 1)));
+                    (Unit.Second, -1)), 
+                new Quantity<double>(1.0, new Unit(("J", 1), (Unit.Second, 1))));
 
             // Farad
             RegisterModifierUnits(workspace, "F",
@@ -369,19 +374,19 @@ namespace MaxwellCalc.Units
             // Bits
             var b = new Unit(("bit", 1));
             double m = 1024.0;
-            workspace.TryRegisterInputUnit("b", 1.0, b);
-            workspace.TryRegisterInputUnit("B", 8.0, b);
-            workspace.TryRegisterInputUnit("kB", 8.0 * m, b);
-            workspace.TryRegisterInputUnit("MB", 8.0 * m * m, b);
-            workspace.TryRegisterInputUnit("GB", 8.0 * m * m * m, b);
-            workspace.TryRegisterInputUnit("TB", 8.0 * m * m * m * m, b);
-            workspace.TryRegisterInputUnit("PB", 8.0 * m * m * m * m * m, b);
-            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0, new Unit(("B", 1)));
-            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m, new Unit(("kB", 1)));
-            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m, new Unit(("MB", 1)));
-            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m / m, new Unit(("GB", 1)));
-            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m / m / m, new Unit(("TB", 1)));
-            workspace.TryRegisterDerivedUnit(b, 1.0 / 8.0 / m / m / m / m / m, new Unit(("PB", 1)));
+            workspace.TryRegisterInputUnit("b", new Quantity<double>(1.0, b));
+            workspace.TryRegisterInputUnit("B", new Quantity<double>(8.0, b));
+            workspace.TryRegisterInputUnit("kB", new Quantity<double>(8.0 * m, b));
+            workspace.TryRegisterInputUnit("MB", new Quantity<double>(8.0 * m * m, b));
+            workspace.TryRegisterInputUnit("GB", new Quantity<double>(8.0 * m * m * m, b));
+            workspace.TryRegisterInputUnit("TB", new Quantity<double>(8.0 * m * m * m * m, b));
+            workspace.TryRegisterInputUnit("PB", new Quantity<double>(8.0 * m * m * m * m * m, b));
+            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0, new Unit(("B", 1))));
+            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m, new Unit(("kB", 1))));
+            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m, new Unit(("MB", 1))));
+            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m / m, new Unit(("GB", 1))));
+            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m / m / m, new Unit(("TB", 1))));
+            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m / m / m / m, new Unit(("PB", 1))));
 
             // Bits per second
             var bps = new Unit(("bit", 1), (Unit.Second, -1));

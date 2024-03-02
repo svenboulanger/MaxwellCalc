@@ -29,6 +29,16 @@ namespace MaxwellCalc.Workspaces
         public IVariableScope<T> Variables { get; }
 
         /// <summary>
+        /// Gets the input units for the workspace.
+        /// </summary>
+        public IEnumerable<(string, Quantity<T>)> InputUnits { get; }
+
+        /// <summary>
+        /// Gets the output units for the workspace.
+        /// </summary>
+        public IEnumerable<(Unit, Quantity<T>)> OutputUnits { get; }
+
+        /// <summary>
         /// Tries to get a unit from the workspace.
         /// </summary>
         /// <param name="name">The name of the unit.</param>
@@ -40,18 +50,32 @@ namespace MaxwellCalc.Workspaces
         /// Tries to register a unit for the workspace.
         /// </summary>
         /// <param name="name">The name of the unit.</param>
-        /// <param name="unit">The unit.</param>
+        /// <param name="quantity">The quantity.</param>
         /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterInputUnit(string name, T modifier, Unit unit);
+        public bool TryRegisterInputUnit(string name, Quantity<T> quantity);
 
         /// <summary>
-        /// Tries to register a derived that can be used to format the output unit dimension.
+        /// Tries to remove a unit from the workspace that can be used as an input.
+        /// </summary>
+        /// <param name="name">The name of the unit.</param>
+        /// <returns>Returns <c>true</c> if the unit was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveInputUnit(string name);
+
+        /// <summary>
+        /// Tries to register a quantity with non-base units that can be used to format a quantity in base units.
         /// </summary>
         /// <param name="key">The base unit that this unit is derived from.</param>
-        /// <param name="modifier">The modifier.</param>
-        /// <param name="value">The resulting unit. Should be specified such that <paramref name="modifier"/> times <paramref name="value"/> is equal to <paramref name="input"/>.</param>
+        /// <param name="quantity">The resulting quantity. Should be specified such that <paramref name="key"/> is equal to <paramref name="quantity"/>.</param>
         /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterDerivedUnit(Unit key, T modifier, Unit value);
+        public bool TryRegisterOutputUnit(Unit key, Quantity<T> quantity);
+
+        /// <summary>
+        /// Tries to remove a unit from the workspace that can be used as an output.
+        /// </summary>
+        /// <param name="key">The key unit.</param>
+        /// <param name="quantity">The quantity.</param>
+        /// <returns>Returns <c>true</c> if the unit was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveOutputUnit(Unit key, Quantity<T> quantity);
 
         /// <summary>
         /// A delegate for functions.

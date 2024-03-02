@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using MaxwellCalc.UI;
 using MaxwellCalc.Units;
 using System.Linq;
 using System.Numerics;
@@ -57,18 +58,17 @@ public class ResultBox : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
-        _output = e.NameScope.Find("OutputBlock") as SelectableTextBlock;
-        if (_output is not null)
-            Format();
+        _output = e.NameScope.Find<SelectableTextBlock>("OutputBlock");
+        FormatOutput();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        Format();
+        FormatOutput();
     }
 
-    private void Format()
+    private void FormatOutput()
     {
         // Make sure we have the output
         if (_output is null)
@@ -101,9 +101,14 @@ public class ResultBox : TemplatedControl
 
     private void FormatQuantity(IQuantity quantity)
     {
+        if (_output is null)
+            return;
+        if (_output.Inlines is null)
+            return;
+
         if (quantity.Scalar is not null)
         {
-            string formatted = string.Empty;
+            string formatted;
             switch (quantity.Scalar)
             {
                 case double dbl:
@@ -128,35 +133,11 @@ public class ResultBox : TemplatedControl
                 Text = formatted,
                 Foreground = OutputForeground
             };
-            _output?.Inlines?.Add(run);
+            _output.Inlines.Add(run);
         }
 
-        // We will show the dimension as is
-        if (quantity.Unit.Dimension is not null)
-        {
-            foreach (var p in quantity.Unit.Dimension.OrderBy(p => p.Key))
-            {
-                // Base
-                var run = new Run()
-                {
-                    Text = " " + p.Key,
-                    Foreground = UnitForeground
-                };
-                _output?.Inlines?.Add(run);
-
-                // Exponent
-                if (p.Value != Fraction.One)
-                {
-                    run = new Run()
-                    {
-                        Text = p.Value.ToString(),
-                        BaselineAlignment = BaselineAlignment.Top,
-                        Foreground = UnitForeground,
-                        FontSize = 12
-                    };
-                    _output?.Inlines?.Add(run);
-                }
-            }
-        }
+        // Show the dimension
+        UnitFormatter.Default.AppendInlinesFor(
+            _output.Inlines, quantity.Unit, UnitForeground, _output.FontSize);
     }
 }
