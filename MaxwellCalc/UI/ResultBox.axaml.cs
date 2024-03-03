@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using MaxwellCalc.UI;
 using MaxwellCalc.Units;
@@ -55,13 +56,45 @@ public class ResultBox : TemplatedControl
         set => SetValue(OutputProperty, value);
     }
 
+    /// <inheritdoc />
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
         _output = e.NameScope.Find<SelectableTextBlock>("OutputBlock");
+        var input = e.NameScope.Find<SelectableTextBlock>("InputBlock");
+        var btnCopyInput = e.NameScope.Find<Button>("CopyInputButton");
+        var btnCopyOutput = e.NameScope.Find<Button>("CopyOutputButton");
         FormatOutput();
+
+        // Attach events
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is not null)
+        {
+            if (btnCopyInput is not null && input is not null)
+            {
+                btnCopyInput.Click += (s, e) =>
+                {
+                    clipboard.SetTextAsync(input.Text);
+                };
+            }
+            if (btnCopyOutput is not null && _output is not null)
+            {
+                btnCopyOutput.Click += (s, e) =>
+                {
+                    clipboard.SetTextAsync(_output.Inlines?.Text);
+                };
+            }
+        }
+        else
+        {
+            if (btnCopyInput is not null)
+                btnCopyInput.IsVisible = false;
+            if (btnCopyOutput is not null)
+                btnCopyOutput.IsVisible = false;
+        }
     }
 
+    /// <inheritdoc />
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);

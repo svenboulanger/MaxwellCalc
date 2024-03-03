@@ -21,18 +21,39 @@
                 BorderThickness="2"
                 CornerRadius="4"
                 Margin="5">
-          <StackPanel>
-            <SelectableTextBlock
-              FontFamily="{TemplateBinding FontFamily}"
-              Padding="0"
-              Margin="3"
-              Foreground="{TemplateBinding InputForeground}"
-              Text="{TemplateBinding Input}" />
-            <SelectableTextBlock
-              Name="OutputBlock"
-              Padding="0"
-              Margin="3"
-              Foreground="{TemplateBinding OutputForeground}" />
+          <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+              <SelectableTextBlock
+                Name="InputBlock"
+                VerticalAlignment="Center"
+                FontFamily="{TemplateBinding FontFamily}"
+                Padding="0"
+                Margin="3"
+                Foreground="{TemplateBinding InputForeground}"
+                Text="{TemplateBinding Input}" />
+              <Button Margin="2" Background="Transparent" Name="CopyInputButton">
+                <PathIcon
+                  Foreground="#ccc"
+                  Width="{TemplateBinding FontSize}"
+                  Height="{TemplateBinding FontSize}"
+                  Data="{StaticResource copy}" />
+              </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <SelectableTextBlock
+                Name="OutputBlock"
+                VerticalAlignment="Center"
+                Padding="0"
+                Margin="3"
+                Foreground="{TemplateBinding OutputForeground}" />
+              <Button Margin="2" Background="Transparent" Name="CopyOutputButton">
+                <PathIcon
+                  Foreground="#ccc"
+                  Width="{TemplateBinding FontSize}"
+                  Height="{TemplateBinding FontSize}"
+                  Data="{StaticResource copy}" />
+              </Button>
+            </StackPanel>
           </StackPanel>
         </Border>
       </ControlTemplate>
