@@ -10,23 +10,6 @@ namespace MaxwellCalc.Units
     public static class UnitHelper
     {
         /// <summary>
-        /// Register SI units.
-        /// </summary>
-        /// <param name="workspace">The workspace.</param>
-        public static void RegisterSIUnits(IWorkspace<double> workspace)
-        {
-            workspace.TryRegisterInputUnit("meter", new Quantity<double>(1.0, Unit.UnitMeter));
-            workspace.TryRegisterInputUnit("kilogram", new Quantity<double>(1.0, Unit.UnitKilogram));
-            workspace.TryRegisterInputUnit("second", new Quantity<double>(1.0, Unit.UnitSeconds));
-            workspace.TryRegisterInputUnit("mol", new Quantity<double>(1.0, Unit.UnitMole));
-            workspace.TryRegisterInputUnit("ampere", new Quantity<double>(1.0, Unit.UnitAmperes));
-            workspace.TryRegisterInputUnit("kelvin", new Quantity<double>(1.0, Unit.UnitKelvin));
-            workspace.TryRegisterInputUnit("candela", new Quantity<double>(1.0, Unit.UnitCandela));
-            workspace.TryRegisterInputUnit("radian", new Quantity<double>(1.0, Unit.UnitRadian));
-            workspace.TryRegisterInputUnit("degree", new Quantity<double>(Math.PI / 180.0, Unit.UnitRadian));
-        }
-
-        /// <summary>
         /// Registers a unit for both input and output, such that
         /// <paramref name="key"/> = <paramref name="modifier"/> * <paramref name="value"/>.
         /// </summary>
@@ -45,39 +28,35 @@ namespace MaxwellCalc.Units
         }
 
         /// <summary>
-        /// Registers units with modifiers.
+        /// Registers a unit with modifiers for both input and output.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        /// <param name="unit">The unit.</param>
+        /// <param name="name">The name of the unit.</param>
+        /// <param name="modifier">The modifier.</param>
+        /// <param name="unit">The unit using base units.</param>
+        /// <param name="includeOutputs">If <c>true</c>, the modifier units are also added for output units.</param>
         /// <param name="atto">If <c>true</c>, the "atto" modifier is added.</param>
         /// <param name="femto">If <c>true</c>, the "femto" modifier is added.</param>
         /// <param name="pico">If <c>true</c>, the "pico" modifier is added.</param>
         /// <param name="nano">If <c>true</c>, the "nano" modifier is added.</param>
         /// <param name="micro">If <c>true</c>, the "micro" modifier is added.</param>
         /// <param name="milli">If <c>true</c>, the "milli" modifier is added.</param>
+        /// <param name="centi">If <c>true</c>, the "centi" modifier is added.</param>
         /// <param name="kilo">If <c>true</c>, the "kilo" modifier is added.</param>
         /// <param name="mega">If <c>true</c>, the "mega" modifier is added.</param>
         /// <param name="giga">If <c>true</c>, the "giga" modifier is added.</param>
         /// <param name="tera">If <c>true</c>, the "tera" modifier is added.</param>
         /// <param name="peta">If <c>true</c>, the "peta" modifier is added.</param>
-        public static void RegisterModifierUnits(IWorkspace<double> workspace,
+        public static void RegisterModifierInputOutputUnits(IWorkspace<double> workspace,
             string name,
-            double modifier,
-            Unit unit,
+            Quantity<double> baseUnits,
             bool includeOutputs = true,
-            bool atto = true,
-            bool femto = true,
-            bool pico = true,
-            bool nano = true,
-            bool micro = true,
-            bool milli = true,
-            bool centi = false,
-            bool kilo = true,
-            bool mega = true,
-            bool giga = true,
-            bool tera = true,
-            bool peta = false)
+            bool atto = false, bool femto = false, bool pico = false, bool nano = false, bool micro = false,
+            bool milli = false, bool centi = false, bool kilo = false, bool mega = false, bool giga = false,
+            bool tera = false, bool peta = false)
         {
+            double modifier = baseUnits.Scalar;
+            var unit = baseUnits.Unit;
             void Add(string n, double m, Unit u)
             {
                 workspace.TryRegisterInputUnit(n, new Quantity<double>(m, u));
@@ -131,20 +110,11 @@ namespace MaxwellCalc.Units
         /// <param name="giga">If <c>true</c>, the "giga" modifier is added.</param>
         /// <param name="tera">If <c>true</c>, the "tera" modifier is added.</param>
         /// <param name="peta">If <c>true</c>, the "peta" modifier is added.</param>
-        public static void RegisterModifierDerivedUnits(IWorkspace<double> workspace,
+        public static void RegisterModifierOutputUnits(IWorkspace<double> workspace,
             Unit key, double modifier, Unit value, string dimension,
-            bool atto = true,
-            bool femto = true,
-            bool pico = true,
-            bool nano = true,
-            bool micro = true,
-            bool milli = true,
-            bool centi = false,
-            bool kilo = true,
-            bool mega = true,
-            bool giga = true,
-            bool tera = true,
-            bool peta = false)
+            bool atto = false, bool femto = false, bool pico = false, bool nano = false,
+            bool micro = false, bool milli = false, bool centi = false, bool kilo = false,
+            bool mega = false, bool giga = false, bool tera = false, bool peta = false)
         {
             if (value.Dimension is null)
                 throw new ArgumentException("Dimension cannot be null", nameof(value));
@@ -192,13 +162,13 @@ namespace MaxwellCalc.Units
         public static void RegisterCommonUnits(IWorkspace<double> workspace)
         {
             // Length
-            RegisterModifierUnits(workspace, "m", 1.0, Unit.UnitMeter,
-                centi: true, mega: false, giga: false, peta: false);
+            RegisterModifierInputOutputUnits(workspace, "m", new(1.0, Unit.UnitMeter),
+                nano: true, micro: true, milli: true, centi: true, kilo: true);
 
             // Speed
-            RegisterModifierDerivedUnits(workspace,
-                new Unit((Unit.Meter, 1), (Unit.Second, -1)), 1.0, new Unit((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter,
-                centi: true, mega: false, giga: false, peta: false);
+            RegisterModifierOutputUnits(workspace,
+                new Unit((Unit.Meter, 1), (Unit.Second, -1)), 1.0, new Unit((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter);
+            workspace.TryRegisterOutputUnit(new Unit((Unit.Meter, 1), (Unit.Second, -1)), new Quantity<double>(1.0 / 1000.0 * 3600.0, new Unit(("km", 1), ("hour", -1))));
 
             // Mass
             workspace.TryRegisterInputUnit("ng", new Quantity<double>(1e-12, Unit.UnitKilogram));
@@ -209,8 +179,8 @@ namespace MaxwellCalc.Units
             workspace.TryRegisterInputUnit("ton", new Quantity<double>(1e3, Unit.UnitKilogram));
 
             // Time
-            RegisterModifierUnits(workspace, "s", 1.0, Unit.UnitSeconds,
-                atto: false, kilo: false, mega: false, giga: false, tera: false, peta: false);
+            RegisterModifierInputOutputUnits(workspace, "s", new(1.0, Unit.UnitSeconds),
+                femto: true, pico: true, nano: true, micro: true);
             workspace.TryRegisterInputUnit("min", new Quantity<double>(60.0, Unit.UnitSeconds));
             workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 60.0, new Unit(("min", 1))));
             workspace.TryRegisterInputUnit("hour", new Quantity<double>(3600.0, Unit.UnitSeconds));
@@ -219,11 +189,12 @@ namespace MaxwellCalc.Units
             workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 24.0 / 3600.0, new Unit(("day", 1))));
 
             // Ampere
-            RegisterModifierUnits(workspace, "A", 1.0, Unit.UnitAmperes);
+            RegisterModifierInputOutputUnits(workspace, "A", new(1.0, Unit.UnitAmperes),
+                pico: true, nano: true, milli: true, kilo: true);
 
             // Kelvin
-            workspace.TryRegisterInputUnit("mK", new Quantity<double>(1e-3, Unit.UnitKelvin));
-            workspace.TryRegisterInputUnit("K", new Quantity<double>(1.0, Unit.UnitKelvin));
+            RegisterModifierInputOutputUnits(workspace, "K", new(1.0, Unit.UnitKelvin),
+                milli: true);
 
             // Candela
             workspace.TryRegisterInputUnit("cd", new Quantity<double>(1.0, Unit.UnitCandela));
@@ -240,8 +211,8 @@ namespace MaxwellCalc.Units
         public static void RegisterCommonElectronicsUnits(IWorkspace<double> workspace)
         {
             // Coulomb
-            RegisterModifierUnits(workspace, "C",
-                1.0, new Unit((Unit.Ampere, 1), (Unit.Second, 1)));
+            RegisterModifierInputOutputUnits(workspace, "C",
+                new(1.0, new Unit((Unit.Ampere, 1), (Unit.Second, 1))));
 
             // Coulomb meter - electric dipole moment
             workspace.TryRegisterOutputUnit(new Unit(
@@ -261,15 +232,16 @@ namespace MaxwellCalc.Units
                 new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -3))));
 
             // Volts
-            RegisterModifierUnits(workspace, "V",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "V",
+                new(1.0, new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
                     (Unit.Second, -3),
-                    (Unit.Ampere, -1)));
+                    (Unit.Ampere, -1))),
+                nano: true, micro: true, milli: true, kilo: true, mega: true);
 
             // Volts per meter - electric field
-            RegisterModifierDerivedUnits(workspace,
+            RegisterModifierOutputUnits(workspace,
                 new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 1),
@@ -286,22 +258,22 @@ namespace MaxwellCalc.Units
                     new Quantity<double>(1.0, new Unit(("V", 1), (Unit.Meter, -2))));
             
             // Ampere
-            RegisterModifierUnits(workspace, "A",
-                1.0, Unit.UnitAmperes);
+            RegisterModifierInputOutputUnits(workspace, "A",
+                new(1.0, Unit.UnitAmperes));
             
             // Watts
-            RegisterModifierUnits(workspace, "W",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "W",
+                new(1.0, new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
-                    (Unit.Second, -3)));
+                    (Unit.Second, -3))));
             
             // Joules
-            RegisterModifierUnits(workspace, "J",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "J",
+                new(1.0, new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
-                    (Unit.Second, -2)));
+                    (Unit.Second, -2))));
 
             // Joules seconds (Planck constant)
             workspace.TryRegisterOutputUnit(
@@ -312,15 +284,15 @@ namespace MaxwellCalc.Units
                 new Quantity<double>(1.0, new Unit(("J", 1), (Unit.Second, 1))));
 
             // Farad
-            RegisterModifierUnits(workspace, "F",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "F",
+                new(1.0, new Unit(
                     (Unit.Kilogram, -1),
                     (Unit.Meter, -2),
                     (Unit.Second, 4),
-                    (Unit.Ampere, 2)));
+                    (Unit.Ampere, 2))));
 
             // Farad per meter
-            RegisterModifierDerivedUnits(workspace,
+            RegisterModifierOutputUnits(workspace,
                 new Unit(
                     (Unit.Kilogram, -1),
                     (Unit.Meter, -3),
@@ -328,7 +300,7 @@ namespace MaxwellCalc.Units
                     (Unit.Ampere, 2)), 1.0, new Unit(("F", 1), (Unit.Meter, -1)), Unit.Meter, centi: true);
 
             // Farad per square meter
-            RegisterModifierDerivedUnits(workspace,
+            RegisterModifierOutputUnits(workspace,
                 new Unit(
                     (Unit.Kilogram, -1),
                     (Unit.Meter, -4),
@@ -336,15 +308,15 @@ namespace MaxwellCalc.Units
                     (Unit.Ampere, 2)), 1.0, new Unit(("F", 1), (Unit.Meter, -2)), Unit.Meter, centi: true);
 
             // Henry
-            RegisterModifierUnits(workspace, "H",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "H",
+                new(1.0, new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
                     (Unit.Second, -2),
-                    (Unit.Ampere, -2)));
+                    (Unit.Ampere, -2))));
 
             // Weber
-            RegisterModifierDerivedUnits(workspace, new Unit(
+            RegisterModifierOutputUnits(workspace, new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
                     (Unit.Second, -2),
@@ -352,24 +324,27 @@ namespace MaxwellCalc.Units
                     1.0, new Unit(("Wb", 1)), "Wb");
             
             // Ohm = A-2 kg m2 s-3
-            RegisterModifierUnits(workspace, "ohm",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "ohm",
+                new(1.0, new Unit(
                     (Unit.Kilogram, 1),
                     (Unit.Meter, 2),
                     (Unit.Second, -3),
-                    (Unit.Ampere, -2)));
+                    (Unit.Ampere, -2))),
+                micro: true, milli: true, kilo: true, mega: true);
 
             // Siemens
-            RegisterModifierUnits(workspace, "S",
-                1.0, new Unit(
+            RegisterModifierInputOutputUnits(workspace, "S",
+                new(1.0, new Unit(
                     (Unit.Kilogram, -1),
                     (Unit.Meter, -2),
                     (Unit.Second, 3),
-                    (Unit.Ampere, 2)));
+                    (Unit.Ampere, 2))),
+                micro: true, milli: true, kilo: true, mega: true);
 
             // Hertz
-            RegisterModifierUnits(workspace, "Hz",
-                1.0, new Unit((Unit.Second, -1)));
+            RegisterModifierInputOutputUnits(workspace, "Hz",
+                new(1.0, new Unit((Unit.Second, -1))),
+                milli: true, kilo: true, mega: true, giga: true, tera: true);
 
             // Bits
             var b = new Unit(("bit", 1));

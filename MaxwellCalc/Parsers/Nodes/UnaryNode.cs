@@ -28,7 +28,7 @@ namespace MaxwellCalc.Parsers.Nodes
         public INode Argument { get; } = argument;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T> workspace, out Quantity<T> result)
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result)
         {
             if (!Argument.TryResolve(resolver, workspace, out var arg))
             {

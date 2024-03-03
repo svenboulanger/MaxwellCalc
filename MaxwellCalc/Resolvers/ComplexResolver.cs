@@ -15,7 +15,7 @@ namespace MaxwellCalc.Resolvers
         public string Error { get; set; } = string.Empty;
 
         /// <inheritdoc />
-        public bool TryScalar(string scalar, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryScalar(string scalar, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // Parse the scalar
             if (!double.TryParse(scalar, System.Globalization.CultureInfo.InvariantCulture, out double dbl))
@@ -29,56 +29,73 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryUnit(string unit, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryUnit(string unit, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
-            if (workspace.TryGetUnit(unit, out result))
-                return true;
-            Error = $"Could not recognize unit '{unit}'.";
-            return false;
-        }
-
-        /// <inheritdoc />
-        public bool TryVariable(string variable, IWorkspace<Complex> workspace, out Quantity<Complex> result)
-        {
-            if (workspace.Variables.TryGetVariable(variable, out result))
-                return true;
-            if (variable == "i" || variable == "j")
+            if (workspace is not null)
             {
-                result = new Quantity<Complex>(new Complex(0.0, 1.0), Unit.UnitNone);
+                if (workspace.TryGetUnit(unit, out result))
+                    return true;
+                Error = $"Could not recognize unit '{unit}'.";
+                return false;
+            }
+            else
+            {
+                result = new Quantity<Complex>(1.0, new Unit((unit, 1)));
                 return true;
             }
-            Error = $"Could not find a variable with the name '{variable}'.";
-            return false;
         }
 
         /// <inheritdoc />
-        public bool TryPlus(Quantity<Complex> a, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryVariable(string variable, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        {
+            if (workspace is not null)
+            {
+                if (workspace.Variables.TryGetVariable(variable, out result))
+                    return true;
+                if (variable == "i" || variable == "j")
+                {
+                    result = new Quantity<Complex>(new Complex(0.0, 1.0), Unit.UnitNone);
+                    return true;
+                }
+                Error = $"Could not find a variable with the name '{variable}'.";
+                return false;
+            }
+            else
+            {
+                Error = "Variables are not supported.";
+                result = Default;
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public bool TryPlus(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = a;
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryMinus(Quantity<Complex> a, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryMinus(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(-a.Scalar, a.Unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryRemoveUnits(Quantity<Complex> a, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryRemoveUnits(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar, Unit.UnitNone);
             return true;
         }
 
-        public bool TryFactorial(Quantity<Complex> a, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryFactorial(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public bool TryAdd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryAdd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // Check units
             if (a.Unit != b.Unit)
@@ -92,7 +109,7 @@ namespace MaxwellCalc.Resolvers
             return true;
         }
 
-        public bool TrySubtract(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TrySubtract(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // Check units
             if (a.Unit != b.Unit)
@@ -106,20 +123,20 @@ namespace MaxwellCalc.Resolvers
             return true;
         }
 
-        public bool TryMultiply(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryMultiply(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar * b.Scalar, a.Unit * b.Unit);
             return true;
         }
 
-        public bool TryDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar / b.Scalar, a.Unit / b.Unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryModulo(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryModulo(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(
                 Math.IEEERemainder(a.Scalar.Real, b.Scalar.Real),
@@ -128,7 +145,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryIntDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryIntDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(
                 Math.Truncate(a.Scalar.Real / b.Scalar.Real),
@@ -137,7 +154,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryExp(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryExp(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // Exponentiation can only happen with numbers that don't have units
             if (b.Unit != Unit.UnitNone)
@@ -188,7 +205,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryInUnit(Quantity<Complex> a, Quantity<Complex> b, ReadOnlyMemory<char> unit, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryInUnit(Quantity<Complex> a, Quantity<Complex> b, ReadOnlyMemory<char> unit, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -204,7 +221,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryBitwiseOr(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryBitwiseOr(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -221,7 +238,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryBitwiseAnd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryBitwiseAnd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -238,7 +255,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryLeftShift(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryLeftShift(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -254,7 +271,7 @@ namespace MaxwellCalc.Resolvers
             return true;
         }
 
-        public bool TryRightShift(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryRightShift(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -271,7 +288,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryGreaterThan(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryGreaterThan(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -285,7 +302,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryGreaterThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryGreaterThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -299,7 +316,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryLessThan(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryLessThan(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -313,7 +330,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryLessThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryLessThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -327,7 +344,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryEquals(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryEquals(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -341,7 +358,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryNotEquals(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryNotEquals(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -355,26 +372,44 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryAssign(string name, Quantity<Complex> b, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryAssign(string name, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
-            if (workspace.Variables.TrySetVariable(name, b))
+            if (workspace is not null)
             {
-                result = b;
-                return true;
-            }
+                if (workspace.Variables.TrySetVariable(name, b))
+                {
+                    result = b;
+                    return true;
+                }
 
-            Error = $"Could not assign to '{name}'.";
-            result = Default;
-            return false;
+                Error = $"Could not assign to '{name}'.";
+                result = Default;
+                return false;
+            }
+            else
+            {
+                Error = "Assignment is not supported.";
+                result = Default;
+                return false;
+            }
         }
 
         /// <inheritdoc />
-        public bool TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, IWorkspace<Complex> workspace, out Quantity<Complex> result)
+        public bool TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
-            if (workspace.TryFunction(name, arguments, this, out result))
-                return true;
-            Error = $"Cannot find function '{name}' for the given arguments.";
-            return false;
+            if (workspace is not null)
+            {
+                if (workspace.TryFunction(name, arguments, this, out result))
+                    return true;
+                Error = $"Cannot find function '{name}' for the given arguments.";
+                return false;
+            }
+            else
+            {
+                Error = "Functions are not supported.";
+                result = Default;
+                return false;
+            }
         }
     }
 }

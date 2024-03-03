@@ -34,20 +34,16 @@ namespace MaxwellCalc.Parsers.Nodes
         public INode Right { get; } = right;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T> workspace, out Quantity<T> result)
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result)
         {
             // Assignment is special
             if (Type == BinaryOperatorTypes.Assign)
             {
                 if (Left is VariableNode variable)
                 {
-                    if (!Right.TryResolve(resolver, workspace, out result) ||
-                        !workspace.Variables.TrySetVariable(variable.Content.ToString(), result))
-                    {
-                        result = resolver.Default;
-                        return false;
-                    }
-                    return true;
+                    if (Right.TryResolve(resolver, workspace, out result))
+                        return true;
+                    return resolver.TryAssign(variable.Content.ToString(), result, workspace, out result);
                 }
                 else if (Left is FunctionNode function)
                 {
@@ -62,16 +58,13 @@ namespace MaxwellCalc.Parsers.Nodes
                         }
                         args.Add(argNode.Content.ToString());
                     }
-                    if (!workspace.TryRegisterUserFunction(function.Name, args, Right))
-                    {
-                        result = resolver.Default;
-                        return false;
-                    }
-                    else
-                    {
+                    if (workspace is not null && workspace.TryRegisterUserFunction(function.Name, args, Right))
+                    {   
                         result = resolver.Default;
                         return true;
                     }
+                    result = resolver.Default;
+                    return false;
                 }
                 else
                 {

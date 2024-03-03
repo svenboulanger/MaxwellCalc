@@ -24,7 +24,6 @@ namespace MaxwellCalc
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
             _workspace = new Workspace();
-            UnitHelper.RegisterSIUnits(_workspace);
             UnitHelper.RegisterCommonUnits(_workspace);
             UnitHelper.RegisterCommonElectronicsUnits(_workspace);
 
@@ -171,10 +170,7 @@ namespace MaxwellCalc
         {
             if (_settings is null)
             {
-                _settings = new SettingsWindow()
-                {
-                    Workspace = _workspace
-                };
+                _settings = new SettingsWindow() { Workspace = _workspace };
                 _settings.Closed += (sender, args) => _settings = null;
                 _settings.Show();
             }

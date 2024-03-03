@@ -8,7 +8,7 @@ namespace MaxwellCalc.Resolvers
     /// <summary>
     /// A resolver for quantities with using doubles as scalars.
     /// </summary>
-    public class RealResolver : IResolver<double>
+    public class DoubleResolver : IResolver<double>
     {
         /// <inheritdoc />
         public Quantity<double> Default { get; } = new Quantity<double>(0.0, Unit.UnitNone);
@@ -17,7 +17,7 @@ namespace MaxwellCalc.Resolvers
         public string Error { get; set; } = string.Empty;
 
         /// <inheritdoc />
-        public bool TryScalar(string scalar, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryScalar(string scalar, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // Parse the scalar
             if (!double.TryParse(scalar, System.Globalization.CultureInfo.InvariantCulture, out double dbl))
@@ -31,51 +31,68 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryUnit(string unit, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryUnit(string unit, IWorkspace<double>? workspace, out Quantity<double> result)
         {
-            if (workspace.TryGetUnit(unit, out result))
+            if (workspace is not null)
+            {
+                if (workspace.TryGetUnit(unit, out result))
+                    return true;
+                Error = $"Could not recognize unit '{unit}'.";
+                return false;
+            }
+            else
+            {
+                result = new Quantity<double>(1.0, new Unit((unit, 1)));
                 return true;
-            Error = $"Could not recognize unit '{unit}'.";
-            return false;
+            }
         }
 
         /// <inheritdoc />
-        public bool TryVariable(string variable, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryVariable(string variable, IWorkspace<double>? workspace, out Quantity<double> result)
         {
-            if (workspace.Variables.TryGetVariable(variable, out result))
-                return true;
-            Error = $"Could not find a variable with the name '{variable}'.";
-            return false;
+            if (workspace is not null)
+            {
+                if (workspace.Variables.TryGetVariable(variable, out result))
+                    return true;
+                Error = $"Could not find a variable with the name '{variable}'.";
+                return false;
+            }
+            else
+            {
+                Error = "Variables are not supported.";
+                result = Default;
+                return false;
+            }
         }
 
         /// <inheritdoc />
-        public bool TryPlus(Quantity<double> a, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryPlus(Quantity<double> a, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = a;
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryMinus(Quantity<double> a, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryMinus(Quantity<double> a, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(-a.Scalar, a.Unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryRemoveUnits(Quantity<double> a, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryRemoveUnits(Quantity<double> a, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(a.Scalar, Unit.UnitNone);
             return true;
         }
 
-        public bool TryFactorial(Quantity<double> a, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryFactorial(Quantity<double> a, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public bool TryAdd(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryAdd(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // Check units
             if (a.Unit != b.Unit)
@@ -91,7 +108,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TrySubtract(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TrySubtract(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // Check units
             if (a.Unit != b.Unit)
@@ -106,7 +123,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryMultiply(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryMultiply(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(
                 a.Scalar * b.Scalar,
@@ -115,7 +132,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryDivide(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryDivide(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(
                 a.Scalar / b.Scalar,
@@ -124,7 +141,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryModulo(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryModulo(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(
                 Math.IEEERemainder(a.Scalar, b.Scalar),
@@ -133,7 +150,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryIntDivide(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryIntDivide(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             result = new Quantity<double>(
                 Math.Truncate(a.Scalar / b.Scalar),
@@ -142,7 +159,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryExp(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryExp(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // Exponentiation can only happen with numbers that don't have units
             if (b.Unit != Unit.UnitNone)
@@ -185,7 +202,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryInUnit(Quantity<double> a, Quantity<double> b, ReadOnlyMemory<char> content, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryInUnit(Quantity<double> a, Quantity<double> b, ReadOnlyMemory<char> content, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -201,7 +218,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryBitwiseOr(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryBitwiseOr(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -218,7 +235,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryBitwiseAnd(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryBitwiseAnd(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -235,7 +252,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryLeftShift(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryLeftShift(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -252,7 +269,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryRightShift(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryRightShift(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
@@ -269,7 +286,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryGreaterThan(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryGreaterThan(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -283,7 +300,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryGreaterThanOrEqual(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryGreaterThanOrEqual(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -297,7 +314,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryLessThan(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryLessThan(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -311,7 +328,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryLessThanOrEqual(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryLessThanOrEqual(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -325,7 +342,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryEquals(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryEquals(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -339,7 +356,7 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryNotEquals(Quantity<double> a, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryNotEquals(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
             if (a.Unit != b.Unit)
             {
@@ -353,25 +370,43 @@ namespace MaxwellCalc.Resolvers
         }
 
         /// <inheritdoc />
-        public bool TryAssign(string name, Quantity<double> b, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryAssign(string name, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
         {
-            if (!workspace.Variables.TrySetVariable(name, b))
+            if (workspace is not null)
             {
+                if (!workspace.Variables.TrySetVariable(name, b))
+                {
+                    result = Default;
+                    return false;
+                }
+                Error = $"Could not assign to '{name}'.";
+                result = b;
+                return true;
+            }
+            else
+            {
+                Error = "Variable assignment is not supported.";
                 result = Default;
                 return false;
             }
-            Error = $"Could not assign to '{name}'.";
-            result = b;
-            return true;
         }
 
         /// <inheritdoc />
-        public bool TryFunction(string name, IReadOnlyList<Quantity<double>> arguments, IWorkspace<double> workspace, out Quantity<double> result)
+        public bool TryFunction(string name, IReadOnlyList<Quantity<double>> arguments, IWorkspace<double>? workspace, out Quantity<double> result)
         {
-            if (workspace.TryFunction(name, arguments, this, out result))
-                return true;
-            Error = $"Cannot find function '{name}' for the given arguments.";
-            return false;
+            if (workspace is not null)
+            {
+                if (workspace.TryFunction(name, arguments, this, out result))
+                    return true;
+                Error = $"Cannot find function '{name}' for the given arguments.";
+                return false;
+            }
+            else
+            {
+                Error = "Functions are not supported.";
+                result = Default;
+                return false;
+            }
         }
     }
 }

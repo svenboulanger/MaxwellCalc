@@ -28,7 +28,7 @@ namespace MaxwellCalc.Parsers.Nodes
         public IReadOnlyList<INode> Arguments { get; } = arguments is not null ? arguments.AsReadOnly() : Array.Empty<INode>();
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T> workspace, out Quantity<T> result)
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result)
         {
             // Evaluate the arguments
             var args = new List<Quantity<T>>(Arguments.Count);
@@ -41,7 +41,7 @@ namespace MaxwellCalc.Parsers.Nodes
                 }
                 args.Add(arg);
             }
-            return workspace.TryFunction(Name, args, resolver, out result);
+            return resolver.TryFunction(Name, args, workspace, out result);
         }
     }
 }

@@ -129,7 +129,10 @@ namespace MaxwellCalc.Parsers
                         var name = lexer.Content;
                         lexer.Next();
                         if (workspace.IsUnit(name.ToString()))
-                            b = new UnitNode(name);
+                        {
+                            // Units will have exponent precedence
+                            b = ParseExponentiation(lexer, workspace);
+                        }
                         else
                             b = new VariableNode(name);
                         result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
@@ -144,6 +147,9 @@ namespace MaxwellCalc.Parsers
                         lexer.Next();
                         result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
                         break;
+
+                    default:
+                        throw new NotImplementedException();
                 }
             }
             return result;
