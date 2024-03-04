@@ -11,20 +11,19 @@ namespace MaxwellCalc.Units
     {
         /// <summary>
         /// Registers a unit for both input and output, such that
-        /// <paramref name="key"/> = <paramref name="modifier"/> * <paramref name="value"/>.
+        /// <paramref name="inputUnit"/> = <paramref name="modifier"/> * <paramref name="baseUnits"/>.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        /// <param name="key">The base unit that is used behind the scenes.</param>
-        /// <param name="modifier">The modifier.</param>
-        /// <param name="value">The unit that can be used for formatting.</param>
-        public static void RegisterInputOutputUnit(IWorkspace<double> workspace,
-            Unit key, double modifier, Unit value)
+        /// <param name="inputUnit">The new input unit.</param>
+        /// <param name="value">The value in base units.</param>
+        public static bool TryRegisterInputOutputUnit<T>(
+            this IWorkspace<T> workspace,
+            string inputUnit, Quantity<string> value) where T : struct, IFormattable
         {
-            if (value.Dimension.Count != 1)
-                throw new ArgumentException("Expected a unit with one dimension", nameof(value));
-            string name = value.Dimension.First().Key;
-            workspace.TryRegisterInputUnit(name, new Quantity<double>(1.0 / modifier, key));
-            workspace.TryRegisterOutputUnit(key, new Quantity<double>(modifier, value));
+            if (!workspace.TryRegisterInputUnit(inputUnit, value) ||
+                !workspace.TryRegisterOutputUnit(new Unit((inputUnit, 1)), value))
+                return false;
+            return true;
         }
 
         /// <summary>
@@ -32,9 +31,6 @@ namespace MaxwellCalc.Units
         /// </summary>
         /// <param name="workspace">The workspace.</param>
         /// <param name="name">The name of the unit.</param>
-        /// <param name="modifier">The modifier.</param>
-        /// <param name="unit">The unit using base units.</param>
-        /// <param name="includeOutputs">If <c>true</c>, the modifier units are also added for output units.</param>
         /// <param name="atto">If <c>true</c>, the "atto" modifier is added.</param>
         /// <param name="femto">If <c>true</c>, the "femto" modifier is added.</param>
         /// <param name="pico">If <c>true</c>, the "pico" modifier is added.</param>
@@ -47,57 +43,85 @@ namespace MaxwellCalc.Units
         /// <param name="giga">If <c>true</c>, the "giga" modifier is added.</param>
         /// <param name="tera">If <c>true</c>, the "tera" modifier is added.</param>
         /// <param name="peta">If <c>true</c>, the "peta" modifier is added.</param>
-        public static void RegisterModifierInputOutputUnits(IWorkspace<double> workspace,
+        public static bool TryRegisterModifierInputOutputUnits<T>(
+            this IWorkspace<T> workspace,
             string name,
-            Quantity<double> baseUnits,
-            bool includeOutputs = true,
+            Unit baseUnits,
             bool atto = false, bool femto = false, bool pico = false, bool nano = false, bool micro = false,
             bool milli = false, bool centi = false, bool kilo = false, bool mega = false, bool giga = false,
-            bool tera = false, bool peta = false)
+            bool tera = false, bool peta = false) where T : struct, IFormattable
         {
-            double modifier = baseUnits.Scalar;
-            var unit = baseUnits.Unit;
-            void Add(string n, double m, Unit u)
-            {
-                workspace.TryRegisterInputUnit(n, new Quantity<double>(m, u));
-                if (includeOutputs)
-                    workspace.TryRegisterOutputUnit(u, new Quantity<double>(1.0 / m, new Unit((n, 1))));
-            }
-
             if (atto)
-                Add($"a{name}", 1e-18 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"a{name}", new Quantity<string>("1e-18", baseUnits)))
+                    return false;
+            }
             if (femto)
-                Add($"f{name}", 1e-15 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"f{name}", new Quantity<string>("1e-15", baseUnits)))
+                    return false;
+            }
             if (pico)
-                Add($"p{name}", 1e-12 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"p{name}", new Quantity<string>("1e-12", baseUnits)))
+                    return false;
+            }
             if (nano)
-                Add($"n{name}", 1e-9 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"n{name}", new Quantity<string>("1e-9", baseUnits)))
+                    return false;
+            }
             if (micro)
-                Add($"u{name}", 1e-6 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"u{name}", new Quantity<string>("1e-6", baseUnits)))
+                    return false;
+            }
             if (milli)
-                Add($"m{name}", 1e-3 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"m{name}", new Quantity<string>("1e-3", baseUnits)))
+                    return false;
+            }
             if (centi)
-                Add($"c{name}", 1e-2 * modifier, unit);
-            workspace.TryRegisterInputUnit(name, new Quantity<double>(modifier, unit));
-            workspace.TryRegisterOutputUnit(unit, new Quantity<double>(1.0 / modifier, new Unit((name, 1))));
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"c{name}", new Quantity<string>("1e-2", baseUnits)))
+                    return false;
+            }
+            if (!workspace.TryRegisterInputOutputUnit(name, new Quantity<string>("1", baseUnits)))
+                return false;
             if (kilo)
-                Add($"k{name}", 1e3 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"k{name}", new Quantity<string>("1e3", baseUnits)))
+                    return false;
+            }
             if (mega)
-                Add($"M{name}", 1e6 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"M{name}", new Quantity<string>("1e6", baseUnits)))
+                    return false;
+            }
             if (giga)
-                Add($"G{name}", 1e9 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"G{name}", new Quantity<string>("1e9", baseUnits)))
+                    return false;
+            }
             if (tera)
-                Add($"T{name}", 1e12 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"T{name}", new Quantity<string>("1e12", baseUnits)))
+                    return false;
+            }
             if (peta)
-                Add($"P{name}", 1e15 * modifier, unit);
+            {
+                if (!workspace.TryRegisterInputOutputUnit($"P{name}", new Quantity<string>("1e15", baseUnits)))
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>
-        /// Registers a derived unit with modifiers in one of the units.
+        /// Registers a derived unit with modifiers in one of the dimensions in the base units.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        /// <param name="key">The key base unit.</param>
-        /// <param name="value">The value, of which one dimension is <paramref name="dimension"/>.</param>
+        /// <param name="outputUnit">The output unit.</param>
+        /// <param name="value">The output unit in base units.<paramref name="dimension"/>.</param>
         /// <param name="dimension">The dimension that will receive the modifier.</param>
         /// <param name="atto">If <c>true</c>, the "atto" modifier is added.</param>
         /// <param name="femto">If <c>true</c>, the "femto" modifier is added.</param>
@@ -110,266 +134,245 @@ namespace MaxwellCalc.Units
         /// <param name="giga">If <c>true</c>, the "giga" modifier is added.</param>
         /// <param name="tera">If <c>true</c>, the "tera" modifier is added.</param>
         /// <param name="peta">If <c>true</c>, the "peta" modifier is added.</param>
-        public static void RegisterModifierOutputUnits(IWorkspace<double> workspace,
-            Unit key, double modifier, Unit value, string dimension,
+        public static bool TryRegisterModifierOutputUnits<T>(
+            this IWorkspace<T> workspace,
+            Unit outputUnit, Unit baseUnits, string dimension, string modifier = "1",
             bool atto = false, bool femto = false, bool pico = false, bool nano = false,
             bool micro = false, bool milli = false, bool centi = false, bool kilo = false,
-            bool mega = false, bool giga = false, bool tera = false, bool peta = false)
+            bool mega = false, bool giga = false, bool tera = false, bool peta = false) where T : struct, IFormattable
         {
-            if (value.Dimension is null)
-                throw new ArgumentException("Dimension cannot be null", nameof(value));
-            var f = value.Dimension[dimension];
-            double power = (double)f.Numerator / f.Denominator;
-            void Add(string prefix, double m)
-            {
-                // Create a modified unit for this modifier
-                double nm = modifier * Math.Pow(m, -power);
-                var nu = new Unit(value.Dimension.Select(p => (p.Key == dimension ? $"{prefix}{p.Key}" : p.Key, p.Value)).ToArray());
-                workspace.TryRegisterOutputUnit(key, new Quantity<double>(nm, nu));
-            }
-
+            if (outputUnit.Dimension is null || baseUnits.Dimension is null)
+                throw new ArgumentException("Dimension cannot be null", nameof(outputUnit));
+            
+            Unit GetUnit(string prefix)
+                => new Unit(outputUnit.Dimension.Select(p => (p.Key == dimension ? $"{prefix}{p.Key}" : p.Key, p.Value)).ToArray());
             if (atto)
-                Add("a", 1e-18);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("a"), new Quantity<string>("1e-18", baseUnits)))
+                    return false;
+            }
             if (femto)
-                Add("f", 1e-15);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("f"), new Quantity<string>("1e-15", baseUnits)))
+                    return false;
+            }
             if (pico)
-                Add("p", 1e-12);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("p"), new Quantity<string>("1e-12", baseUnits)))
+                    return false;
+            }
             if (nano)
-                Add("n", 1e-9);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("n"), new Quantity<string>("1e-9", baseUnits)))
+                    return false;
+            }
             if (micro)
-                Add("u", 1e-6);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("u"), new Quantity<string>("1e-6", baseUnits)))
+                    return false;
+            }
             if (milli)
-                Add("m", 1e-3);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("m"), new Quantity<string>("1e-3", baseUnits)))
+                    return false;
+            }
             if (centi)
-                Add("c", 1e-2);
-            workspace.TryRegisterOutputUnit(key, new Quantity<double>(modifier, value));
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>("1e-2", baseUnits)))
+                    return false;
+            }
+            if (!workspace.TryRegisterOutputUnit(outputUnit, new Quantity<string>("1", baseUnits)))
+                return false;
             if (kilo)
-                Add("k", 1e3);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>("1e3", baseUnits)))
+                    return false;
+            }
             if (mega)
-                Add("M", 1e6);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("M"), new Quantity<string>("1e6", baseUnits)))
+                    return false;
+            }
             if (giga)
-                Add("G", 1e9);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("G"), new Quantity<string>("1e9", baseUnits)))
+                    return false;
+            }
             if (tera)
-                Add("T", 1e12);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("T"), new Quantity<string>("1e12", baseUnits)))
+                    return false;
+            }
             if (peta)
-                Add("P", 1e15);
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit("P"), new Quantity<string>("1e15", baseUnits)))
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>
         /// Registers common units.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        public static void RegisterCommonUnits(IWorkspace<double> workspace)
+        public static void RegisterCommonUnits<T>(this IWorkspace<T> workspace) where T : struct, IFormattable
         {
             // Length
-            RegisterModifierInputOutputUnits(workspace, "m", new(1.0, Unit.UnitMeter),
+            workspace.TryRegisterModifierInputOutputUnits(Unit.Meter, Unit.UnitMeter,
                 nano: true, micro: true, milli: true, centi: true, kilo: true);
 
             // Speed
-            RegisterModifierOutputUnits(workspace,
-                new Unit((Unit.Meter, 1), (Unit.Second, -1)), 1.0, new Unit((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter);
-            workspace.TryRegisterOutputUnit(new Unit((Unit.Meter, 1), (Unit.Second, -1)), new Quantity<double>(1.0 / 1000.0 * 3600.0, new Unit(("km", 1), ("hour", -1))));
+            workspace.TryRegisterModifierOutputUnits(
+                new((Unit.Meter, 1), (Unit.Second, -1)),
+                new((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter);
+            workspace.TryRegisterOutputUnit(new Unit((Unit.Meter, 1), (Unit.Second, -1)), new Quantity<string>("3.6", new Unit(("km", 1), ("hour", -1))));
 
             // Mass
-            workspace.TryRegisterInputUnit("ng", new Quantity<double>(1e-12, Unit.UnitKilogram));
-            workspace.TryRegisterInputUnit("ug", new Quantity<double>(1e-9, Unit.UnitKilogram));
-            workspace.TryRegisterInputUnit("mg", new Quantity<double>(1e-6, Unit.UnitKilogram));
-            workspace.TryRegisterInputUnit("g", new Quantity<double>(1e-3, Unit.UnitKilogram));
-            workspace.TryRegisterInputUnit("kg", new Quantity<double>(1.0, Unit.UnitKilogram));
-            workspace.TryRegisterInputUnit("ton", new Quantity<double>(1e3, Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("ng", new Quantity<string>("1e-12", Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("ug", new Quantity<string>("1e-9", Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("mg", new Quantity<string>("1e-6", Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("g", new Quantity<string>("1e-3", Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("kg", new Quantity<string>("1", Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("ton", new Quantity<string>("1e3", Unit.UnitKilogram));
 
             // Time
-            RegisterModifierInputOutputUnits(workspace, "s", new(1.0, Unit.UnitSeconds),
+            workspace.TryRegisterModifierInputOutputUnits(Unit.Second, Unit.UnitSeconds,
                 femto: true, pico: true, nano: true, micro: true);
-            workspace.TryRegisterInputUnit("min", new Quantity<double>(60.0, Unit.UnitSeconds));
-            workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 60.0, new Unit(("min", 1))));
-            workspace.TryRegisterInputUnit("hour", new Quantity<double>(3600.0, Unit.UnitSeconds));
-            workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 3600.0, new Unit(("hour", 1))));
-            workspace.TryRegisterInputUnit("day", new Quantity<double>(24.0 * 3600.0, Unit.UnitSeconds));
-            workspace.TryRegisterOutputUnit(Unit.UnitSeconds, new Quantity<double>(1.0 / 24.0 / 3600.0, new Unit(("day", 1))));
+            workspace.TryRegisterInputOutputUnit("min", new Quantity<string>("60", Unit.UnitSeconds));
+            workspace.TryRegisterInputOutputUnit("hour", new Quantity<string>("3600", Unit.UnitSeconds));
+            workspace.TryRegisterInputOutputUnit("day", new Quantity<string>("86400", Unit.UnitSeconds));
 
             // Ampere
-            RegisterModifierInputOutputUnits(workspace, "A", new(1.0, Unit.UnitAmperes),
+            workspace.TryRegisterModifierInputOutputUnits(Unit.Ampere, Unit.UnitAmperes,
                 pico: true, nano: true, milli: true, kilo: true);
 
             // Kelvin
-            RegisterModifierInputOutputUnits(workspace, "K", new(1.0, Unit.UnitKelvin),
-                milli: true);
+            workspace.TryRegisterModifierInputOutputUnits(Unit.Kelvin, Unit.UnitKelvin);
 
             // Candela
-            workspace.TryRegisterInputUnit("cd", new Quantity<double>(1.0, Unit.UnitCandela));
+            workspace.TryRegisterModifierInputOutputUnits(Unit.Candela, Unit.UnitCandela);
 
             // Angle
-            workspace.TryRegisterInputUnit("rad", new Quantity<double>(1.0, Unit.UnitRadian));
-            workspace.TryRegisterInputUnit("deg", new Quantity<double>(Math.PI / 180.0, Unit.UnitRadian));
+            workspace.TryRegisterInputUnit("rad", new Quantity<string>("1", Unit.UnitRadian));
+            workspace.TryRegisterInputUnit("deg", new Quantity<string>("17.4532925199432957692369076848861271344287188854173e-3", Unit.UnitRadian));
         }
 
         /// <summary>
         /// Registers common units used by electrical/electronics engineers.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        public static void RegisterCommonElectronicsUnits(IWorkspace<double> workspace)
+        public static void RegisterCommonElectronicsUnits<T>(IWorkspace<T> workspace) where T : struct, IFormattable
         {
             // Coulomb
-            RegisterModifierInputOutputUnits(workspace, "C",
-                new(1.0, new Unit((Unit.Ampere, 1), (Unit.Second, 1))));
+            workspace.TryRegisterModifierInputOutputUnits("C",
+                new((Unit.Ampere, 1), (Unit.Second, 1)));
 
             // Coulomb meter - electric dipole moment
-            workspace.TryRegisterOutputUnit(new Unit(
-                (Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, 1)),
-                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, 1))));
+            workspace.TryRegisterOutputUnit(
+                new(("C", 1), (Unit.Meter, 1)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, 1))));
 
             // Coulomb per meter - charge density
-            workspace.TryRegisterOutputUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1)),
-                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -1))));
+            workspace.TryRegisterOutputUnit(
+                new(("C", 1), (Unit.Meter, -1)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1))));
 
             // Coulomb per square meter - charge density
-            workspace.TryRegisterOutputUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2)),
-                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -2))));
+            workspace.TryRegisterOutputUnit(
+                new(("C", 1), (Unit.Meter, -2)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2))));
 
             // Coulomb per cubic meter - charge density
-            workspace.TryRegisterOutputUnit(new Unit((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3)),
-                new Quantity<double>(1.0, new Unit(("C", 1), (Unit.Meter, -3))));
+            workspace.TryRegisterOutputUnit(
+                new(("C", 1), (Unit.Meter, -3)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3))));
 
             // Volts
-            RegisterModifierInputOutputUnits(workspace, "V",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -3),
-                    (Unit.Ampere, -1))),
+            workspace.TryRegisterModifierInputOutputUnits("V",
+                new Unit((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -3), (Unit.Ampere, -1)),
                 nano: true, micro: true, milli: true, kilo: true, mega: true);
 
             // Volts per meter - electric field
-            RegisterModifierOutputUnits(workspace,
-                new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 1),
-                    (Unit.Second, -3),
-                    (Unit.Ampere, -1)),
-                1.0, new Unit(("V", 1), (Unit.Meter, -1)), "V");
+            workspace.TryRegisterModifierOutputUnits(
+                new(("V", 1), (Unit.Meter, -1)),
+                new Unit((Unit.Kilogram, 1), (Unit.Meter, 1), (Unit.Second, -3), (Unit.Ampere, -1)), "V");
 
             // Volts per square meter - electric field gradient
-            workspace.TryRegisterOutputUnit(new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 1),
-                    (Unit.Second, -3),
-                    (Unit.Ampere, -1)), 
-                    new Quantity<double>(1.0, new Unit(("V", 1), (Unit.Meter, -2))));
-            
-            // Ampere
-            RegisterModifierInputOutputUnits(workspace, "A",
-                new(1.0, Unit.UnitAmperes));
+            workspace.TryRegisterModifierOutputUnits(
+                new(("V", 1), (Unit.Meter, -2)),
+                new Unit((Unit.Kilogram, 1), (Unit.Meter, 1), (Unit.Second, -3), (Unit.Ampere, -1)), "V");
             
             // Watts
-            RegisterModifierInputOutputUnits(workspace, "W",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -3))));
+            workspace.TryRegisterModifierInputOutputUnits("W", 
+                new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -3)),
+                pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true);
             
             // Joules
-            RegisterModifierInputOutputUnits(workspace, "J",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -2))));
+            workspace.TryRegisterModifierInputOutputUnits("J",
+                new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2)),
+                pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true);
 
             // Joules seconds (Planck constant)
-            workspace.TryRegisterOutputUnit(
-                new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -1)), 
-                new Quantity<double>(1.0, new Unit(("J", 1), (Unit.Second, 1))));
+            workspace.TryRegisterModifierOutputUnits(
+                new(("J", 1), (Unit.Second, 1)),
+                new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -1)), "J");
 
             // Farad
-            RegisterModifierInputOutputUnits(workspace, "F",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, -1),
-                    (Unit.Meter, -2),
-                    (Unit.Second, 4),
-                    (Unit.Ampere, 2))));
+            workspace.TryRegisterModifierInputOutputUnits("F",
+                new((Unit.Kilogram, -1), (Unit.Meter, -2), (Unit.Second, 4), (Unit.Ampere, 2)),
+                femto: true, pico: true, micro: true, milli: true);
 
             // Farad per meter
-            RegisterModifierOutputUnits(workspace,
-                new Unit(
-                    (Unit.Kilogram, -1),
-                    (Unit.Meter, -3),
-                    (Unit.Second, 4),
-                    (Unit.Ampere, 2)), 1.0, new Unit(("F", 1), (Unit.Meter, -1)), Unit.Meter, centi: true);
+            workspace.TryRegisterModifierOutputUnits(
+                new(("F", 1), (Unit.Meter, -1)),
+                new((Unit.Kilogram, -1), (Unit.Meter, -3), (Unit.Second, 4), (Unit.Ampere, 2)), "V");
 
             // Farad per square meter
-            RegisterModifierOutputUnits(workspace,
-                new Unit(
-                    (Unit.Kilogram, -1),
-                    (Unit.Meter, -4),
-                    (Unit.Second, 4),
-                    (Unit.Ampere, 2)), 1.0, new Unit(("F", 1), (Unit.Meter, -2)), Unit.Meter, centi: true);
+            workspace.TryRegisterModifierOutputUnits(
+                new(("F", 1), (Unit.Meter, -2)),
+                new((Unit.Kilogram, -1), (Unit.Meter, -4), (Unit.Second, 4), (Unit.Ampere, 2)), "V");
 
             // Henry
-            RegisterModifierInputOutputUnits(workspace, "H",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -2),
-                    (Unit.Ampere, -2))));
+            workspace.TryRegisterModifierInputOutputUnits("H",
+                new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2), (Unit.Ampere, -2)),
+                nano: true, micro: true, milli: true);
 
             // Weber
-            RegisterModifierOutputUnits(workspace, new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -2),
-                    (Unit.Ampere, -1)),
-                    1.0, new Unit(("Wb", 1)), "Wb");
+            workspace.TryRegisterModifierInputOutputUnits("Wb",
+                new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2), (Unit.Ampere, -1)));
             
-            // Ohm = A-2 kg m2 s-3
-            RegisterModifierInputOutputUnits(workspace, "ohm",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, 1),
-                    (Unit.Meter, 2),
-                    (Unit.Second, -3),
-                    (Unit.Ampere, -2))),
+            // Ohm
+            workspace.TryRegisterModifierInputOutputUnits("ohm",
+                new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -3), (Unit.Ampere, -2)),
                 micro: true, milli: true, kilo: true, mega: true);
 
             // Siemens
-            RegisterModifierInputOutputUnits(workspace, "S",
-                new(1.0, new Unit(
-                    (Unit.Kilogram, -1),
-                    (Unit.Meter, -2),
-                    (Unit.Second, 3),
-                    (Unit.Ampere, 2))),
+            workspace.TryRegisterModifierInputOutputUnits("S",
+                new((Unit.Kilogram, -1), (Unit.Meter, -2), (Unit.Second, 3), (Unit.Ampere, 2)),
                 micro: true, milli: true, kilo: true, mega: true);
 
             // Hertz
-            RegisterModifierInputOutputUnits(workspace, "Hz",
-                new(1.0, new Unit((Unit.Second, -1))),
+            workspace.TryRegisterModifierInputOutputUnits("Hz",
+                new((Unit.Second, -1)),
                 milli: true, kilo: true, mega: true, giga: true, tera: true);
 
             // Bits
             var b = new Unit(("bit", 1));
-            double m = 1024.0;
-            workspace.TryRegisterInputUnit("b", new Quantity<double>(1.0, b));
-            workspace.TryRegisterInputUnit("B", new Quantity<double>(8.0, b));
-            workspace.TryRegisterInputUnit("kB", new Quantity<double>(8.0 * m, b));
-            workspace.TryRegisterInputUnit("MB", new Quantity<double>(8.0 * m * m, b));
-            workspace.TryRegisterInputUnit("GB", new Quantity<double>(8.0 * m * m * m, b));
-            workspace.TryRegisterInputUnit("TB", new Quantity<double>(8.0 * m * m * m * m, b));
-            workspace.TryRegisterInputUnit("PB", new Quantity<double>(8.0 * m * m * m * m * m, b));
-            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0, new Unit(("B", 1))));
-            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m, new Unit(("kB", 1))));
-            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m, new Unit(("MB", 1))));
-            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m / m, new Unit(("GB", 1))));
-            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m / m / m, new Unit(("TB", 1))));
-            workspace.TryRegisterOutputUnit(b, new Quantity<double>(1.0 / 8.0 / m / m / m / m / m, new Unit(("PB", 1))));
+            workspace.TryRegisterInputOutputUnit("bit", new Quantity<string>("1", b));
+            workspace.TryRegisterInputOutputUnit("B", new Quantity<string>("8", b));
+            workspace.TryRegisterInputOutputUnit("kB", new Quantity<string>("8192", b));
+            workspace.TryRegisterInputOutputUnit("MB", new Quantity<string>("8388608", b));
+            workspace.TryRegisterInputOutputUnit("GB", new Quantity<string>("8589934592", b));
+            workspace.TryRegisterInputOutputUnit("TB", new Quantity<string>("8796093022208", b));
+            workspace.TryRegisterInputOutputUnit("PB", new Quantity<string>("9007199254740992", b));
 
             // Bits per second
             var bps = new Unit(("bit", 1), (Unit.Second, -1));
-            RegisterInputOutputUnit(workspace, bps, 1, new Unit(("bps", 1)));
-            RegisterInputOutputUnit(workspace, bps, 1.0 / m, new Unit(("kbps", 1)));
-            RegisterInputOutputUnit(workspace, bps, 1.0 / m / m, new Unit(("Mbps", 1)));
-            RegisterInputOutputUnit(workspace, bps, 1.0 / m / m / m, new Unit(("Gbps", 1)));
-            RegisterInputOutputUnit(workspace, bps, 1.0 / m / m / m / m, new Unit(("Tbps", 1)));
+            workspace.TryRegisterOutputUnit(bps, new Quantity<string>("1", bps));
+            workspace.TryRegisterOutputUnit(new(("kbps", 1)), new Quantity<string>("1024", bps));
+            workspace.TryRegisterOutputUnit(new(("Mbps", 1)), new Quantity<string>("1048576", bps));
+            workspace.TryRegisterOutputUnit(new(("Gbps", 1)), new Quantity<string>("1073741824", bps));
+            workspace.TryRegisterOutputUnit(new(("Tbps", 1)), new Quantity<string>("1099511627776", bps));
         }
     }
 }

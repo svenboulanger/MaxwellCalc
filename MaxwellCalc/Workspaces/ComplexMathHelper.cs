@@ -15,18 +15,18 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         public static void RegisterFunctions(IWorkspace<Complex> workspace)
         {
-            workspace.TryRegisterFunction("abs", Abs);
-            workspace.TryRegisterFunction("sin", Sin);
-            workspace.TryRegisterFunction("cos", Cos);
-            workspace.TryRegisterFunction("tan", Tan);
-            workspace.TryRegisterFunction("sinh", Sinh);
-            workspace.TryRegisterFunction("cosh", Cosh);
-            workspace.TryRegisterFunction("tanh", Tanh);
-            workspace.TryRegisterFunction("ln", Ln);
-            workspace.TryRegisterFunction("log10", Log10);
-            workspace.TryRegisterFunction("log2", Log2);
-            workspace.TryRegisterFunction("exp", Exp);
-            workspace.TryRegisterFunction("sqrt", Sqrt);
+            workspace.TryRegisterBuiltInFunction("abs", Abs);
+            workspace.TryRegisterBuiltInFunction("sin", Sin);
+            workspace.TryRegisterBuiltInFunction("cos", Cos);
+            workspace.TryRegisterBuiltInFunction("tan", Tan);
+            workspace.TryRegisterBuiltInFunction("sinh", Sinh);
+            workspace.TryRegisterBuiltInFunction("cosh", Cosh);
+            workspace.TryRegisterBuiltInFunction("tanh", Tanh);
+            workspace.TryRegisterBuiltInFunction("ln", Ln);
+            workspace.TryRegisterBuiltInFunction("log10", Log10);
+            workspace.TryRegisterBuiltInFunction("log2", Log2);
+            workspace.TryRegisterBuiltInFunction("exp", Exp);
+            workspace.TryRegisterBuiltInFunction("sqrt", Sqrt);
         }
 
         /// <summary>

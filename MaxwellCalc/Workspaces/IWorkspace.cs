@@ -1,6 +1,7 @@
 ﻿using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
+using System;
 using System.Collections.Generic;
 
 namespace MaxwellCalc.Workspaces
@@ -11,40 +12,36 @@ namespace MaxwellCalc.Workspaces
     public interface IWorkspace
     {
         /// <summary>
+        /// Gets or sets an error message.
+        /// </summary>
+        public string? ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Gets the variables defined in the workspace.
+        /// </summary>
+        public IEnumerable<(string, Quantity<string>)> Variables { get; }
+
+        /// <summary>
+        /// Gets the input units defined in the workspace.
+        /// </summary>
+        public IEnumerable<(string, Quantity<string>)> InputUnits { get; }
+
+        /// <summary>
+        /// Gets the output units defined in the workspace.
+        /// </summary>
+        public IEnumerable<(Unit, Quantity<string>)> OutputUnits { get; }
+
+        /// <summary>
+        /// Gets the user functions defined in the workspace.
+        /// </summary>
+        public IEnumerable<(string Name, string[] parameters, INode body)> UserFunctions { get; }
+
+        /// <summary>
         /// Determines whether a string represents a unit.
         /// </summary>
         /// <param name="name">The unit name.</param>
         /// <returns>Returns <c>true</c> if the name represents a unit; otherwise, <c>false</c>.</returns>
         public bool IsUnit(string name);
-    }
-
-    /// <summary>
-    /// Represents a workspace.
-    /// </summary>
-    public interface IWorkspace<T> : IWorkspace
-    {
-        /// <summary>
-        /// Gets the variables in the workspace.
-        /// </summary>
-        public IVariableScope<T> Variables { get; }
-
-        /// <summary>
-        /// Gets the input units for the workspace.
-        /// </summary>
-        public IEnumerable<(string, Quantity<T>)> InputUnits { get; }
-
-        /// <summary>
-        /// Gets the output units for the workspace.
-        /// </summary>
-        public IEnumerable<(Unit, Quantity<T>)> OutputUnits { get; }
-
-        /// <summary>
-        /// Tries to get a unit from the workspace.
-        /// </summary>
-        /// <param name="name">The name of the unit.</param>
-        /// <param name="result">The result.</param>
-        /// <returns>Returns <c>true</c> if the unit was found; otherwise, <c>false</c>.</returns>
-        public bool TryGetUnit(string name, out Quantity<T> result);
 
         /// <summary>
         /// Tries to register a unit for the workspace.
@@ -52,7 +49,15 @@ namespace MaxwellCalc.Workspaces
         /// <param name="name">The name of the unit.</param>
         /// <param name="quantity">The quantity.</param>
         /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterInputUnit(string name, Quantity<T> quantity);
+        public bool TryRegisterInputUnit(string name, Quantity<string> quantity);
+
+        /// <summary>
+        /// Tries to register a unit for the workspace.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="node">The node.</param>
+        /// <returns>Returns <c>true</c> if the unit could be resolved and set; otherwise, <c>false</c>.</returns>
+        public bool TryRegisterInputUnit(string name, INode node);
 
         /// <summary>
         /// Tries to remove a unit from the workspace that can be used as an input.
@@ -62,20 +67,77 @@ namespace MaxwellCalc.Workspaces
         public bool TryRemoveInputUnit(string name);
 
         /// <summary>
-        /// Tries to register a quantity with non-base units that can be used to format a quantity in base units.
+        /// Tries to register an output unit. This unit can be used to format units of results.
         /// </summary>
-        /// <param name="key">The base unit that this unit is derived from.</param>
-        /// <param name="quantity">The resulting quantity. Should be specified such that <paramref name="key"/> is equal to <paramref name="quantity"/>.</param>
+        /// <param name="outputUnits">The unit that can be used for output.</param>
+        /// <param name="quantity">The equivalent quantity in base units.</param>
         /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterOutputUnit(Unit key, Quantity<T> quantity);
+        public bool TryRegisterOutputUnit(Unit outputUnits, Quantity<string> quantity);
 
         /// <summary>
-        /// Tries to remove a unit from the workspace that can be used as an output.
+        /// Tries to register an output unit. This unit can be used to format units of results.
         /// </summary>
-        /// <param name="key">The key unit.</param>
-        /// <param name="quantity">The quantity.</param>
+        /// <param name="outputUnits">The unit that can be used for output.</param>
+        /// <param name="value">The equivalent quantity in base units.</param>
+        /// <returns>Returns <c>true</c> if the unit could be set; otherwise, <c>false</c>.</returns>
+        public bool TryRegisterOutputUnit(INode outputUnits, INode value);
+
+        /// <summary>
+        /// Tries to remove an output unit.
+        /// </summary>
+        /// <param name="outputUnit">The output units.</param>
+        /// <param name="baseUnits">The base units.</param>
         /// <returns>Returns <c>true</c> if the unit was removed; otherwise, <c>false</c>.</returns>
-        public bool TryRemoveOutputUnit(Unit key, Quantity<T> quantity);
+        public bool TryRemoveOutputUnit(Unit outputUnits, Unit baseUnits);
+
+        /// <summary>
+        /// Tries to register a function for the given name and arguments.
+        /// </summary>
+        /// <param name="name">The name of the function.</param>
+        /// <param name="arguments">The argument names.</param>
+        /// <param name="expression">The expression.</param>
+        /// <returns>Returns <c>true</c> if the user function was registered; otherwise, <c>false</c>.</returns>
+        public bool TryRegisterUserFunction(string name, List<string> arguments, INode expression);
+
+        /// <summary>
+        /// Tries to remove a user function with the given name and number of arguments.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="argumentCount">The argument count.</param>
+        /// <returns>Returns <c>true</c> if the user function was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveUserFunction(string name, int argumentCount);
+
+        /// <summary>
+        /// Resolves a node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        /// <param name="result">The formatted result.</param>
+        /// <returns>Returns <c>true</c> if the node was resolved; otherwise, <c>false</c>.</returns>
+        public bool TryResolveAndFormat(INode node, out Quantity<string> result);
+    }
+
+    /// <summary>
+    /// Represents a workspace.
+    /// </summary>
+    public interface IWorkspace<T> : IWorkspace where T : struct, IFormattable
+    {
+        /// <summary>
+        /// Gets the resolver.
+        /// </summary>
+        public IResolver<T> Resolver { get; }
+
+        /// <summary>
+        /// Gets the variables in the workspace.
+        /// </summary>
+        public IVariableScope<T> Scope { get; }
+
+        /// <summary>
+        /// Tries to get a unit from the workspace.
+        /// </summary>
+        /// <param name="name">The name of the unit.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the unit was found; otherwise, <c>false</c>.</returns>
+        public bool TryGetUnit(string name, out Quantity<T> result);
 
         /// <summary>
         /// A delegate for functions.
@@ -92,16 +154,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="name">The name.</param>
         /// <param name="function">The function.</param>
         /// <returns>Returns <c>true</c> if the function was registered; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterFunction(string name, FunctionDelegate function);
-
-        /// <summary>
-        /// Tries to register a function for the given name and arguments.
-        /// </summary>
-        /// <param name="name">The name of the function.</param>
-        /// <param name="arguments">The argument names.</param>
-        /// <param name="expression">The expression.</param>
-        /// <returns>Returns <c>true</c> if the user function was registered; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterUserFunction(string name, List<string> arguments, INode expression);
+        public bool TryRegisterBuiltInFunction(string name, FunctionDelegate function);
 
         /// <summary>
         /// Tries to evaluate a function for the given arguments.
@@ -114,11 +167,19 @@ namespace MaxwellCalc.Workspaces
         public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IResolver<T> resolver, out Quantity<T> result);
 
         /// <summary>
-        /// Tries to resolve the naming of .
+        /// Tries to resolve the output units.
         /// </summary>
         /// <param name="quantity">The quantity.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if a naming was found; otherwise, <c>false</c>.</returns>
-        public bool TryResolveNaming(Quantity<T> quantity, out Quantity<T> result);
+        public bool TryResolveOutputUnits(Quantity<T> quantity, out Quantity<T> result);
+
+        /// <summary>
+        /// Tries to format a quantity.
+        /// </summary>
+        /// <param name="quantity">The quantity.</param>
+        /// <param name="formatted">The formatted quantity.</param>
+        /// <returns>Returns <c>true</c> if the quantity was formatted; otherwise, <c>false</c>.</returns>
+        public bool TryFormat(Quantity<T> quantity, out Quantity<string> formatted);
     }
 }

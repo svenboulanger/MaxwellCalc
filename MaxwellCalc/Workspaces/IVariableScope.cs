@@ -1,4 +1,6 @@
 ﻿using MaxwellCalc.Units;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -7,6 +9,11 @@ namespace MaxwellCalc.Workspaces
     /// </summary>
     public interface IVariableScope
     {
+        /// <summary>
+        /// Gets the variables defined in the current scope.
+        /// </summary>
+        public IEnumerable<string> Variables { get; }
+
         /// <summary>
         /// Determines whether a string represents a variable that is present in the current scope.
         /// </summary>

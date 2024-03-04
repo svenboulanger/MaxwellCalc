@@ -9,20 +9,15 @@ namespace MaxwellCalc.Resolvers
     /// A resolver that allows resolving nodes to a result.
     /// </summary>
     /// <typeparam name="T">The result type.</typeparam>
-    public interface IResolver<T>
+    public interface IResolver<T> where T : struct, IFormattable
     {
         /// <summary>
-        /// Gets a default value to return.
+        /// Gets a default value to return in case of an error.
         /// </summary>
         public Quantity<T> Default { get; }
 
         /// <summary>
-        /// Gets or sets the error message.
-        /// </summary>
-        public string Error { get; set; }
-
-        /// <summary>
-        /// Evaluates a scalar value.
+        /// Evaluates a scalar value from a string.
         /// </summary>
         /// <param name="scalar">The scalar value.</param>
         /// <param name="workspace">The workspace.</param>
@@ -123,6 +118,15 @@ namespace MaxwellCalc.Resolvers
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
         public bool TryDivide(Quantity<T> a, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
+
+        /// <summary>
+        /// Evaluates the inverted quantity.
+        /// </summary>
+        /// <param name="a">The argument.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
+        public bool TryInvert(Quantity<T> a, IWorkspace<T>? workspace, out Quantity<T> result);
 
         /// <summary>
         /// Evaluates the binary modulo operator.
@@ -283,5 +287,15 @@ namespace MaxwellCalc.Resolvers
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
         public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IWorkspace<T>? workspace, out Quantity<T> result);
+
+        /// <summary>
+        /// Evaluates a factor to determine which unit should be used to describe
+        /// <paramref name="a"/>.
+        /// </summary>
+        /// <param name="a">The quantity to describe.</param>
+        /// <param name="unit">The unit.</param>
+        /// <param name="factor">The factor that should be considered when chosing the unit.</param>
+        /// <returns>Returns <c>true</c> if the factor could be determined; otherwise, <c>false</c>.</returns>
+        public bool TryFactor(Quantity<T> a, Quantity<T> unit, out double factor);
     }
 }

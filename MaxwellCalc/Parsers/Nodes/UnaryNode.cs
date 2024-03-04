@@ -28,7 +28,7 @@ namespace MaxwellCalc.Parsers.Nodes
         public INode Argument { get; } = argument;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result)
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
         {
             if (!Argument.TryResolve(resolver, workspace, out var arg))
             {
@@ -47,7 +47,8 @@ namespace MaxwellCalc.Parsers.Nodes
                 }
                 else if (unit.Unit != value.Unit)
                 {
-                    resolver.Error = "Cannot convert units as units don't match.";
+                    if (workspace is not null)
+                        workspace.ErrorMessage = "Cannot convert units as units don't match.";
                     result = resolver.Default;
                     return false;
                 }

@@ -18,10 +18,10 @@ namespace MaxwellCalc.Parsers.Nodes
         /// <summary>
         /// Resolves the node using an <see cref="IResolver{T}"/>.
         /// </summary>
-        /// <typeparam name="T">The result type.</typeparam>
+        /// <typeparam name="T">The domain type.</typeparam>
         /// <param name="resolver">The resolver.</param>
         /// <param name="workspace">The diagnostics message handler.</param>
         /// <returns>Returns the resolved quantity.</returns>
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result);
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable;
     }
 }

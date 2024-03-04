@@ -1,6 +1,6 @@
 ﻿using MaxwellCalc.Units;
 using System.Collections.Generic;
-using System.Numerics;
+using System.Linq;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -8,10 +8,13 @@ namespace MaxwellCalc.Workspaces
     /// An implementation for a variable scope.
     /// </summary>
     /// <typeparam name="T">The base type.</typeparam>
-    public class VariableScope : IVariableScope<double>, IVariableScope<Complex>
+    public class VariableScope<T> : IVariableScope<T>
     {
-        private readonly Dictionary<string, IQuantity> _variables = [];
-        private readonly VariableScope? _parent;
+        private readonly Dictionary<string, Quantity<T>> _variables = [];
+        private readonly VariableScope<T>? _parent;
+
+        /// <inheritdoc />
+        public IEnumerable<string> Variables => _variables.Keys;
 
         /// <summary>
         /// Creates a new <see cref="VariableScope"/>.
@@ -21,83 +24,29 @@ namespace MaxwellCalc.Workspaces
             _parent = null;
         }
 
-        private VariableScope(VariableScope parent)
+        private VariableScope(VariableScope<T> parent)
         {
             _parent = parent;
         }
 
-        public VariableScope CreateLocal() => new VariableScope(this);
-
         /// <inheritdoc />
-        IVariableScope<double> IVariableScope<double>.CreateLocal() => CreateLocal();
-
-        /// <inheritdoc />
-        IVariableScope<Complex> IVariableScope<Complex>.CreateLocal() => CreateLocal();
+        IVariableScope<T> IVariableScope<T>.CreateLocal()
+            => new VariableScope<T>(this);
 
         /// <inheritdoc />
         bool IVariableScope.IsVariable(string name) => _variables.ContainsKey(name) || (_parent is not null && ((IVariableScope)_parent).IsVariable(name));
 
         /// <inheritdoc />
-        bool IVariableScope<double>.TryGetVariable(string name, out Quantity<double> result)
+        bool IVariableScope<T>.TryGetVariable(string name, out Quantity<T> result)
         {
-            if (_variables.TryGetValue(name, out var quantity))
-            {
-                switch (quantity)
-                {
-                    case Quantity<double> dbl:
-                        result = dbl;
-                        return true;
-
-                    case Quantity<Complex> cplx:
-                        result = new Quantity<double>(cplx.Scalar.Real, quantity.Unit);
-                        return true;
-
-                    default:
-                        result = new Quantity<double>(double.NaN, Unit.UnitNone);
-                        return false;
-                }
-            }
-            else if (_parent is not null && ((IVariableScope<double>)_parent).TryGetVariable(name, out result))
+            if (_variables.TryGetValue(name, out result))
                 return true;
-            result = new Quantity<double>(double.NaN, Unit.UnitNone);
+            result = default;
             return false;
         }
 
         /// <inheritdoc />
-        bool IVariableScope<Complex>.TryGetVariable(string name, out Quantity<Complex> result)
-        {
-            if (_variables.TryGetValue(name, out var quantity))
-            {
-                switch (quantity)
-                {
-                    case Quantity<double> dbl:
-                        result = new Quantity<Complex>(dbl.Scalar, quantity.Unit);
-                        return true;
-
-                    case Quantity<Complex> cplx:
-                        result = cplx;
-                        return true;
-
-                    default:
-                        result = new Quantity<Complex>(double.NaN, Unit.UnitNone);
-                        return false;
-                }
-            }
-            else if (_parent is not null && ((IVariableScope<Complex>)_parent).TryGetVariable(name, out result))
-                return true;
-            result = new Quantity<Complex>(double.NaN, Unit.UnitNone);
-            return false;
-        }
-
-        /// <inheritdoc />
-        bool IVariableScope<double>.TrySetVariable(string name, Quantity<double> value)
-        {
-            _variables[name] = value;
-            return true;
-        }
-
-        /// <inheritdoc />
-        bool IVariableScope<Complex>.TrySetVariable(string name, Quantity<Complex> value)
+        bool IVariableScope<T>.TrySetVariable(string name, Quantity<T> value)
         {
             _variables[name] = value;
             return true;

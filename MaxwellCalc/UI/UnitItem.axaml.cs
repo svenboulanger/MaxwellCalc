@@ -17,8 +17,8 @@ public class UnitItem : TemplatedControl
 
     public static readonly StyledProperty<Unit> LeftProperty =
         AvaloniaProperty.Register<UnitItem, Unit>(nameof(Left), new Unit(("Unit", 1)));
-    public static readonly StyledProperty<Quantity<double>> QuantityProperty =
-        AvaloniaProperty.Register<UnitItem, Quantity<double>>(nameof(Quantity), new Quantity<double>(1.0, new Unit((Unit.Kilogram, 1))));
+    public static readonly StyledProperty<Quantity<string>> QuantityProperty =
+        AvaloniaProperty.Register<UnitItem, Quantity<string>>(nameof(Quantity), new Quantity<string>("Default", Unit.UnitNone));
     public static readonly StyledProperty<IBrush?> UnitForegroundProperty =
         AvaloniaProperty.Register<UnitItem, IBrush?>(nameof(UnitForeground), Brushes.Black);
     public static readonly StyledProperty<IBrush?> ScalarForegroundProperty =
@@ -50,7 +50,7 @@ public class UnitItem : TemplatedControl
         set => SetValue(LeftProperty, value);
     }
 
-    public Quantity<double> Quantity
+    public Quantity<string> Quantity
     {
         get => GetValue(QuantityProperty);
         set => SetValue(QuantityProperty, value);
@@ -98,7 +98,7 @@ public class UnitItem : TemplatedControl
         });
         _descriptionBlock.Inlines.Add(new Run
         {
-            Text = Quantity.Scalar.ToString("g3"),
+            Text = Quantity.Scalar,
             Foreground = ScalarForeground,
             FontSize = FontSize * 0.75
         });

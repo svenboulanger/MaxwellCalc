@@ -6,6 +6,9 @@ using System.Numerics;
 
 namespace MaxwellCalc.Resolvers
 {
+    /// <summary>
+    /// Describes the complex domain for doubles.
+    /// </summary>
     public class ComplexResolver : IResolver<Complex>
     {
         /// <inheritdoc />
@@ -25,6 +28,14 @@ namespace MaxwellCalc.Resolvers
                 return false;
             }
             result = new Quantity<Complex>(dbl, Unit.UnitNone);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryFactor(Quantity<Complex> a, Quantity<Complex> unit, out double factor)
+        {
+            var s = a.Scalar / unit.Scalar;
+            factor = Math.Max(Math.Abs(s.Real), Math.Abs(s.Imaginary));
             return true;
         }
 
@@ -50,7 +61,7 @@ namespace MaxwellCalc.Resolvers
         {
             if (workspace is not null)
             {
-                if (workspace.Variables.TryGetVariable(variable, out result))
+                if (workspace.Scope.TryGetVariable(variable, out result))
                     return true;
                 if (variable == "i" || variable == "j")
                 {
@@ -123,15 +134,24 @@ namespace MaxwellCalc.Resolvers
             return true;
         }
 
+        /// <inheritdoc />
         public bool TryMultiply(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar * b.Scalar, a.Unit * b.Unit);
             return true;
         }
 
+        /// <inheritdoc />
         public bool TryDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar / b.Scalar, a.Unit / b.Unit);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryInvert(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        {
+            result = new Quantity<Complex>(1.0 / a.Scalar, Unit.Inv(a.Unit));
             return true;
         }
 
@@ -376,7 +396,7 @@ namespace MaxwellCalc.Resolvers
         {
             if (workspace is not null)
             {
-                if (workspace.Variables.TrySetVariable(name, b))
+                if (workspace.Scope.TrySetVariable(name, b))
                 {
                     result = b;
                     return true;

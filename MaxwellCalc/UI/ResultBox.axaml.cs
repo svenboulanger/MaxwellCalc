@@ -17,8 +17,8 @@ public class ResultBox : TemplatedControl
 
     public static readonly StyledProperty<string> InputProperty =
         AvaloniaProperty.Register<ResultBox, string>(nameof(Input), "Input");
-    public static readonly StyledProperty<object?> OutputProperty =
-        AvaloniaProperty.Register<ResultBox, object?>(nameof(Output), "Output");
+    public static readonly StyledProperty<Quantity<string>> OutputProperty =
+        AvaloniaProperty.Register<ResultBox, Quantity<string>>(nameof(Output), new Quantity<string>("Unrecognized", Unit.UnitNone));
     public static readonly StyledProperty<IBrush?> InputForegroundProperty =
         AvaloniaProperty.Register<ResultBox, IBrush?>(nameof(InputForeground), Brushes.Gray);
     public static readonly StyledProperty<IBrush?> OutputForegroundProperty =
@@ -50,7 +50,7 @@ public class ResultBox : TemplatedControl
         set => SetValue(InputProperty, value);
     }
 
-    public object? Output
+    public Quantity<string> Output
     {
         get => GetValue(OutputProperty);
         set => SetValue(OutputProperty, value);
@@ -111,66 +111,13 @@ public class ResultBox : TemplatedControl
         else
             _output.Inlines.Clear();
 
-        // No output to show
-        if (Output is null)
-        {
-            _output.Inlines.Add(new Run());
-            return;
-        }
-
-        // First add the scalar
-        if (Output is IQuantity quantity)
-            FormatQuantity(quantity);
-        else
-        {
-            var run = new Run()
-            {
-                Text = Output.ToString(),
-                Foreground = OutputForeground
-            };
-            _output.Inlines.Add(run);
-        }
-    }
-
-    private void FormatQuantity(IQuantity quantity)
-    {
-        if (_output is null)
-            return;
-        if (_output.Inlines is null)
-            return;
-
-        if (quantity.Scalar is not null)
-        {
-            string formatted;
-            switch (quantity.Scalar)
-            {
-                case double dbl:
-                    formatted = dbl.ToString("g10");
-                    break;
-
-                case Complex cplx:
-                    if (cplx.Imaginary.Equals(0.0))
-                        formatted = cplx.Real.ToString("g10");
-                    else if (cplx.Real.Equals(0.0))
-                        formatted = $"{cplx.Imaginary:g10} i";
-                    else
-                        formatted = $"{cplx.Real:g10} + {cplx.Imaginary:g10} i";
-                    break;
-
-                default:
-                    formatted = "Unrecognized";
-                    break;
-            }
-            var run = new Run()
-            {
-                Text = formatted,
-                Foreground = OutputForeground
-            };
-            _output.Inlines.Add(run);
-        }
-
         // Show the dimension
+        _output.Inlines.Add(new Run
+        {
+            Text = Output.Scalar,
+            Foreground = OutputForeground
+        });
         UnitFormatter.Default.AppendInlinesFor(
-            _output.Inlines, quantity.Unit, UnitForeground, _output.FontSize);
+            _output.Inlines, Output.Unit, UnitForeground, _output.FontSize);
     }
 }

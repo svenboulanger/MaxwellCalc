@@ -14,10 +14,10 @@ namespace MaxwellCalc;
 
 public partial class SettingsWindow : Window
 {
-    public static readonly StyledProperty<Workspace?> WorkspaceProperty =
-        AvaloniaProperty.Register<SettingsWindow, Workspace?>(nameof(Workspace), null);
+    public static readonly StyledProperty<IWorkspace?> WorkspaceProperty =
+        AvaloniaProperty.Register<SettingsWindow, IWorkspace?>(nameof(Workspace), null);
 
-    public Workspace? Workspace
+    public IWorkspace? Workspace
     {
         get => GetValue(WorkspaceProperty);
         set => SetValue(WorkspaceProperty, value);
@@ -53,11 +53,11 @@ public partial class SettingsWindow : Window
             return;
 
         _inputUnitList.Children.Clear();
-        foreach (var (name, quantity) in ((IWorkspace<double>)Workspace).InputUnits.OrderBy(p => p.Item1))
+        foreach (var (name, quantity) in Workspace.InputUnits.OrderBy(p => p.Item1))
             AddInputUnitToList(name, quantity, false); // Already sorted
     }
 
-    private void AddInputUnitToList(string name, Quantity<double> quantity, bool insertSorted = true)
+    private void AddInputUnitToList(string name, Quantity<string> quantity, bool insertSorted = true)
     {
         if (Workspace is null)
             return;
@@ -104,18 +104,18 @@ public partial class SettingsWindow : Window
             AddOutputUnitToList(unit, quantity);
     }
 
-    private void AddOutputUnitToList(Unit unit, Quantity<double> quantity)
+    private void AddOutputUnitToList(Unit unit, Quantity<string> quantity)
     {
         if (Workspace is null)
             return;
         var item = new UnitItem
         {
             Left = quantity.Unit,
-            Quantity = new Quantity<double>(1.0 / quantity.Scalar, unit)
+            Quantity = quantity
         };
         item.RemoveClicked += (sender, args) =>
         {
-            ((IWorkspace<double>)Workspace).TryRemoveOutputUnit(unit, quantity);
+            ((IWorkspace<double>)Workspace).TryRemoveOutputUnit(unit, quantity.Unit);
             _outputUnitList.Children.Remove(item);
         };
         _outputUnitList.Children.Add(item);
@@ -243,18 +243,17 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        // Get the quantity that the unit describes
-        var resolver = new DoubleResolver();
-        if (!nodeBaseUnits.TryResolve(resolver, null, out var value))
+        // Add to the workspace on to our units
+        if (!Workspace.TryRegisterInputUnit(un.Content.ToString(), nodeBaseUnits))
         {
-            var dlg = new ErrorMessageBox { Message = resolver.Error };
+            var dlg = new ErrorMessageBox
+            {
+                Message = Workspace.ErrorMessage
+            };
             dlg.ShowDialog(this);
             return;
         }
-
-        // Add to the workspace on to our units
-        Workspace.TryRegisterInputUnit(un.Content.ToString(), value);
-        AddInputUnitToList(un.Content.ToString(), value);
+        UpdateInputUnits();
 
         // Restart for the next input
         _textInputBaseUnits.Text = string.Empty;
@@ -303,28 +302,13 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        // Create the input unit
-        var resolver = new DoubleResolver();
-        if (!nodeOutputUnitExpression.TryResolve(resolver, null, out var outputUnit))
+        if (!Workspace.TryRegisterOutputUnit(nodeOutputUnitExpression, nodeOutputBaseUnitExpression))
         {
-            var dlg = new ErrorMessageBox { Message = resolver.Error };
+            var dlg = new ErrorMessageBox { Message = Workspace.ErrorMessage };
             dlg.ShowDialog(this);
             return;
         }
-
-        // Get the quantity that the unit describes
-        if (!nodeOutputBaseUnitExpression.TryResolve(resolver, null, out var baseUnitValue))
-        {
-            var dlg = new ErrorMessageBox { Message = resolver.Error };
-            dlg.ShowDialog(this);
-            return;
-        }
-
-        // Add to the workspace on to our units
-        var key = baseUnitValue.Unit;
-        var value = new Quantity<double>(outputUnit.Scalar / baseUnitValue.Scalar, outputUnit.Unit);
-        Workspace.TryRegisterOutputUnit(key, value);
-        AddOutputUnitToList(key, value);
+        UpdateOutputUnits();
 
         // Restart for the next input
         _textOutputBaseUnits.Text = string.Empty;

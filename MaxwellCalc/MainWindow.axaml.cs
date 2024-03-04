@@ -1,12 +1,8 @@
 using Avalonia.Controls;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
-using System;
-using System.Numerics;
-using System.Text.Json;
 
 namespace MaxwellCalc
 {
@@ -14,7 +10,7 @@ namespace MaxwellCalc
     {
         private int _historyFill = -1;
         private string _tmpLastInput = string.Empty;
-        private readonly Workspace _workspace = new();
+        private readonly IWorkspace? _workspace = null;
         private SettingsWindow? _settings = null;
 
         public MainWindow()
@@ -23,15 +19,10 @@ namespace MaxwellCalc
             Input.AttachedToVisualTree += (sender, args) => Input.Focus();
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-            _workspace = new Workspace();
-            UnitHelper.RegisterCommonUnits(_workspace);
-            UnitHelper.RegisterCommonElectronicsUnits(_workspace);
-
-            RealHelper.RegisterCommonConstants(_workspace);
-            RealHelper.RegisterCommonElectronicsConstants(_workspace);
-
-            RealMathHelper.RegisterFunctions(_workspace);
-            ComplexMathHelper.RegisterFunctions(_workspace);
+            var ws = new Workspace<double>(new DoubleResolver());
+            _workspace = ws;
+            UnitHelper.RegisterCommonUnits(ws);
+            UnitHelper.RegisterCommonElectronicsUnits(ws);
         }
 
         private void Input_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -65,6 +56,9 @@ namespace MaxwellCalc
 
         private void Resolve()
         {
+            if (_workspace is null)
+                return;
+
             int index = WorkspacePanel.Children.Count - 1;
             string input = Input.Text ?? string.Empty;
             if (string.IsNullOrWhiteSpace(input))
@@ -77,56 +71,19 @@ namespace MaxwellCalc
             // Lexer
             var lexer = new Lexer(input);
             var resultNode = Parser.Parse(lexer, _workspace);
-            var resolver = new ComplexResolver();
-            ResultBox rb;
 
-            if (resultNode is BinaryNode bn && bn.Type == BinaryOperatorTypes.InUnit)
+            ResultBox rb;
+            if (!_workspace.TryResolveAndFormat(resultNode, out var result))
             {
-                if (!bn.Right.TryResolve(resolver, _workspace, out var unit) ||
-                    !bn.Left.TryResolve(resolver, _workspace, out var value))
-                {
-                    ((IVariableScope<Complex>)_workspace.Variables).TrySetVariable("ans", resolver.Default);
-                    rb = new ResultBox()
-                    {
-                        Input = input,
-                        Output = resolver.Error
-                    };
-                }
-                else if (unit.Unit != value.Unit)
-                {
-                    ((IVariableScope<Complex>)_workspace.Variables).TrySetVariable("ans", resolver.Default);
-                    rb = new ResultBox()
-                    {
-                        Input = input,
-                        Output = "Cannot convert units as units don't match."
-                    };
-                }
-                else
-                {
-                    ((IVariableScope<Complex>)_workspace.Variables).TrySetVariable("ans", value);
-                    var result = new Quantity<Complex>(
-                        value.Scalar / unit.Scalar,
-                        new((bn.Right.Content.ToString(), 1)));
-                    rb = new ResultBox()
-                    {
-                        Input = input,
-                        Output = result
-                    };
-                }
-            }
-            else if (!resultNode.TryResolve(resolver, _workspace, out var result))
-            {
-                rb = new ResultBox()
+                rb = new ResultBox
                 {
                     Input = input,
-                    Output = resolver.Error
+                    Output = new(_workspace.ErrorMessage ?? string.Empty, Unit.UnitNone)
                 };
             }
             else
             {
-                ((IVariableScope<Complex>)_workspace.Variables).TrySetVariable("ans", result);
-                ((IWorkspace<Complex>)_workspace).TryResolveNaming(result, out result);
-                rb = new ResultBox()
+                rb = new ResultBox
                 {
                     Input = input,
                     Output = result

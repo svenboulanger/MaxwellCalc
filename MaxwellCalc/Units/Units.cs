@@ -170,9 +170,22 @@ namespace MaxwellCalc.Units
             }
         }
 
-        /// <inheritdoc />
-        public static Unit Pow(Unit unit, Fraction exponent) =>
-            new(unit.Dimension?.Select(p => (p.Key, p.Value * exponent))?.ToArray() ?? Array.Empty<(string, Fraction)>());
+        /// <summary>
+        /// Raises a unit to the power.
+        /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <param name="exponent">The exponent.</param>
+        /// <returns>Returns the unit raised to the power.</returns>
+        public static Unit Pow(Unit unit, Fraction exponent)
+            => new(unit.Dimension?.Select(p => (p.Key, p.Value * exponent))?.ToArray() ?? Array.Empty<(string, Fraction)>());
+
+        /// <summary>
+        /// Takes the inverse of a unit.
+        /// </summary>
+        /// <param name="unit"></param>
+        /// <returns>Returns the inverted unit.</returns>
+        public static Unit Inv(Unit unit)
+            => new(unit.Dimension?.Select(p => (p.Key, new Fraction(-p.Value.Numerator, p.Value.Denominator)))?.ToArray() ?? Array.Empty<(string, Fraction)>());
 
         /// <summary>
         /// Equality between SI units.

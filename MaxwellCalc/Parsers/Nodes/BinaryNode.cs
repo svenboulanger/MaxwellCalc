@@ -34,15 +34,15 @@ namespace MaxwellCalc.Parsers.Nodes
         public INode Right { get; } = right;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result)
+        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
         {
             // Assignment is special
             if (Type == BinaryOperatorTypes.Assign)
             {
                 if (Left is VariableNode variable)
                 {
-                    if (Right.TryResolve(resolver, workspace, out result))
-                        return true;
+                    if (!Right.TryResolve(resolver, workspace, out result))
+                        return false;
                     return resolver.TryAssign(variable.Content.ToString(), result, workspace, out result);
                 }
                 else if (Left is FunctionNode function)
@@ -52,7 +52,8 @@ namespace MaxwellCalc.Parsers.Nodes
                     {
                         if (function.Arguments[i] is not VariableNode argNode)
                         {
-                            resolver.Error = "Function argument has to be a simple variable.";
+                            if (workspace is not null)
+                                workspace.ErrorMessage = "Function argument has to be a simple variable.";
                             result = resolver.Default;
                             return false;
                         }
@@ -68,7 +69,8 @@ namespace MaxwellCalc.Parsers.Nodes
                 }
                 else
                 {
-                    resolver.Error = "Can only assign to variables or functions.";
+                    if (workspace is not null)
+                        workspace.ErrorMessage = "Can only assign to variables or functions.";
                     result = resolver.Default;
                     return false;
                 }
