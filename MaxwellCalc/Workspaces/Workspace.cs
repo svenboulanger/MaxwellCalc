@@ -37,7 +37,7 @@ namespace MaxwellCalc.Workspaces
                 foreach (var p in scope.Variables)
                 {
                     if (!scope.TryGetVariable(p, out var value) ||
-                        !TryFormat(value, out var formatted))
+                        !TryFormat(value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                         continue;
                     yield return (p, formatted);
                 }
@@ -51,7 +51,7 @@ namespace MaxwellCalc.Workspaces
             {
                 foreach (var p in _inputUnits)
                 {
-                    if (!TryFormat(p.Value, out var formatted))
+                    if (!TryFormat(p.Value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                         continue;
                     yield return (p.Key, formatted);
                 }
@@ -68,7 +68,7 @@ namespace MaxwellCalc.Workspaces
                     foreach (var p2 in p.Value)
                     {
                         if (!Resolver.TryInvert(new(p2.Value, Unit.UnitNone), this, out var inverted) ||
-                            !TryFormat(inverted, out var formatted))
+                            !TryFormat(inverted, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                             continue;
                         yield return (p2.Key, new(formatted.Scalar, p.Key));
                     }
@@ -208,14 +208,18 @@ namespace MaxwellCalc.Workspaces
         public bool IsUnit(string name) => _inputUnits.ContainsKey(name);
 
         /// <inheritdoc />
-        public bool TryFormat(Quantity<T> value, out Quantity<string> result)
+        public bool TryFormat(Quantity<T> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
         {
-            result = new(value.Scalar.ToString() ?? string.Empty, value.Unit);
+            result = new(value.Scalar.ToString(format, formatProvider) ?? string.Empty, value.Unit);
             return true;
         }
 
         /// <inheritdoc />
         public bool TryResolveAndFormat(INode node, out Quantity<string> result)
+            => TryResolveAndFormat(node, null, null, out result);
+
+        /// <inheritdoc />
+        public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
         {
             Quantity<T> r;
             if (node is BinaryNode bn)
@@ -280,7 +284,7 @@ namespace MaxwellCalc.Workspaces
                 }
             }
 
-            if (!TryFormat(r, out result))
+            if (!TryFormat(r, format, formatProvider, out result))
                 return false;
             return true;
         }
