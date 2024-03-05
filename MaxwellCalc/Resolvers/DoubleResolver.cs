@@ -31,7 +31,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryFactor(Quantity<double> a, Quantity<double> unit, out double factor)
         {
-            factor = Math.Abs(a.Scalar / unit.Scalar);
+            factor = Math.Abs(a.Scalar * unit.Scalar);
             return true;
         }
 
@@ -434,6 +434,13 @@ namespace MaxwellCalc.Resolvers
                 result = Default;
                 return false;
             }
+        }
+
+        /// <inheritdoc />
+        public bool TryFormat(Quantity<double> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
+        {
+            result = new(value.Scalar.ToString(format, formatProvider) ?? string.Empty, value.Unit);
+            return true;
         }
     }
 }

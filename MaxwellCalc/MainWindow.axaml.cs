@@ -3,6 +3,8 @@ using MaxwellCalc.Parsers;
 using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
+using System;
+using System.Numerics;
 
 namespace MaxwellCalc
 {
@@ -10,8 +12,14 @@ namespace MaxwellCalc
     {
         private int _historyFill = -1;
         private string _tmpLastInput = string.Empty;
-        private readonly IWorkspace? _workspace = null;
+        private IWorkspace? _workspace = null;
         private SettingsWindow? _settings = null;
+
+        public enum DomainTypes
+        {
+            Double,
+            Complex
+        }
 
         public MainWindow()
         {
@@ -19,10 +27,32 @@ namespace MaxwellCalc
             Input.AttachedToVisualTree += (sender, args) => Input.Focus();
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-            var ws = new Workspace<double>(new DoubleResolver());
-            _workspace = ws;
-            UnitHelper.RegisterCommonUnits(ws);
-            UnitHelper.RegisterCommonElectronicsUnits(ws);
+            BuildWorkspace(DomainTypes.Complex);
+        }
+
+        private void BuildWorkspace(DomainTypes type)
+        {
+            switch (type)
+            {
+                case DomainTypes.Double:
+                    var dws = new Workspace<double>(new DoubleResolver());
+                    UnitHelper.RegisterCommonUnits(dws);
+                    UnitHelper.RegisterCommonElectronicsUnits(dws);
+                    DoubleMathHelper.RegisterFunctions(dws);
+                    _workspace = dws;
+                    break;
+
+                case DomainTypes.Complex:
+                    var cws = new Workspace<Complex>(new ComplexResolver());
+                    UnitHelper.RegisterCommonUnits(cws);
+                    UnitHelper.RegisterCommonElectronicsUnits(cws);
+                    ComplexMathHelper.RegisterFunctions(cws);
+                    _workspace = cws;
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private void Input_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)

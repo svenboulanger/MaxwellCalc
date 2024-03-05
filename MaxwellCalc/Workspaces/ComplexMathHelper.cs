@@ -5,6 +5,9 @@ using System.Numerics;
 
 namespace MaxwellCalc.Workspaces
 {
+    /// <summary>
+    /// Methods for complex math.
+    /// </summary>
     public static class ComplexMathHelper
     {
         private static readonly Quantity<Complex> _invalid = new(Complex.NaN, Unit.UnitNone);

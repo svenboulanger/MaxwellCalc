@@ -7,7 +7,7 @@
         x:Class="MaxwellCalc.ErrorMessageBox"
         Title="Error">
   <Grid RowDefinitions="*, auto">
-    <Grid ColumnDefinitions="auto, *" Grid.Row="0" Margin="10">
+    <Grid ColumnDefinitions="auto, *" Grid.Row="0">
       <PathIcon
         Grid.Column="0"
         Margin="10"
@@ -23,7 +23,7 @@
         Text="Message"
         />
     </Grid>
-    <Grid ColumnDefinitions="*,auto,*" Grid.Row="1" Margin="5">
+    <Grid ColumnDefinitions="*,auto,*" Grid.Row="1" Margin="20">
       <Button
         Grid.Column="1"
         Content="OK"

@@ -244,10 +244,11 @@ namespace MaxwellCalc.Units
 
             // Ampere
             workspace.TryRegisterModifierInputOutputUnits(Unit.Ampere, Unit.UnitAmperes,
-                pico: true, nano: true, milli: true, kilo: true);
+                pico: true, nano: true, micro: true, milli: true, kilo: true);
 
             // Kelvin
-            workspace.TryRegisterModifierInputOutputUnits(Unit.Kelvin, Unit.UnitKelvin);
+            workspace.TryRegisterModifierInputOutputUnits(Unit.Kelvin, Unit.UnitKelvin,
+                milli: true);
 
             // Candela
             workspace.TryRegisterModifierInputOutputUnits(Unit.Candela, Unit.UnitCandela);

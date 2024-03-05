@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Resolvers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -68,7 +67,7 @@ public partial class SettingsWindow : Window
         };
         item.RemoveClicked += (sender, args) =>
         {
-            ((IWorkspace<double>)Workspace).TryRemoveInputUnit(name);
+            Workspace.TryRemoveInputUnit(name);
             _inputUnitList.Children.Remove(item);
         };
 
@@ -100,7 +99,7 @@ public partial class SettingsWindow : Window
             return;
 
         _outputUnitList.Children.Clear();
-        foreach (var (unit, quantity) in ((IWorkspace<double>)Workspace).OutputUnits.OrderBy(p => p.Item1.Dimension.FirstOrDefault().Key ?? string.Empty))
+        foreach (var (unit, quantity) in Workspace.OutputUnits.OrderBy(p => p.Item1.Dimension.FirstOrDefault().Key ?? string.Empty))
             AddOutputUnitToList(unit, quantity);
     }
 
@@ -110,12 +109,12 @@ public partial class SettingsWindow : Window
             return;
         var item = new UnitItem
         {
-            Left = quantity.Unit,
+            Left = unit,
             Quantity = quantity
         };
         item.RemoveClicked += (sender, args) =>
         {
-            ((IWorkspace<double>)Workspace).TryRemoveOutputUnit(unit, quantity.Unit);
+            Workspace.TryRemoveOutputUnit(unit, quantity.Unit);
             _outputUnitList.Children.Remove(item);
         };
         _outputUnitList.Children.Add(item);

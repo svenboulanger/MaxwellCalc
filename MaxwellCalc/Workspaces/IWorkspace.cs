@@ -183,15 +183,5 @@ namespace MaxwellCalc.Workspaces
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if a naming was found; otherwise, <c>false</c>.</returns>
         public bool TryResolveOutputUnits(Quantity<T> quantity, out Quantity<T> result);
-
-        /// <summary>
-        /// Tries to format a quantity.
-        /// </summary>
-        /// <param name="quantity">The quantity.</param>
-        /// <param name="format">The format.</param>
-        /// <param name="formatProvider">The format provider.</param>
-        /// <param name="formatted">The formatted quantity.</param>
-        /// <returns>Returns <c>true</c> if the quantity was formatted; otherwise, <c>false</c>.</returns>
-        public bool TryFormat(Quantity<T> quantity, string? format, IFormatProvider? formatProvider, out Quantity<string> formatted);
     }
 }

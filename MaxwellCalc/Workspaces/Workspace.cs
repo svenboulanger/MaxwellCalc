@@ -37,7 +37,7 @@ namespace MaxwellCalc.Workspaces
                 foreach (var p in scope.Variables)
                 {
                     if (!scope.TryGetVariable(p, out var value) ||
-                        !TryFormat(value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                        !Resolver.TryFormat(value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                         continue;
                     yield return (p, formatted);
                 }
@@ -51,7 +51,7 @@ namespace MaxwellCalc.Workspaces
             {
                 foreach (var p in _inputUnits)
                 {
-                    if (!TryFormat(p.Value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                    if (!Resolver.TryFormat(p.Value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                         continue;
                     yield return (p.Key, formatted);
                 }
@@ -68,7 +68,7 @@ namespace MaxwellCalc.Workspaces
                     foreach (var p2 in p.Value)
                     {
                         if (!Resolver.TryInvert(new(p2.Value, Unit.UnitNone), this, out var inverted) ||
-                            !TryFormat(inverted, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                            !Resolver.TryFormat(inverted, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                             continue;
                         yield return (p2.Key, new(formatted.Scalar, p.Key));
                     }
@@ -195,7 +195,7 @@ namespace MaxwellCalc.Workspaces
             }
 
             // Make a quantity for it
-            if (!Resolver.TryDivide(quantity, bestUnit, this, out var scaled))
+            if (!Resolver.TryMultiply(quantity, bestUnit, this, out var scaled))
             {
                 result = default;
                 return false;
@@ -206,13 +206,6 @@ namespace MaxwellCalc.Workspaces
 
         /// <inheritdoc />
         public bool IsUnit(string name) => _inputUnits.ContainsKey(name);
-
-        /// <inheritdoc />
-        public bool TryFormat(Quantity<T> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
-        {
-            result = new(value.Scalar.ToString(format, formatProvider) ?? string.Empty, value.Unit);
-            return true;
-        }
 
         /// <inheritdoc />
         public bool TryResolveAndFormat(INode node, out Quantity<string> result)
@@ -284,7 +277,7 @@ namespace MaxwellCalc.Workspaces
                 }
             }
 
-            if (!TryFormat(r, format, formatProvider, out result))
+            if (!Resolver.TryFormat(r, format, formatProvider, out result))
                 return false;
             return true;
         }
@@ -306,7 +299,7 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryRegisterInputUnit(string name, INode node)
         {
-            if (!node.TryResolve(Resolver, this, out var q))
+            if (!node.TryResolve(Resolver, null, out var q))
                 return false;
             if (q.Unit == Unit.UnitNone)
             {
@@ -339,8 +332,8 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryRegisterOutputUnit(INode outputUnits, INode quantity)
         {
-            if (!outputUnits.TryResolve(Resolver, this, out var ou) ||
-                !quantity.TryResolve(Resolver, this, out var bu))
+            if (!outputUnits.TryResolve(Resolver, null, out var ou) ||
+                !quantity.TryResolve(Resolver, null, out var bu))
                 return false;
             if (!Resolver.TryDivide(ou, bu, this, out var div))
                 return false;

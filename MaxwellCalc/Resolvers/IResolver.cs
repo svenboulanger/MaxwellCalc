@@ -297,5 +297,15 @@ namespace MaxwellCalc.Resolvers
         /// <param name="factor">The factor that should be considered when chosing the unit.</param>
         /// <returns>Returns <c>true</c> if the factor could be determined; otherwise, <c>false</c>.</returns>
         public bool TryFactor(Quantity<T> a, Quantity<T> unit, out double factor);
+
+        /// <summary>
+        /// Tries to format a quantity.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="format">The format, which will usually describe the number of digits.</param>
+        /// <param name="formatProvider">The format provider.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the formatting succeeded; otherwise, <c>false</c>.</returns>
+        public bool TryFormat(Quantity<T> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result);
     }
 }

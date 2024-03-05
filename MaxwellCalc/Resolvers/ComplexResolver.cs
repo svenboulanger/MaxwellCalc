@@ -3,6 +3,7 @@ using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text;
 
 namespace MaxwellCalc.Resolvers
 {
@@ -15,15 +16,13 @@ namespace MaxwellCalc.Resolvers
         public Quantity<Complex> Default { get; } = new Quantity<Complex>(0.0, Unit.UnitNone);
 
         /// <inheritdoc />
-        public string Error { get; set; } = string.Empty;
-
-        /// <inheritdoc />
         public bool TryScalar(string scalar, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
             // Parse the scalar
             if (!double.TryParse(scalar, System.Globalization.CultureInfo.InvariantCulture, out double dbl))
             {
-                Error = $"Could not evaluate the scalar '{scalar}'.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = $"Could not evaluate the scalar '{scalar}'.";
                 result = Default;
                 return false;
             }
@@ -34,7 +33,7 @@ namespace MaxwellCalc.Resolvers
         /// <inheritdoc />
         public bool TryFactor(Quantity<Complex> a, Quantity<Complex> unit, out double factor)
         {
-            var s = a.Scalar / unit.Scalar;
+            var s = a.Scalar * unit.Scalar;
             factor = Math.Max(Math.Abs(s.Real), Math.Abs(s.Imaginary));
             return true;
         }
@@ -46,7 +45,7 @@ namespace MaxwellCalc.Resolvers
             {
                 if (workspace.TryGetUnit(unit, out result))
                     return true;
-                Error = $"Could not recognize unit '{unit}'.";
+                workspace.ErrorMessage = $"Could not recognize unit '{unit}'.";
                 return false;
             }
             else
@@ -68,12 +67,12 @@ namespace MaxwellCalc.Resolvers
                     result = new Quantity<Complex>(new Complex(0.0, 1.0), Unit.UnitNone);
                     return true;
                 }
-                Error = $"Could not find a variable with the name '{variable}'.";
+                workspace.ErrorMessage = $"Could not find a variable with the name '{variable}'.";
                 return false;
             }
             else
             {
-                Error = "Variables are not supported.";
+                // workspace.ErrorMessage = "Variables are not supported.";
                 result = Default;
                 return false;
             }
@@ -112,7 +111,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Units should match!
-                Error = "Units do not match for addition.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Units do not match for addition.";
                 result = Default;
                 return false;
             }
@@ -126,7 +126,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Units should match!
-                Error = "Units do not match for subtraction.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Units do not match for subtraction.";
                 result = Default;
                 return false;
             }
@@ -180,7 +181,8 @@ namespace MaxwellCalc.Resolvers
             if (b.Unit != Unit.UnitNone)
             {
                 // Cannot use exponent with units
-                Error = "Cannot raise to a power where the exponent contains units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot raise to a power where the exponent contains units.";
                 result = Default;
                 return false;
             }
@@ -204,7 +206,8 @@ namespace MaxwellCalc.Resolvers
                 if (!b.Scalar.Imaginary.Equals(0.0))
                 {
                     // Cannot raise units to an imaginary power
-                    Error = "Cannot raise units to a complex power.";
+                    if (workspace is not null)
+                        workspace.ErrorMessage = "Cannot raise units to a complex power.";
                     result = Default;
                     return false;
                 }
@@ -212,7 +215,8 @@ namespace MaxwellCalc.Resolvers
                 if (!Fraction.TryConvert(b.Scalar.Real, out var fraction))
                 {
                     // Could not convert to a fraction
-                    Error = "Cannot raise units to a power that is too complex.";
+                    if (workspace is not null)
+                        workspace.ErrorMessage = "Cannot raise units to a power that is too complex.";
                     result = Default;
                     return false;
                 }
@@ -230,7 +234,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Should be same units in order to compute
-                Error = "The units do not match.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "The units do not match.";
                 result = Default;
                 return false;
             }
@@ -247,7 +252,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                Error = "Cannot take a bitwise OR of quantities with units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot take a bitwise OR of quantities with units.";
                 result = Default;
                 return false;
             }
@@ -264,7 +270,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                Error = "Cannot take a bitwise AND of quantities with units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot take a bitwise AND of quantities with units.";
                 result = Default;
                 return false;
             }
@@ -281,7 +288,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                Error = "Cannot take shift quantities with units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot take shift quantities with units.";
                 result = Default;
                 return false;
             }
@@ -297,7 +305,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                Error = "Cannot take shift quantities with units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot take shift quantities with units.";
                 result = Default;
                 return false;
             }
@@ -313,7 +322,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                Error = "Cannot compare quantities with different units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -327,7 +337,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                Error = "Cannot compare quantities with different units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -341,7 +352,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                Error = "Cannot compare quantities with different units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -355,7 +367,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                Error = "Cannot compare quantities with different units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -369,7 +382,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                Error = "Cannot compare quantities with different units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -383,7 +397,8 @@ namespace MaxwellCalc.Resolvers
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                Error = "Cannot compare quantities with different units.";
+                if (workspace is not null)
+                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -402,13 +417,13 @@ namespace MaxwellCalc.Resolvers
                     return true;
                 }
 
-                Error = $"Could not assign to '{name}'.";
+                workspace.ErrorMessage = $"Could not assign to '{name}'.";
                 result = Default;
                 return false;
             }
             else
             {
-                Error = "Assignment is not supported.";
+                // workspace.ErrorMessage = "Assignment is not supported.";
                 result = Default;
                 return false;
             }
@@ -421,15 +436,38 @@ namespace MaxwellCalc.Resolvers
             {
                 if (workspace.TryFunction(name, arguments, this, out result))
                     return true;
-                Error = $"Cannot find function '{name}' for the given arguments.";
+                workspace.ErrorMessage = $"Cannot find function '{name}' for the given arguments.";
                 return false;
             }
             else
             {
-                Error = "Functions are not supported.";
+                // workspace.ErrorMessage = "Functions are not supported.";
                 result = Default;
                 return false;
             }
+        }
+
+        /// <inheritdoc />
+        public bool TryFormat(Quantity<Complex> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
+        {
+            var sb = new StringBuilder();
+            if (!value.Scalar.Real.Equals(0.0))
+                sb.Append(value.Scalar.Real.ToString(format, formatProvider));
+            if (!value.Scalar.Imaginary.Equals(0.0))
+            {
+                if (sb.Length > 0)
+                {
+                    if (value.Scalar.Imaginary < 0)
+                        sb.Append(" - ");
+                    else
+                        sb.Append(" + ");
+                    sb.Append($"{value.Scalar.Imaginary.ToString(format, formatProvider)} i");
+                }
+            }
+            if (sb.Length == 0)
+                sb.Append(0.0.ToString(format, formatProvider));
+            result = new(sb.ToString(), value.Unit);
+            return true;
         }
     }
 }
