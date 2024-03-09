@@ -4,12 +4,11 @@ using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
-using MaxwellCalc.UI;
 using MaxwellCalc.Units;
 using System.Linq;
 using System.Numerics;
 
-namespace MaxwellCalc;
+namespace MaxwellCalc.UI;
 
 public class ResultBox : TemplatedControl
 {

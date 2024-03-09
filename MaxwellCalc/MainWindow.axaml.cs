@@ -1,6 +1,7 @@
 using Avalonia.Controls;
+using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.Resolvers;
+using MaxwellCalc.UI;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -35,7 +36,7 @@ namespace MaxwellCalc
             switch (type)
             {
                 case DomainTypes.Double:
-                    var dws = new Workspace<double>(new DoubleResolver());
+                    var dws = new Workspace<double>(new DoubleDomain());
                     UnitHelper.RegisterCommonUnits(dws);
                     UnitHelper.RegisterCommonElectronicsUnits(dws);
                     DoubleMathHelper.RegisterFunctions(dws);
@@ -43,7 +44,7 @@ namespace MaxwellCalc
                     break;
 
                 case DomainTypes.Complex:
-                    var cws = new Workspace<Complex>(new ComplexResolver());
+                    var cws = new Workspace<Complex>(new ComplexDomain());
                     UnitHelper.RegisterCommonUnits(cws);
                     UnitHelper.RegisterCommonElectronicsUnits(cws);
                     ComplexMathHelper.RegisterFunctions(cws);

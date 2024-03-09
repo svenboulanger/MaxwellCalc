@@ -1,5 +1,5 @@
-﻿using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Resolvers;
+﻿using MaxwellCalc.Domains;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
@@ -134,7 +134,7 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Gets the resolver.
         /// </summary>
-        public IResolver<T> Resolver { get; }
+        public IDomain<T> Resolver { get; }
 
         /// <summary>
         /// Gets the variables in the workspace.
@@ -174,7 +174,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="resolver">The resolver.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IResolver<T> resolver, out Quantity<T> result);
+        public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IDomain<T> resolver, out Quantity<T> result);
 
         /// <summary>
         /// Tries to resolve the output units.

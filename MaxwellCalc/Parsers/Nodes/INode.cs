@@ -1,4 +1,4 @@
-﻿using MaxwellCalc.Resolvers;
+﻿using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -16,12 +16,12 @@ namespace MaxwellCalc.Parsers.Nodes
         public ReadOnlyMemory<char> Content { get; }
 
         /// <summary>
-        /// Resolves the node using an <see cref="IResolver{T}"/>.
+        /// Resolves the node using an <see cref="IDomain{T}"/>.
         /// </summary>
         /// <typeparam name="T">The domain type.</typeparam>
         /// <param name="resolver">The resolver.</param>
         /// <param name="workspace">The diagnostics message handler.</param>
         /// <returns>Returns the resolved quantity.</returns>
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable;
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable;
     }
 }

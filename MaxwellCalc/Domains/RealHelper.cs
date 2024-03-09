@@ -2,7 +2,7 @@
 using MaxwellCalc.Workspaces;
 using System;
 
-namespace MaxwellCalc.Resolvers
+namespace MaxwellCalc.Domains
 {
     /// <summary>
     /// Helper methods for real scalars.

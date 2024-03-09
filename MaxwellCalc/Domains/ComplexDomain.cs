@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace MaxwellCalc.Resolvers
+namespace MaxwellCalc.Domains
 {
     /// <summary>
     /// Describes the complex domain for doubles.
     /// </summary>
-    public class ComplexResolver : IResolver<Complex>
+    public class ComplexDomain : IDomain<Complex>
     {
         /// <inheritdoc />
         public Quantity<Complex> Default { get; } = new Quantity<Complex>(0.0, Unit.UnitNone);

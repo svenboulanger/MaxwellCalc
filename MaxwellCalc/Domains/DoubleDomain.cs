@@ -3,12 +3,12 @@ using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.Resolvers
+namespace MaxwellCalc.Domains
 {
     /// <summary>
     /// A resolver for quantities with using doubles as scalars.
     /// </summary>
-    public class DoubleResolver : IResolver<double>
+    public class DoubleDomain : IDomain<double>
     {
         /// <inheritdoc />
         public Quantity<double> Default { get; } = new Quantity<double>(0.0, Unit.UnitNone);

@@ -1,5 +1,5 @@
-﻿using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Resolvers;
+﻿using MaxwellCalc.Domains;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace MaxwellCalc.Workspaces
         private readonly Dictionary<(string, int), (string[], INode)> _userFunctions = [];
 
         /// <inheritdoc />
-        public IResolver<T> Resolver { get; }
+        public IDomain<T> Resolver { get; }
 
         /// <inheritdoc />
         public string? ErrorMessage { get; set; } = null;
@@ -83,7 +83,7 @@ namespace MaxwellCalc.Workspaces
         /// Creates a new <see cref="Workspace"/>.
         /// </summary>
         /// <param name="resolver">The resolver.</param>
-        public Workspace(IResolver<T> resolver)
+        public Workspace(IDomain<T> resolver)
         {
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
             _scopes.Push(new VariableScope<T>());
@@ -106,7 +106,7 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IResolver<T> resolver, out Quantity<T> result)
+        public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IDomain<T> resolver, out Quantity<T> result)
         {
             if (_userFunctions.TryGetValue((name, arguments.Count), out var userFunction))
             {

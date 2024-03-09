@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="140"
         Width="400" Height="120"
-        x:Class="MaxwellCalc.ErrorMessageBox"
+        x:Class="MaxwellCalc.UI.ErrorMessageBox"
         Title="Error">
   <Grid RowDefinitions="*, auto">
     <Grid ColumnDefinitions="auto, *" Grid.Row="0">

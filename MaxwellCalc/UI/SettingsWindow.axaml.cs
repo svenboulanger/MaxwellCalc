@@ -4,12 +4,13 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Parsers.Nodes;
+using MaxwellCalc.UI;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
 using System.Linq;
 
-namespace MaxwellCalc;
+namespace MaxwellCalc.UI;
 
 public partial class SettingsWindow : Window
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxwellCalc.Resolvers;
+using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 
@@ -34,7 +34,7 @@ namespace MaxwellCalc.Parsers.Nodes
         public INode Right { get; } = right;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
         {
             // Assignment is special
             if (Type == BinaryOperatorTypes.Assign)

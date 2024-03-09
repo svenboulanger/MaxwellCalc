@@ -1,4 +1,4 @@
-﻿using MaxwellCalc.Resolvers;
+﻿using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -15,7 +15,7 @@ namespace MaxwellCalc.Parsers.Nodes
         public ReadOnlyMemory<char> Content { get; } = content;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
             => resolver.TryScalar(Content.ToString(), workspace, out result);
     }
 }

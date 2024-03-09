@@ -4,11 +4,10 @@ using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using MaxwellCalc.UI;
 using MaxwellCalc.Units;
 using System;
 
-namespace MaxwellCalc;
+namespace MaxwellCalc.UI;
 
 public class UnitItem : TemplatedControl
 {
@@ -61,7 +60,7 @@ public class UnitItem : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
-        
+
         // Find the relevant subcontrols
         _descriptionBlock = e.NameScope.Find<SelectableTextBlock>("DescriptionBlock");
         _removeButton = e.NameScope.Find<Button>("RemoveButton");

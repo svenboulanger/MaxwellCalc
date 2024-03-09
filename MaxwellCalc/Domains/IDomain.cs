@@ -3,13 +3,13 @@ using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.Resolvers
+namespace MaxwellCalc.Domains
 {
     /// <summary>
     /// A resolver that allows resolving nodes to a result.
     /// </summary>
     /// <typeparam name="T">The result type.</typeparam>
-    public interface IResolver<T> where T : struct, IFormattable
+    public interface IDomain<T> where T : struct, IFormattable
     {
         /// <summary>
         /// Gets a default value to return in case of an error.

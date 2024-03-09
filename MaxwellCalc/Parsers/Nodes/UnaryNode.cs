@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Numerics;
-using MaxwellCalc.Resolvers;
+using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 
@@ -28,7 +28,7 @@ namespace MaxwellCalc.Parsers.Nodes
         public INode Argument { get; } = argument;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IResolver<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
         {
             if (!Argument.TryResolve(resolver, workspace, out var arg))
             {
