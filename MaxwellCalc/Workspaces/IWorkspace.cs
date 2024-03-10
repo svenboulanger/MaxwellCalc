@@ -3,7 +3,6 @@ using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -138,12 +137,9 @@ namespace MaxwellCalc.Workspaces
         public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, out Quantity<string> result);
 
         /// <summary>
-        /// Clears the workspace of everything.
+        /// Clears the workspace of input/output units, variables and user/built-in functions.
         /// </summary>
         public void Clear();
-
-        public void WriteToJson(Utf8JsonWriter writer, JsonSerializerOptions options);
-        public void ReadFromJson(ref Utf8JsonReader reader, JsonSerializerOptions options);
     }
 
     /// <summary>

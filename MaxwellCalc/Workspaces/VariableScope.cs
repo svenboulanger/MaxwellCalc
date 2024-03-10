@@ -1,6 +1,5 @@
 ﻿using MaxwellCalc.Units;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -41,6 +40,8 @@ namespace MaxwellCalc.Workspaces
         {
             if (_variables.TryGetValue(name, out result))
                 return true;
+            if (_parent is not null)
+                return ((IVariableScope<T>)_parent).TryGetVariable(name, out result);
             result = default;
             return false;
         }

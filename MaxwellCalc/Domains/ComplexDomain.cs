@@ -436,7 +436,6 @@ namespace MaxwellCalc.Domains
             {
                 if (workspace.TryFunction(name, arguments, this, out result))
                     return true;
-                workspace.ErrorMessage = $"Cannot find function '{name}' for the given arguments.";
                 return false;
             }
             else

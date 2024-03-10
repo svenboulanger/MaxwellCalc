@@ -115,11 +115,10 @@ namespace MaxwellCalc.Workspaces
             if (_userFunctions.TryGetValue((name, arguments.Count), out var userFunction))
             {
                 // Push a new scope with the arguments
-                var scope = _scopes.Peek();
-                _scopes.Push(scope.CreateLocal());
+                _scopes.Push(Scope.CreateLocal());
                 for (int i = 0; i < arguments.Count; i++)
                 {
-                    if (!scope.TrySetVariable(userFunction.Item1[i], arguments[i]))
+                    if (!Scope.TrySetVariable(userFunction.Item1[i], arguments[i]))
                     {
                         result = resolver.Default;
                         return false;
@@ -375,103 +374,6 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryRemoveUserFunction(string name, int argumentCount)
             => _userFunctions.Remove((name, argumentCount));
-
-        /// <inheritdoc />
-        public void WriteToJson(Utf8JsonWriter writer, JsonSerializerOptions options)
-        {
-            writer.WriteStartObject();
-
-            // Write the input units
-            writer.WriteStartArray("input_units");
-            foreach (var inputUnit in InputUnits)
-                JsonSerializer.Serialize(writer, inputUnit, options);
-            writer.WriteEndArray();
-
-            // Write the output units
-            writer.WriteStartArray("output_units");
-            foreach (var outputUnit in OutputUnits)
-                JsonSerializer.Serialize(writer, outputUnit, options);
-            writer.WriteEndArray();
-
-            // Write the variables
-            writer.WriteStartArray("variables");
-            foreach (var variable in Variables)
-                JsonSerializer.Serialize(writer, variable, options);
-            writer.WriteEndArray();
-
-            // Write the user functions
-            writer.WriteStartArray("user_functions");
-            foreach (var userFunction in UserFunctions)
-                JsonSerializer.Serialize(writer, userFunction, options);
-            writer.WriteEndArray();
-
-            writer.WriteEndObject();
-        }
-
-        /// <inheritdoc />
-        public void ReadFromJson(ref Utf8JsonReader reader, JsonSerializerOptions options)
-        {
-            if (reader.TokenType != JsonTokenType.StartObject ||
-                !reader.Read())
-                throw new Exception();
-
-            while (reader.TokenType != JsonTokenType.EndObject)
-            {
-                if (reader.TokenType != JsonTokenType.PropertyName)
-                    throw new Exception();
-                switch (reader.GetString())
-                {
-                    case "input_units":
-                        reader.Read();
-                        var inputUnits = JsonSerializer.Deserialize<IEnumerable<InputUnit>>(ref reader, options) ?? [];
-                        foreach (var inputUnit in inputUnits)
-                        {
-                            if (!TryRegisterInputUnit(inputUnit))
-                                throw new Exception(ErrorMessage);
-                        }
-                        reader.Read();
-                        break;
-
-                    case "output_units":
-                        reader.Read();
-                        var outputUnits = JsonSerializer.Deserialize<IEnumerable<OutputUnit>>(ref reader, options) ?? [];
-                        foreach (var outputUnit in outputUnits)
-                        {
-                            if (!TryRegisterOutputUnit(outputUnit))
-                                throw new Exception(ErrorMessage);
-                        }
-                        reader.Read();
-                        break;
-
-                    case "variables":
-                        reader.Read();
-                        var variables = JsonSerializer.Deserialize<IEnumerable<Variable>>(ref reader, options) ?? [];
-                        foreach (var variable in variables)
-                        {
-                            if (!TrySetVariable(variable))
-                                throw new Exception(ErrorMessage);
-                        }
-                        reader.Read();
-                        break;
-
-                    case "user_functions":
-                        reader.Read();
-                        var userFunctions = JsonSerializer.Deserialize<IEnumerable<UserFunction>>(ref reader, options) ?? [];
-                        foreach (var function in userFunctions)
-                        {
-                            if (!TryRegisterUserFunction(function))
-                                throw new Exception(ErrorMessage);
-                        }
-                        reader.Read();
-                        break;
-
-                    default:
-                        throw new Exception();
-                }
-            }
-            if (reader.TokenType != JsonTokenType.EndObject)
-                throw new Exception();
-        }
 
         /// <inheritdoc />
         public void Clear()
