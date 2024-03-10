@@ -53,8 +53,8 @@ public partial class SettingsWindow : Window
             return;
 
         _inputUnitList.Children.Clear();
-        foreach (var (name, quantity) in Workspace.InputUnits.OrderBy(p => p.Item1))
-            AddInputUnitToList(name, quantity, false); // Already sorted
+        foreach (var inputUnit in Workspace.InputUnits.OrderBy(p => p.UnitName))
+            AddInputUnitToList(inputUnit.UnitName, inputUnit.Value, false); // Already sorted
     }
 
     private void AddInputUnitToList(string name, Quantity<string> quantity, bool insertSorted = true)
@@ -100,8 +100,8 @@ public partial class SettingsWindow : Window
             return;
 
         _outputUnitList.Children.Clear();
-        foreach (var (unit, quantity) in Workspace.OutputUnits.OrderBy(p => p.Item1.Dimension.FirstOrDefault().Key ?? string.Empty))
-            AddOutputUnitToList(unit, quantity);
+        foreach (var outputUnit in Workspace.OutputUnits.OrderBy(p => p.Unit.Dimension.FirstOrDefault().Key ?? string.Empty))
+            AddOutputUnitToList(outputUnit.Unit, outputUnit.Value);
     }
 
     private void AddOutputUnitToList(Unit unit, Quantity<string> quantity)

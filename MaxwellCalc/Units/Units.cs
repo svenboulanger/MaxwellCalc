@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace MaxwellCalc.Units
 {
@@ -11,6 +12,7 @@ namespace MaxwellCalc.Units
     /// Creates a new <see cref="Unit"/>.
     /// </summary>
     /// <param name="dimension">The dimension of the base units.</param>
+    [JsonConverter(typeof(UnitJsonConverter))]
     public readonly struct Unit(params (string, Fraction)[] dimension)
         : IEquatable<Unit>
     {

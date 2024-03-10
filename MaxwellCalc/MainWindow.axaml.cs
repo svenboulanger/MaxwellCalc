@@ -5,7 +5,10 @@ using MaxwellCalc.UI;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
+using System.IO;
 using System.Numerics;
+using System.Text;
+using System.Text.Json;
 
 namespace MaxwellCalc
 {

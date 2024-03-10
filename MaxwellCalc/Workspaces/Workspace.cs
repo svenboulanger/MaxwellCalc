@@ -1,9 +1,13 @@
-﻿using MaxwellCalc.Domains;
+﻿using Avalonia.Remote.Protocol.Designer;
+using MaxwellCalc.Domains;
+using MaxwellCalc.Parsers;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -17,7 +21,7 @@ namespace MaxwellCalc.Workspaces
         private readonly Dictionary<Unit, Dictionary<Unit, T>> _outputUnits = [];
         private readonly Stack<IVariableScope<T>> _scopes = new();
         private readonly Dictionary<string, IWorkspace<T>.FunctionDelegate> _builtInFunctions = [];
-        private readonly Dictionary<(string, int), (string[], INode)> _userFunctions = [];
+        private readonly Dictionary<(string, int), (string[], string)> _userFunctions = [];
 
         /// <inheritdoc />
         public IDomain<T> Resolver { get; }
@@ -29,7 +33,7 @@ namespace MaxwellCalc.Workspaces
         public IVariableScope<T> Scope => _scopes.Peek();
 
         /// <inheritdoc />
-        public IEnumerable<(string, Quantity<string>)> Variables
+        public IEnumerable<Variable> Variables
         {
             get
             {
@@ -37,29 +41,29 @@ namespace MaxwellCalc.Workspaces
                 foreach (var p in scope.Variables)
                 {
                     if (!scope.TryGetVariable(p, out var value) ||
-                        !Resolver.TryFormat(value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                        !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
                         continue;
-                    yield return (p, formatted);
+                    yield return new(p, formatted);
                 }
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<(string, Quantity<string>)> InputUnits
+        public IEnumerable<InputUnit> InputUnits
         {
             get
             {
                 foreach (var p in _inputUnits)
                 {
-                    if (!Resolver.TryFormat(p.Value, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                    if (!Resolver.TryFormat(p.Value, "g", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
                         continue;
-                    yield return (p.Key, formatted);
+                    yield return new(p.Key, formatted);
                 }
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<(Unit, Quantity<string>)> OutputUnits
+        public IEnumerable<OutputUnit> OutputUnits
         {
             get
             {
@@ -68,16 +72,16 @@ namespace MaxwellCalc.Workspaces
                     foreach (var p2 in p.Value)
                     {
                         if (!Resolver.TryInvert(new(p2.Value, Unit.UnitNone), this, out var inverted) ||
-                            !Resolver.TryFormat(inverted, "g3", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                            !Resolver.TryFormat(inverted, "g3", CultureInfo.InvariantCulture, out var formatted))
                             continue;
-                        yield return (p2.Key, new(formatted.Scalar, p.Key));
+                        yield return new(p2.Key, new(formatted.Scalar, p.Key));
                     }
                 }
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<(string Name, string[] parameters, INode body)> UserFunctions => _userFunctions.Select(p => (p.Key.Item1, p.Value.Item1, p.Value.Item2));
+        public IEnumerable<UserFunction> UserFunctions => _userFunctions.Select(p => new UserFunction(p.Key.Item1, p.Value.Item1, p.Value.Item2));
 
         /// <summary>
         /// Creates a new <see cref="Workspace"/>.
@@ -110,6 +114,7 @@ namespace MaxwellCalc.Workspaces
         {
             if (_userFunctions.TryGetValue((name, arguments.Count), out var userFunction))
             {
+                // Push a new scope with the arguments
                 var scope = _scopes.Peek();
                 _scopes.Push(scope.CreateLocal());
                 for (int i = 0; i < arguments.Count; i++)
@@ -120,7 +125,13 @@ namespace MaxwellCalc.Workspaces
                         return false;
                     }
                 }
-                bool r = userFunction.Item2.TryResolve(resolver, this, out result);
+
+                // Parse the function
+                var lexer = new Lexer(userFunction.Item2);
+                var node = Parser.Parse(lexer, this);
+                bool r = node.TryResolve(resolver, this, out result);
+
+                // Pop the scope with the arguments
                 _scopes.Pop();
                 return r;
             }
@@ -283,16 +294,16 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryRegisterInputUnit(string name, Quantity<string> quantity)
+        public bool TryRegisterInputUnit(InputUnit inputUnit)
         {
-            if (quantity.Unit == Unit.UnitNone)
+            if (inputUnit.Value.Unit == Unit.UnitNone)
             {
                 ErrorMessage = "Cannot add an input unit without a base unit.";
                 return false;
             }
-            if (!Resolver.TryScalar(quantity.Scalar, this, out var q))
+            if (!Resolver.TryScalar(inputUnit.Value.Scalar, this, out var q))
                 return false;
-            _inputUnits[name] = new(q.Scalar, quantity.Unit);
+            _inputUnits[inputUnit.UnitName] = new(q.Scalar, inputUnit.Value.Unit);
             return true;
         }
 
@@ -315,17 +326,17 @@ namespace MaxwellCalc.Workspaces
             => _inputUnits.Remove(name);
 
         /// <inheritdoc />
-        public bool TryRegisterOutputUnit(Unit outputUnits, Quantity<string> quantity)
+        public bool TryRegisterOutputUnit(OutputUnit outputUnit)
         {
-            if (!Resolver.TryScalar(quantity.Scalar, this, out var scalar) ||
+            if (!Resolver.TryScalar(outputUnit.Value.Scalar, this, out var scalar) ||
                 !Resolver.TryInvert(scalar, this, out var inv))
                 return false;
-            if (!_outputUnits.TryGetValue(quantity.Unit, out var dict))
+            if (!_outputUnits.TryGetValue(outputUnit.Value.Unit, out var dict))
             {
                 dict = [];
-                _outputUnits.Add(quantity.Unit, dict);
+                _outputUnits.Add(outputUnit.Value.Unit, dict);
             }
-            dict[outputUnits] = inv.Scalar;
+            dict[outputUnit.Unit] = inv.Scalar;
             return true;
         }
 
@@ -355,14 +366,146 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryRegisterUserFunction(string name, List<string> arguments, INode expression)
+        public bool TryRegisterUserFunction(UserFunction userFunction)
         {
-            _userFunctions[(name, arguments.Count)] = (arguments.ToArray(), expression);
+            _userFunctions[(userFunction.Name, userFunction.Parameters.Length)] = (userFunction.Parameters, userFunction.Body);
             return true;
         }
 
         /// <inheritdoc />
         public bool TryRemoveUserFunction(string name, int argumentCount)
             => _userFunctions.Remove((name, argumentCount));
+
+        /// <inheritdoc />
+        public void WriteToJson(Utf8JsonWriter writer, JsonSerializerOptions options)
+        {
+            writer.WriteStartObject();
+
+            // Write the input units
+            writer.WriteStartArray("input_units");
+            foreach (var inputUnit in InputUnits)
+                JsonSerializer.Serialize(writer, inputUnit, options);
+            writer.WriteEndArray();
+
+            // Write the output units
+            writer.WriteStartArray("output_units");
+            foreach (var outputUnit in OutputUnits)
+                JsonSerializer.Serialize(writer, outputUnit, options);
+            writer.WriteEndArray();
+
+            // Write the variables
+            writer.WriteStartArray("variables");
+            foreach (var variable in Variables)
+                JsonSerializer.Serialize(writer, variable, options);
+            writer.WriteEndArray();
+
+            // Write the user functions
+            writer.WriteStartArray("user_functions");
+            foreach (var userFunction in UserFunctions)
+                JsonSerializer.Serialize(writer, userFunction, options);
+            writer.WriteEndArray();
+
+            writer.WriteEndObject();
+        }
+
+        /// <inheritdoc />
+        public void ReadFromJson(ref Utf8JsonReader reader, JsonSerializerOptions options)
+        {
+            if (reader.TokenType != JsonTokenType.StartObject ||
+                !reader.Read())
+                throw new Exception();
+
+            while (reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                    throw new Exception();
+                switch (reader.GetString())
+                {
+                    case "input_units":
+                        reader.Read();
+                        var inputUnits = JsonSerializer.Deserialize<IEnumerable<InputUnit>>(ref reader, options) ?? [];
+                        foreach (var inputUnit in inputUnits)
+                        {
+                            if (!TryRegisterInputUnit(inputUnit))
+                                throw new Exception(ErrorMessage);
+                        }
+                        reader.Read();
+                        break;
+
+                    case "output_units":
+                        reader.Read();
+                        var outputUnits = JsonSerializer.Deserialize<IEnumerable<OutputUnit>>(ref reader, options) ?? [];
+                        foreach (var outputUnit in outputUnits)
+                        {
+                            if (!TryRegisterOutputUnit(outputUnit))
+                                throw new Exception(ErrorMessage);
+                        }
+                        reader.Read();
+                        break;
+
+                    case "variables":
+                        reader.Read();
+                        var variables = JsonSerializer.Deserialize<IEnumerable<Variable>>(ref reader, options) ?? [];
+                        foreach (var variable in variables)
+                        {
+                            if (!TrySetVariable(variable))
+                                throw new Exception(ErrorMessage);
+                        }
+                        reader.Read();
+                        break;
+
+                    case "user_functions":
+                        reader.Read();
+                        var userFunctions = JsonSerializer.Deserialize<IEnumerable<UserFunction>>(ref reader, options) ?? [];
+                        foreach (var function in userFunctions)
+                        {
+                            if (!TryRegisterUserFunction(function))
+                                throw new Exception(ErrorMessage);
+                        }
+                        reader.Read();
+                        break;
+
+                    default:
+                        throw new Exception();
+                }
+            }
+            if (reader.TokenType != JsonTokenType.EndObject)
+                throw new Exception();
+        }
+
+        /// <inheritdoc />
+        public void Clear()
+        {
+            _inputUnits.Clear();
+            _outputUnits.Clear();
+            _builtInFunctions.Clear();
+            _userFunctions.Clear();
+            _scopes.Clear();
+            _scopes.Push(new VariableScope<T>());
+            ErrorMessage = string.Empty;
+        }
+
+        /// <inheritdoc />
+        public bool TrySetVariable(Variable variable)
+        {
+            var scope = _scopes.Peek();
+            if (!Resolver.TryScalar(variable.Value.Scalar, this, out var scalarQuantity) ||
+                !scope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit)))
+                return false;
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryGetVariable(string name, out Quantity<string> value)
+        {
+            var scope = _scopes.Peek();
+            if (!scope.TryGetVariable(name, out var typedValue) ||
+                !Resolver.TryFormat(typedValue, "g", CultureInfo.InvariantCulture, out value))
+            {
+                value = default;
+                return false;
+            }
+            return true;
+        }
     }
 }

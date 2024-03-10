@@ -59,7 +59,7 @@ namespace MaxwellCalc.Parsers.Nodes
                         }
                         args.Add(argNode.Content.ToString());
                     }
-                    if (workspace is not null && workspace.TryRegisterUserFunction(function.Name, args, Right))
+                    if (workspace is not null && workspace.TryRegisterUserFunction(new(function.Name, args.ToArray(), Right.Content.ToString())))
                     {   
                         result = resolver.Default;
                         return true;

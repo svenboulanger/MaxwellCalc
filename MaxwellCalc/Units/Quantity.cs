@@ -5,24 +5,33 @@ using System.Text.Json.Serialization;
 namespace MaxwellCalc.Units
 {
     /// <summary>
-    /// Creates a new <see cref="Quantity{T}"/>.
+    /// A quantity with a scalar and a unit.
     /// </summary>
-    /// <param name="scalar">The scalar.</param>
-    /// <param name="unit">The unit.</param>
-    public readonly struct Quantity<T>(T scalar, Unit unit) : IQuantity, IEquatable<Quantity<T>>
+    public readonly struct Quantity<T> : IEquatable<Quantity<T>>
     {
         /// <summary>
         /// Gets the scalar.
         /// </summary>
-        public T Scalar { get; } = scalar;
-
-        /// <inheritdoc />
-        object? IQuantity.Scalar => Scalar;
+        [JsonPropertyName("s")]
+        public T Scalar { get; }
 
         /// <summary>
         /// Gets the unit.
         /// </summary>
-        public Unit Unit { get; } = unit;
+        [JsonPropertyName("u")]
+        public Unit Unit { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="Quantity{T}"/>.
+        /// </summary>
+        /// <param name="scalar">The scalar.</param>
+        /// <param name="unit">The unit.</param>
+        [JsonConstructor]
+        public Quantity(T scalar, Unit unit)
+        {
+            Scalar = scalar;
+            Unit = unit;
+        }
 
         /// <inheritdoc />
         public override int GetHashCode()

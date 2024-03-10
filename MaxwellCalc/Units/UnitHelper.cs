@@ -20,8 +20,8 @@ namespace MaxwellCalc.Units
             this IWorkspace<T> workspace,
             string inputUnit, Quantity<string> value) where T : struct, IFormattable
         {
-            if (!workspace.TryRegisterInputUnit(inputUnit, value) ||
-                !workspace.TryRegisterOutputUnit(new Unit((inputUnit, 1)), value))
+            if (!workspace.TryRegisterInputUnit(new(inputUnit, value)) ||
+                !workspace.TryRegisterOutputUnit(new(new Unit((inputUnit, 1)), value)))
                 return false;
             return true;
         }
@@ -148,64 +148,64 @@ namespace MaxwellCalc.Units
                 => new Unit(outputUnit.Dimension.Select(p => (p.Key == dimension ? $"{prefix}{p.Key}" : p.Key, p.Value)).ToArray());
             if (atto)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("a"), new Quantity<string>("1e-18", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("a"), new Quantity<string>("1e-18", baseUnits))))
                     return false;
             }
             if (femto)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("f"), new Quantity<string>("1e-15", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("f"), new Quantity<string>("1e-15", baseUnits))))
                     return false;
             }
             if (pico)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("p"), new Quantity<string>("1e-12", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("p"), new Quantity<string>("1e-12", baseUnits))))
                     return false;
             }
             if (nano)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("n"), new Quantity<string>("1e-9", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("n"), new Quantity<string>("1e-9", baseUnits))))
                     return false;
             }
             if (micro)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("u"), new Quantity<string>("1e-6", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("u"), new Quantity<string>("1e-6", baseUnits))))
                     return false;
             }
             if (milli)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("m"), new Quantity<string>("1e-3", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("m"), new Quantity<string>("1e-3", baseUnits))))
                     return false;
             }
             if (centi)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>("1e-2", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("c"), new Quantity<string>("1e-2", baseUnits))))
                     return false;
             }
-            if (!workspace.TryRegisterOutputUnit(outputUnit, new Quantity<string>("1", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(new(outputUnit, new Quantity<string>("1", baseUnits))))
                 return false;
             if (kilo)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>("1e3", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("k"), new Quantity<string>("1e3", baseUnits))))
                     return false;
             }
             if (mega)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("M"), new Quantity<string>("1e6", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("M"), new Quantity<string>("1e6", baseUnits))))
                     return false;
             }
             if (giga)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("G"), new Quantity<string>("1e9", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("G"), new Quantity<string>("1e9", baseUnits))))
                     return false;
             }
             if (tera)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("T"), new Quantity<string>("1e12", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("T"), new Quantity<string>("1e12", baseUnits))))
                     return false;
             }
             if (peta)
             {
-                if (!workspace.TryRegisterOutputUnit(GetUnit("P"), new Quantity<string>("1e15", baseUnits)))
+                if (!workspace.TryRegisterOutputUnit(new(GetUnit("P"), new Quantity<string>("1e15", baseUnits))))
                     return false;
             }
             return true;
@@ -225,7 +225,7 @@ namespace MaxwellCalc.Units
             workspace.TryRegisterModifierOutputUnits(
                 new((Unit.Meter, 1), (Unit.Second, -1)),
                 new((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter);
-            workspace.TryRegisterOutputUnit(new Unit((Unit.Meter, 1), (Unit.Second, -1)), new Quantity<string>("3.6", new Unit(("km", 1), ("hour", -1))));
+            workspace.TryRegisterOutputUnit(new(new Unit((Unit.Meter, 1), (Unit.Second, -1)), new Quantity<string>("3.6", new Unit(("km", 1), ("hour", -1)))));
 
             // Mass
             workspace.TryRegisterInputOutputUnit("ng", new Quantity<string>("1e-12", Unit.UnitKilogram));
@@ -254,8 +254,8 @@ namespace MaxwellCalc.Units
             workspace.TryRegisterModifierInputOutputUnits(Unit.Candela, Unit.UnitCandela);
 
             // Angle
-            workspace.TryRegisterInputUnit("rad", new Quantity<string>("1", Unit.UnitRadian));
-            workspace.TryRegisterInputUnit("deg", new Quantity<string>("17.4532925199432957692369076848861271344287188854173e-3", Unit.UnitRadian));
+            workspace.TryRegisterInputUnit(new("rad", new Quantity<string>("1", Unit.UnitRadian)));
+            workspace.TryRegisterInputUnit(new("deg", new Quantity<string>("17.4532925199432957692369076848861271344287188854173e-3", Unit.UnitRadian)));
         }
 
         /// <summary>
@@ -270,23 +270,23 @@ namespace MaxwellCalc.Units
 
             // Coulomb meter - electric dipole moment
             workspace.TryRegisterOutputUnit(
-                new(("C", 1), (Unit.Meter, 1)), new Quantity<string>("1",
-                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, 1))));
+                new(new(("C", 1), (Unit.Meter, 1)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, 1)))));
 
             // Coulomb per meter - charge density
             workspace.TryRegisterOutputUnit(
-                new(("C", 1), (Unit.Meter, -1)), new Quantity<string>("1",
-                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1))));
+                new(new(("C", 1), (Unit.Meter, -1)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -1)))));
 
             // Coulomb per square meter - charge density
             workspace.TryRegisterOutputUnit(
-                new(("C", 1), (Unit.Meter, -2)), new Quantity<string>("1",
-                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2))));
+                new(new(("C", 1), (Unit.Meter, -2)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -2)))));
 
             // Coulomb per cubic meter - charge density
             workspace.TryRegisterOutputUnit(
-                new(("C", 1), (Unit.Meter, -3)), new Quantity<string>("1",
-                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3))));
+                new(new(("C", 1), (Unit.Meter, -3)), new Quantity<string>("1",
+                new((Unit.Ampere, 1), (Unit.Second, 1), (Unit.Meter, -3)))));
 
             // Volts
             workspace.TryRegisterModifierInputOutputUnits("V",
@@ -369,11 +369,11 @@ namespace MaxwellCalc.Units
 
             // Bits per second
             var bps = new Unit(("bit", 1), (Unit.Second, -1));
-            workspace.TryRegisterOutputUnit(bps, new Quantity<string>("1", bps));
-            workspace.TryRegisterOutputUnit(new(("kbps", 1)), new Quantity<string>("1024", bps));
-            workspace.TryRegisterOutputUnit(new(("Mbps", 1)), new Quantity<string>("1048576", bps));
-            workspace.TryRegisterOutputUnit(new(("Gbps", 1)), new Quantity<string>("1073741824", bps));
-            workspace.TryRegisterOutputUnit(new(("Tbps", 1)), new Quantity<string>("1099511627776", bps));
+            workspace.TryRegisterOutputUnit(new(bps, new Quantity<string>("1", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("kbps", 1)), new Quantity<string>("1024", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("Mbps", 1)), new Quantity<string>("1048576", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("Gbps", 1)), new Quantity<string>("1073741824", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("Tbps", 1)), new Quantity<string>("1099511627776", bps)));
         }
     }
 }
