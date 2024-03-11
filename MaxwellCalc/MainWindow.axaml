@@ -8,10 +8,12 @@
         Title="MaxwellCalc">
   <DockPanel>
     <Menu DockPanel.Dock="Top">
-      <MenuItem Header="_File">
-        <MenuItem Header="_New" />
-        <MenuItem Header="_Load" />
-        <MenuItem Header="_Save" />
+      <MenuItem Header="_Workspace">
+        <MenuItem Header="_Reset" Click="ResetWorkspace" />
+        <MenuItem Header="_Open" Click="OpenWorkspace" />
+        <MenuItem Header="_Save" Click="SaveWorkspace" />
+        <MenuItem Header="Save As ..." Click="SaveWorkspaceAs" />
+        <MenuItem Header="Clear" Click="ClearWorkspace" />
         <Separator />
         <MenuItem Header="_Quit" />
       </MenuItem>

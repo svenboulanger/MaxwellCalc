@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -13,7 +11,7 @@ namespace MaxwellCalc.Workspaces
     public static class WorkspaceHelper
     {
         /// <inheritdoc />
-        public static void WriteToJson(this IWorkspace workspace, Utf8JsonWriter writer, JsonSerializerOptions options)
+        public static void WriteToJson(this IWorkspace workspace, Utf8JsonWriter writer, JsonSerializerOptions? options = null)
         {
             writer.WriteStartObject();
 
@@ -45,7 +43,7 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public static void ReadFromJson(this IWorkspace workspace, ref Utf8JsonReader reader, JsonSerializerOptions options)
+        public static void ReadFromJson(this IWorkspace workspace, ref Utf8JsonReader reader, JsonSerializerOptions? options = null)
         {
             if (reader.TokenType != JsonTokenType.StartObject ||
                 !reader.Read())
