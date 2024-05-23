@@ -207,6 +207,11 @@ namespace MaxwellCalc
                 var fileTask = StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
                     Title = saveAs ? "Save workspace as ..." : "Save workspace",
+                    FileTypeChoices = [
+                        new FilePickerFileType("Workspace JSON") {
+                            Patterns = [ "*.json" ],
+                        }
+                    ]
                 });
                 fileTask.Wait();
                 var file = fileTask.Result;
@@ -236,7 +241,12 @@ namespace MaxwellCalc
             // Open the workspace
             var fileTask = StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Open workspace"
+                Title = "Open workspace",
+                FileTypeFilter = [
+                    new FilePickerFileType("Workspace JSON") {
+                        Patterns = [ "*.json" ],
+                    }
+                ]
             });
             fileTask.Wait();
             var file = fileTask.Result;
@@ -259,7 +269,7 @@ namespace MaxwellCalc
 
             // Load the default workspace if it exists
             var defaultWorkspace = new Uri(Directory.GetCurrentDirectory());
-            defaultWorkspace = new Uri(defaultWorkspace, "default.maxwell");
+            defaultWorkspace = new Uri(defaultWorkspace, "default.json");
             if (File.Exists(defaultWorkspace.AbsolutePath))
                 LoadWorkspace(defaultWorkspace.AbsolutePath);
         }
@@ -282,6 +292,10 @@ namespace MaxwellCalc
             using var reader = new StreamReader(filename);
             var bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
             var jsonReader = new Utf8JsonReader(bytes);
+            if (!jsonReader.Read())
+                return;
+
+            // Clear the workspace and import JSON
             _workspace.Clear();
             _workspace.ReadFromJson(ref jsonReader);
             _workspaceFilename = filename;
