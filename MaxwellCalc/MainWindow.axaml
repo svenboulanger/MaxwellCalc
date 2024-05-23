@@ -6,42 +6,48 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MaxwellCalc.MainWindow"
         Title="MaxwellCalc">
-  <DockPanel>
-    <Menu DockPanel.Dock="Top">
-		<MenuItem Header="_Session">
-			<MenuItem Header="_New" Click="NewSession" />
-		</MenuItem>
-      <MenuItem Header="_Workspace">
-        <MenuItem Header="_Reset" Click="ResetWorkspace" />
-        <MenuItem Header="_Open" Click="OpenWorkspace" />
-        <MenuItem Header="_Save" Click="SaveWorkspace" />
-        <MenuItem Header="Save As ..." Click="SaveWorkspaceAs" />
-        <MenuItem Header="Clear" Click="ClearWorkspace" />
-        <Separator />
-        <MenuItem Header="_Quit" />
-      </MenuItem>
-      <MenuItem Header="Se_ttings">
-        <MenuItem Header="_Units" Click="OpenUnitSettings" />
-        <MenuItem Header="_Format">
-          <MenuItem Header="Decimal">
-            <MenuItem Header="Significant digits" />
-            <MenuItem Header="0 digits" />
-          </MenuItem>
-        </MenuItem>
-      </MenuItem>
-      <MenuItem Header="_Help">
-        <MenuItem Header="About"/>
-      </MenuItem>
-    </Menu>
-    <SplitView DockPanel.Dock="Bottom" PanePlacement="Right" IsPaneOpen="False">
-      <SplitView.Pane>
-        <Label Content="Test" />
-      </SplitView.Pane>
-      <ScrollViewer Name="WorkspaceScroller">
-        <StackPanel Name="WorkspacePanel">
-          <TextBox Name="Input" FontFamily="{DynamicResource ResultFontFamily}" Margin="5" KeyUp="Input_KeyUp" />
-        </StackPanel>
-      </ScrollViewer>
-    </SplitView>
-  </DockPanel>
+	<DockPanel>
+		<Menu DockPanel.Dock="Top">
+			<MenuItem Header="_Session">
+				<MenuItem Header="_New" Click="NewSession" />
+			</MenuItem>
+			<MenuItem Header="_Workspace">
+				<MenuItem Header="_Reset" Click="ResetWorkspace" />
+				<MenuItem Header="_Open" Click="OpenWorkspace" />
+				<MenuItem Header="_Save" Click="SaveWorkspace" />
+				<MenuItem Header="Save As ..." Click="SaveWorkspaceAs" />
+				<MenuItem Header="Clear" Click="ClearWorkspace" />
+				<Separator />
+				<MenuItem Header="_Quit" />
+			</MenuItem>
+			<MenuItem Header="Se_ttings">
+				<MenuItem Header="_Units" Click="OpenUnitSettings" />
+				<MenuItem Header="_Format">
+					<MenuItem Header="Decimal">
+						<MenuItem Header="Significant digits" />
+						<MenuItem Header="0 digits" />
+					</MenuItem>
+				</MenuItem>
+			</MenuItem>
+			<MenuItem Header="_Help">
+				<MenuItem Header="About"/>
+			</MenuItem>
+		</Menu>
+		<Grid ColumnDefinitions="2*,4,*">
+			<ScrollViewer Name="WorkspaceScroller" Grid.Column="0">
+				<StackPanel Name="WorkspacePanel">
+					<TextBox Name="Input" FontFamily="{DynamicResource ResultFontFamily}" Margin="5" KeyUp="Input_KeyUp" />
+				</StackPanel>
+			</ScrollViewer>
+			<GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns" />
+			<TabControl Grid.Column="2">
+				<TabItem Header="Variables" Padding="4" FontSize="{DynamicResource FontSizeNormal}">
+					
+				</TabItem>
+				<TabItem Header="Functions" Padding="4" FontSize="{DynamicResource FontSizeNormal}">
+					
+				</TabItem>
+			</TabControl>
+		</Grid>
+	</DockPanel>
 </Window>
