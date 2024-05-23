@@ -2,14 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:controls="using:MaxwellCalc.UI"
 			 xmlns:mv="using:MaxwellCalc.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="450"
-			 x:CompileBindings="True"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="450"
+             x:Class="MaxwellCalc.UI.Functions"
 			 Margin="0"
-			 Padding="0"
-             x:Class="MaxwellCalc.UI.Variables">
-	<DataGrid x:DataType="mv:VariablesViewModel"
+			 Padding="0">
+	<DataGrid x:DataType="mv:FunctionsViewModel"
 			  ItemsSource="{Binding List}"
 			  IsReadOnly="True"
 			  GridLinesVisibility="All"
@@ -18,23 +16,13 @@
 			  Margin="3">
 		<DataGrid.Columns>
 			<DataGridTextColumn
-				Header="Parameter"
+				Header="Definition"
 				Width="*"
 				Binding="{Binding Name}" />
-			<DataGridTemplateColumn
+			<DataGridTextColumn
+				Header="Content"
 				Width="2*"
-				Header="Value">
-				<DataGridTemplateColumn.CellTemplate>
-					<DataTemplate
-						DataType="mv:VariableViewModel">
-						<controls:CopyableQuantity
-							Value="{Binding Value}"
-							VerticalAlignment="Center"
-							Margin="3"
-							Padding="0" />
-					</DataTemplate>
-				</DataGridTemplateColumn.CellTemplate>
-			</DataGridTemplateColumn>
+				Binding="{Binding Value}" />
 		</DataGrid.Columns>
 	</DataGrid>
 </UserControl>

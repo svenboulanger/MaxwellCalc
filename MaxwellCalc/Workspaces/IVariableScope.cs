@@ -20,6 +20,13 @@ namespace MaxwellCalc.Workspaces
         /// <param name="name">The variable name.</param>
         /// <returns>Returns <c>true</c> if the name represents a variable; otherwise, <c>false</c>.</returns>
         public bool IsVariable(string name);
+
+        /// <summary>
+        /// Removes a variable from the scope.
+        /// </summary>
+        /// <param name="name">The variable name.</param>
+        /// <returns>Returns <c>true</c> if the variable was removed; otherwise, <c>false</c>.</returns>
+        public bool RemoveVariable(string name);
     }
 
     /// <summary>

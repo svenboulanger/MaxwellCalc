@@ -3,18 +3,14 @@ using Avalonia.Platform.Storage;
 using MaxwellCalc.UI;
 using MaxwellCalc.Workspaces;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MaxwellCalc
 {
     public partial class MainWindow
     {
-
         private void ResetWorkspace(object? sender, RoutedEventArgs args)
         {
             if (_workspace is null)
@@ -31,6 +27,10 @@ namespace MaxwellCalc
             defaultWorkspace = new Uri(defaultWorkspace, "default.json");
             if (File.Exists(defaultWorkspace.AbsolutePath))
                 LoadWorkspace(defaultWorkspace.AbsolutePath);
+
+            // Update GUI
+            Functions.ViewModel.Update(_workspace);
+            Variables.ViewModel.Update(_workspace);
         }
         private void ClearWorkspace(object? sender, RoutedEventArgs args)
         {
@@ -58,6 +58,10 @@ namespace MaxwellCalc
             _workspace.Clear();
             _workspace.ReadFromJson(ref jsonReader);
             _workspaceFilename = filename;
+
+            // Update GUI
+            Functions.ViewModel.Update(_workspace);
+            Variables.ViewModel.Update(_workspace);
         }
 
         private void SaveWorkspace(bool saveAs = false)

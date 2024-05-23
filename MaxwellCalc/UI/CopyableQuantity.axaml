@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:MaxwellCalc.UI">
+  <Design.PreviewWith>
+    <controls:CopyableQuantity />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|CopyableQuantity">
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+		  <StackPanel Orientation="Horizontal">
+			  <controls:FormattedQuantity Name="OutputBlock"
+										  VerticalAlignment="Center"
+										  Margin="3"
+										  Padding="0" />
+			  <Button Margin="2" Background="Transparent" Name="CopyOutputButton">
+				  <PathIcon
+					Foreground="#ccc"
+					Width="{TemplateBinding FontSize}"
+					Height="{TemplateBinding FontSize}"
+					Data="{StaticResource copy}" />
+			  </Button>
+		  </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

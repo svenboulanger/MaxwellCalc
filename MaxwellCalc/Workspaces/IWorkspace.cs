@@ -37,6 +37,16 @@ namespace MaxwellCalc.Workspaces
         public IEnumerable<UserFunction> UserFunctions { get; }
 
         /// <summary>
+        /// Event that is called when a variable changes.
+        /// </summary>
+        public event EventHandler<VariableChangedEvent>? VariableChanged;
+
+        /// <summary>
+        /// Event that is called when a function changes.
+        /// </summary>
+        public event EventHandler<FunctionChangedEvent>? FunctionChanged;
+
+        /// <summary>
         /// Determines whether a string represents a unit.
         /// </summary>
         /// <param name="name">The unit name.</param>
@@ -109,6 +119,13 @@ namespace MaxwellCalc.Workspaces
         /// <param name="variable">The variable.</param>
         /// <returns>Returns <c>true</c> if the variable was set; otherwise, <c>false</c>.</returns>
         public bool TrySetVariable(Variable variable);
+
+        /// <summary>
+        /// Tries to remove a variable.
+        /// </summary>
+        /// <param name="name">The variable name.</param>
+        /// <returns>Returns <c>true</c> if the variable was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveVariable(string name);
 
         /// <summary>
         /// Tries to get a variable from the workspace.

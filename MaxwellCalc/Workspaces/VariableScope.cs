@@ -1,4 +1,5 @@
 ﻿using MaxwellCalc.Units;
+using System;
 using System.Collections.Generic;
 
 namespace MaxwellCalc.Workspaces
@@ -14,6 +15,11 @@ namespace MaxwellCalc.Workspaces
 
         /// <inheritdoc />
         public IEnumerable<string> Variables => _variables.Keys;
+
+        /// <summary>
+        /// Called when a variable changes value.
+        /// </summary>
+        public event EventHandler<VariableChangedEvent>? VariableChanged;
 
         /// <summary>
         /// Creates a new <see cref="VariableScope"/>.
@@ -50,7 +56,19 @@ namespace MaxwellCalc.Workspaces
         bool IVariableScope<T>.TrySetVariable(string name, Quantity<T> value)
         {
             _variables[name] = value;
+            VariableChanged?.Invoke(this, new VariableChangedEvent(name));
             return true;
+        }
+
+        /// <inheritdoc />
+        bool IVariableScope.RemoveVariable(string name)
+        {
+            if (_variables.Remove(name))
+            {
+                VariableChanged?.Invoke(this, new VariableChangedEvent(name));
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -1,18 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using MaxwellCalc.Units;
-using System.Linq;
-using System.Numerics;
 
 namespace MaxwellCalc.UI;
 
 public class ResultBox : TemplatedControl
 {
-    private SelectableTextBlock? _output = null;
+    private CopyableQuantity? _output = null;
 
     public static readonly StyledProperty<string> InputProperty =
         AvaloniaProperty.Register<ResultBox, string>(nameof(Input), "Input");
@@ -20,27 +16,11 @@ public class ResultBox : TemplatedControl
         AvaloniaProperty.Register<ResultBox, Quantity<string>>(nameof(Output), new Quantity<string>("Unrecognized", Unit.UnitNone));
     public static readonly StyledProperty<IBrush?> InputForegroundProperty =
         AvaloniaProperty.Register<ResultBox, IBrush?>(nameof(InputForeground), Brushes.Gray);
-    public static readonly StyledProperty<IBrush?> OutputForegroundProperty =
-        AvaloniaProperty.Register<ResultBox, IBrush?>(nameof(OutputForeground), Brushes.Black);
-    public static readonly StyledProperty<IBrush?> UnitForegroundProperty =
-        AvaloniaProperty.Register<ResultBox, IBrush?>(nameof(UnitForeground), Brushes.Red);
-
+    
     public IBrush? InputForeground
     {
         get => GetValue(InputForegroundProperty);
         set => SetValue(InputForegroundProperty, value);
-    }
-
-    public IBrush? OutputForeground
-    {
-        get => GetValue(OutputForegroundProperty);
-        set => SetValue(OutputForegroundProperty, value);
-    }
-
-    public IBrush? UnitForeground
-    {
-        get => GetValue(UnitForegroundProperty);
-        set => SetValue(UnitForegroundProperty, value);
     }
 
     public string Input
@@ -59,11 +39,12 @@ public class ResultBox : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
-        _output = e.NameScope.Find<SelectableTextBlock>("OutputBlock");
+        _output = e.NameScope.Find<CopyableQuantity>("OutputBlock");
         var input = e.NameScope.Find<SelectableTextBlock>("InputBlock");
         var btnCopyInput = e.NameScope.Find<Button>("CopyInputButton");
         var btnCopyOutput = e.NameScope.Find<Button>("CopyOutputButton");
-        FormatOutput();
+        if (_output is not null)
+            _output.Value = Output;
 
         // Attach events
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
@@ -91,32 +72,5 @@ public class ResultBox : TemplatedControl
             if (btnCopyOutput is not null)
                 btnCopyOutput.IsVisible = false;
         }
-    }
-
-    /// <inheritdoc />
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-        FormatOutput();
-    }
-
-    private void FormatOutput()
-    {
-        // Make sure we have the output
-        if (_output is null)
-            return;
-        if (_output.Inlines is null)
-            _output.Inlines = [];
-        else
-            _output.Inlines.Clear();
-
-        // Show the dimension
-        _output.Inlines.Add(new Run
-        {
-            Text = Output.Scalar,
-            Foreground = OutputForeground
-        });
-        UnitFormatter.Default.AppendInlinesFor(
-            _output.Inlines, Output.Unit, UnitForeground, _output.FontSize);
     }
 }

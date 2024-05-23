@@ -1,5 +1,4 @@
-﻿using Avalonia.Remote.Protocol.Designer;
-using MaxwellCalc.Domains;
+﻿using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.Json;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -22,6 +20,12 @@ namespace MaxwellCalc.Workspaces
         private readonly Stack<IVariableScope<T>> _scopes = new();
         private readonly Dictionary<string, IWorkspace<T>.FunctionDelegate> _builtInFunctions = [];
         private readonly Dictionary<(string, int), (string[], string)> _userFunctions = [];
+
+        /// <inheritdoc />
+        public event EventHandler<VariableChangedEvent>? VariableChanged;
+
+        /// <inheritdoc />
+        public event EventHandler<FunctionChangedEvent>? FunctionChanged;
 
         /// <inheritdoc />
         public IDomain<T> Resolver { get; }
@@ -55,7 +59,7 @@ namespace MaxwellCalc.Workspaces
             {
                 foreach (var p in _inputUnits)
                 {
-                    if (!Resolver.TryFormat(p.Value, "g", System.Globalization.CultureInfo.CurrentCulture, out var formatted))
+                    if (!Resolver.TryFormat(p.Value, "g", CultureInfo.CurrentCulture, out var formatted))
                         continue;
                     yield return new(p.Key, formatted);
                 }
@@ -90,7 +94,9 @@ namespace MaxwellCalc.Workspaces
         public Workspace(IDomain<T> resolver)
         {
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
-            _scopes.Push(new VariableScope<T>());
+            var globalScope = new VariableScope<T>();
+            _scopes.Push(globalScope);
+            globalScope.VariableChanged += (sender, args) => OnVariableChanged(args);
         }
 
         /// <inheritdoc />
@@ -378,12 +384,20 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterUserFunction(UserFunction userFunction)
         {
             _userFunctions[(userFunction.Name, userFunction.Parameters.Length)] = (userFunction.Parameters, userFunction.Body);
+            OnFunctionChanged(new FunctionChangedEvent(userFunction.Name, userFunction.Parameters.Length));
             return true;
         }
 
         /// <inheritdoc />
         public bool TryRemoveUserFunction(string name, int argumentCount)
-            => _userFunctions.Remove((name, argumentCount));
+        {
+            if (_userFunctions.Remove((name, argumentCount)))
+            {
+                OnFunctionChanged(new FunctionChangedEvent(name, argumentCount));
+                return true;
+            }
+            return false;
+        }
 
         /// <inheritdoc />
         public void Clear()
@@ -404,6 +418,7 @@ namespace MaxwellCalc.Workspaces
             if (!Resolver.TryScalar(variable.Value.Scalar, this, out var scalarQuantity) ||
                 !scope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit)))
                 return false;
+            OnVariableChanged(new VariableChangedEvent(variable.Name));
             return true;
         }
 
@@ -419,5 +434,18 @@ namespace MaxwellCalc.Workspaces
             }
             return true;
         }
+
+        /// <inheritdoc />
+        public bool TryRemoveVariable(string name)
+        {
+            var scope = _scopes.Peek();
+            return scope.RemoveVariable(name); // Will call VariableChanged event
+        }
+
+        protected void OnVariableChanged(VariableChangedEvent args)
+            => VariableChanged?.Invoke(this, args);
+
+        protected void OnFunctionChanged(FunctionChangedEvent args)
+            => FunctionChanged?.Invoke(this, args);
     }
 }

@@ -37,7 +37,6 @@ namespace MaxwellCalc
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
             BuildWorkspace(DomainTypes.Complex);
-            
         }
 
         private void BuildWorkspace(DomainTypes type)
@@ -59,7 +58,7 @@ namespace MaxwellCalc
             }
 
             var defaultWorkspace = new Uri(Directory.GetCurrentDirectory());
-            defaultWorkspace = new Uri(defaultWorkspace, "default.maxwell");
+            defaultWorkspace = new Uri(defaultWorkspace, "workspace.json");
             if (File.Exists(defaultWorkspace.AbsolutePath))
                 LoadWorkspace(defaultWorkspace.AbsolutePath);
             else
@@ -81,6 +80,14 @@ namespace MaxwellCalc
                         break;
                 }
             }
+
+            // Update the variable and function list
+            Variables.ViewModel.Update(_workspace);
+            Functions.ViewModel.Update(_workspace);
+
+            // Register for events
+            _workspace.VariableChanged += (sender, args) => Variables.ViewModel.Update(_workspace);
+            _workspace.FunctionChanged += (sender, args) => Functions.ViewModel.Update(_workspace);
         }
 
         private void Input_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -163,6 +170,7 @@ namespace MaxwellCalc
             Input.CaretIndex = 0;
             WorkspaceScroller.ScrollToEnd();
         }
+
         private void FillHistory()
         {
             if (_historyFill < 0)

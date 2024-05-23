@@ -2,31 +2,34 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MaxwellCalc.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
-    <Application.Styles>
-      <FluentTheme />
-      <StyleInclude Source="/UI/ResultBox.axaml"/>
-      <StyleInclude Source="/UI/BaseUnit.axaml" />
-      <StyleInclude Source="/UI/UnitItem.axaml" />
-    </Application.Styles>
+	<Application.Styles>
+		<FluentTheme />
+		<StyleInclude Source="/UI/ResultBox.axaml"/>
+		<StyleInclude Source="/UI/BaseUnit.axaml" />
+		<StyleInclude Source="/UI/UnitItem.axaml" />
+		<StyleInclude Source="/UI/FormattedQuantity.axaml" />
+		<StyleInclude Source="/UI/CopyableQuantity.axaml" />
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+	</Application.Styles>
 
-  <Application.Resources>
-    <SolidColorBrush x:Key="ResultBackground">White</SolidColorBrush>
-    <SolidColorBrush x:Key="ResultInputForeground">#aaaaaa</SolidColorBrush>
-    <SolidColorBrush x:Key="ResultOutputForeground">Black</SolidColorBrush>
-    <SolidColorBrush x:Key="ResultBorderBrush">#dddddd</SolidColorBrush>
-    <FontFamily x:Key="ResultFontFamily">MS Shell Dlg 2</FontFamily>
-    <StreamGeometry x:Key="trash">
-      M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z
-      M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z
-    </StreamGeometry>
-    <StreamGeometry x:Key="warning">
-        M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z
-        M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z
-    </StreamGeometry>
-    <StreamGeometry x:Key="copy">
-        M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z
-    </StreamGeometry>
-  </Application.Resources>
+	<Application.Resources>
+		<SolidColorBrush x:Key="ResultBackground">White</SolidColorBrush>
+		<SolidColorBrush x:Key="ResultInputForeground">#aaaaaa</SolidColorBrush>
+		<SolidColorBrush x:Key="ResultOutputForeground">Black</SolidColorBrush>
+		<SolidColorBrush x:Key="ResultBorderBrush">#dddddd</SolidColorBrush>
+		<FontFamily x:Key="ResultFontFamily">MS Shell Dlg 2</FontFamily>
+		<StreamGeometry x:Key="trash">
+			M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z
+			M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z
+		</StreamGeometry>
+		<StreamGeometry x:Key="warning">
+			M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z
+			M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z
+		</StreamGeometry>
+		<StreamGeometry x:Key="copy">
+			M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z
+		</StreamGeometry>
+	</Application.Resources>
 </Application>

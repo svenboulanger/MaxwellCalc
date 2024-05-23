@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:MaxwellCalc"
+		xmlns:loc="using:MaxwellCalc.UI"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MaxwellCalc.MainWindow"
         Title="MaxwellCalc">
@@ -30,7 +31,7 @@
 				</MenuItem>
 			</MenuItem>
 			<MenuItem Header="_Help">
-				<MenuItem Header="About"/>
+				<MenuItem Header="About" />
 			</MenuItem>
 		</Menu>
 		<Grid ColumnDefinitions="2*,4,*">
@@ -39,13 +40,13 @@
 					<TextBox Name="Input" FontFamily="{DynamicResource ResultFontFamily}" Margin="5" KeyUp="Input_KeyUp" />
 				</StackPanel>
 			</ScrollViewer>
-			<GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns" />
+			<GridSplitter Grid.Column="1" Background="LightGray" ResizeDirection="Columns" />
 			<TabControl Grid.Column="2">
 				<TabItem Header="Variables" Padding="4" FontSize="{DynamicResource FontSizeNormal}">
-					
+					<loc:Variables Name="Variables" />
 				</TabItem>
 				<TabItem Header="Functions" Padding="4" FontSize="{DynamicResource FontSizeNormal}">
-					
+					<loc:Functions Name="Functions" />
 				</TabItem>
 			</TabControl>
 		</Grid>

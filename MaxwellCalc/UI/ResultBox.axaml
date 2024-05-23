@@ -1,62 +1,47 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:MaxwellCalc.UI">
-  <Design.PreviewWith>
-    <controls:ResultBox />
-  </Design.PreviewWith>
+	<Design.PreviewWith>
+		<controls:ResultBox />
+	</Design.PreviewWith>
 
-  <Style Selector="controls|ResultBox">
-    <!-- Set Defaults -->
-    <Setter Property="BorderBrush" Value="{DynamicResource ResultBorderBrush}"/>
-    <Setter Property="Background" Value="{DynamicResource ResultBackground}"/>
-    <Setter Property="FontFamily" Value="{DynamicResource ResultFontFamily}"/>
-    <Setter Property="InputForeground" Value="{DynamicResource ResultInputForeground}"/>
-    <Setter Property="OutputForeground" Value="{DynamicResource ResultOutputForeground}"/>
+	<Style Selector="controls|ResultBox">
+		<!-- Set Defaults -->
+		<Setter Property="BorderBrush" Value="{DynamicResource ResultBorderBrush}"/>
+		<Setter Property="Background" Value="{DynamicResource ResultBackground}"/>
+		<Setter Property="FontFamily" Value="{DynamicResource ResultFontFamily}"/>
+		<Setter Property="InputForeground" Value="{DynamicResource ResultInputForeground}"/>
 
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border
-                Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="2"
-                CornerRadius="4"
-                Margin="5">
-          <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal">
-              <SelectableTextBlock
-                Name="InputBlock"
-                VerticalAlignment="Center"
-                FontFamily="{TemplateBinding FontFamily}"
-                Padding="0"
-                Margin="3"
-                Foreground="{TemplateBinding InputForeground}"
-                Text="{TemplateBinding Input}" />
-              <Button Margin="2" Background="Transparent" Name="CopyInputButton">
-                <PathIcon
-                  Foreground="#ccc"
-                  Width="{TemplateBinding FontSize}"
-                  Height="{TemplateBinding FontSize}"
-                  Data="{StaticResource copy}" />
-              </Button>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-              <SelectableTextBlock
-                Name="OutputBlock"
-                VerticalAlignment="Center"
-                Padding="0"
-                Margin="3"
-                Foreground="{TemplateBinding OutputForeground}" />
-              <Button Margin="2" Background="Transparent" Name="CopyOutputButton">
-                <PathIcon
-                  Foreground="#ccc"
-                  Width="{TemplateBinding FontSize}"
-                  Height="{TemplateBinding FontSize}"
-                  Data="{StaticResource copy}" />
-              </Button>
-            </StackPanel>
-          </StackPanel>
-        </Border>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border
+						Background="{TemplateBinding Background}"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="2"
+						CornerRadius="4"
+						Margin="5">
+					<StackPanel Orientation="Vertical">
+						<StackPanel Orientation="Horizontal">
+							<SelectableTextBlock
+							  Name="InputBlock"
+							  VerticalAlignment="Center"
+							  FontFamily="{TemplateBinding FontFamily}"
+							  Padding="0"
+							  Margin="3"
+							  Foreground="{TemplateBinding InputForeground}"
+							  Text="{TemplateBinding Input}" />
+							<Button Margin="2" Background="Transparent" Name="CopyInputButton">
+								<PathIcon
+								  Foreground="#ccc"
+								  Width="{TemplateBinding FontSize}"
+								  Height="{TemplateBinding FontSize}"
+								  Data="{StaticResource copy}" />
+							</Button>
+						</StackPanel>
+						<controls:CopyableQuantity Name="OutputBlock" />
+					</StackPanel>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+	</Style>
 </Styles>
