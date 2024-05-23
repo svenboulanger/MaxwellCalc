@@ -12,9 +12,9 @@ namespace MaxwellCalc.Workspaces
     public interface IWorkspace
     {
         /// <summary>
-        /// Gets or sets an error message.
+        /// Gets or sets a diagnostic message.
         /// </summary>
-        public string? ErrorMessage { get; set; }
+        public string? DiagnosticMessage { get; set; }
 
         /// <summary>
         /// Gets the variables defined in the workspace.

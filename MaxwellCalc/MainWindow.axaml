@@ -8,6 +8,9 @@
         Title="MaxwellCalc">
   <DockPanel>
     <Menu DockPanel.Dock="Top">
+		<MenuItem Header="_Session">
+			<MenuItem Header="_New" Click="NewSession" />
+		</MenuItem>
       <MenuItem Header="_Workspace">
         <MenuItem Header="_Reset" Click="ResetWorkspace" />
         <MenuItem Header="_Open" Click="OpenWorkspace" />
@@ -17,7 +20,7 @@
         <Separator />
         <MenuItem Header="_Quit" />
       </MenuItem>
-      <MenuItem Header="_Settings">
+      <MenuItem Header="Se_ttings">
         <MenuItem Header="_Units" Click="OpenUnitSettings" />
         <MenuItem Header="_Format">
           <MenuItem Header="Decimal">

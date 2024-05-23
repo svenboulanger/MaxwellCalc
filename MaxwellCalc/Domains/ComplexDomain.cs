@@ -22,7 +22,7 @@ namespace MaxwellCalc.Domains
             if (!double.TryParse(scalar, System.Globalization.CultureInfo.InvariantCulture, out double dbl))
             {
                 if (workspace is not null)
-                    workspace.ErrorMessage = $"Could not evaluate the scalar '{scalar}'.";
+                    workspace.DiagnosticMessage = $"Could not evaluate the scalar '{scalar}'.";
                 result = Default;
                 return false;
             }
@@ -45,7 +45,7 @@ namespace MaxwellCalc.Domains
             {
                 if (workspace.TryGetUnit(unit, out result))
                     return true;
-                workspace.ErrorMessage = $"Could not recognize unit '{unit}'.";
+                workspace.DiagnosticMessage = $"Could not recognize unit '{unit}'.";
                 return false;
             }
             else
@@ -67,7 +67,7 @@ namespace MaxwellCalc.Domains
                     result = new Quantity<Complex>(new Complex(0.0, 1.0), Unit.UnitNone);
                     return true;
                 }
-                workspace.ErrorMessage = $"Could not find a variable with the name '{variable}'.";
+                workspace.DiagnosticMessage = $"Could not find a variable with the name '{variable}'.";
                 return false;
             }
             else
@@ -112,7 +112,7 @@ namespace MaxwellCalc.Domains
             {
                 // Units should match!
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Units do not match for addition.";
+                    workspace.DiagnosticMessage = "Units do not match for addition.";
                 result = Default;
                 return false;
             }
@@ -127,7 +127,7 @@ namespace MaxwellCalc.Domains
             {
                 // Units should match!
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Units do not match for subtraction.";
+                    workspace.DiagnosticMessage = "Units do not match for subtraction.";
                 result = Default;
                 return false;
             }
@@ -182,7 +182,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot use exponent with units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot raise to a power where the exponent contains units.";
+                    workspace.DiagnosticMessage = "Cannot raise to a power where the exponent contains units.";
                 result = Default;
                 return false;
             }
@@ -207,7 +207,7 @@ namespace MaxwellCalc.Domains
                 {
                     // Cannot raise units to an imaginary power
                     if (workspace is not null)
-                        workspace.ErrorMessage = "Cannot raise units to a complex power.";
+                        workspace.DiagnosticMessage = "Cannot raise units to a complex power.";
                     result = Default;
                     return false;
                 }
@@ -216,7 +216,7 @@ namespace MaxwellCalc.Domains
                 {
                     // Could not convert to a fraction
                     if (workspace is not null)
-                        workspace.ErrorMessage = "Cannot raise units to a power that is too complex.";
+                        workspace.DiagnosticMessage = "Cannot raise units to a power that is too complex.";
                     result = Default;
                     return false;
                 }
@@ -235,7 +235,7 @@ namespace MaxwellCalc.Domains
             {
                 // Should be same units in order to compute
                 if (workspace is not null)
-                    workspace.ErrorMessage = "The units do not match.";
+                    workspace.DiagnosticMessage = "The units do not match.";
                 result = Default;
                 return false;
             }
@@ -253,7 +253,7 @@ namespace MaxwellCalc.Domains
             {
                 // Don't know what to do here
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot take a bitwise OR of quantities with units.";
+                    workspace.DiagnosticMessage = "Cannot take a bitwise OR of quantities with units.";
                 result = Default;
                 return false;
             }
@@ -271,7 +271,7 @@ namespace MaxwellCalc.Domains
             {
                 // Don't know what to do here
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot take a bitwise AND of quantities with units.";
+                    workspace.DiagnosticMessage = "Cannot take a bitwise AND of quantities with units.";
                 result = Default;
                 return false;
             }
@@ -289,7 +289,7 @@ namespace MaxwellCalc.Domains
             {
                 // Don't know what to do here
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot take shift quantities with units.";
+                    workspace.DiagnosticMessage = "Cannot take shift quantities with units.";
                 result = Default;
                 return false;
             }
@@ -306,7 +306,7 @@ namespace MaxwellCalc.Domains
             {
                 // Don't know what to do here
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot take shift quantities with units.";
+                    workspace.DiagnosticMessage = "Cannot take shift quantities with units.";
                 result = Default;
                 return false;
             }
@@ -323,7 +323,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot compare quantities with different units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
+                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -338,7 +338,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot compare quantities with different units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
+                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -353,7 +353,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot compare quantities with different units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
+                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -368,7 +368,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot compare quantities with different units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
+                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -383,7 +383,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot compare quantities with different units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
+                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -398,7 +398,7 @@ namespace MaxwellCalc.Domains
             {
                 // Cannot compare quantities with different units
                 if (workspace is not null)
-                    workspace.ErrorMessage = "Cannot compare quantities with different units.";
+                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
                 result = Default;
                 return false;
             }
@@ -417,7 +417,7 @@ namespace MaxwellCalc.Domains
                     return true;
                 }
 
-                workspace.ErrorMessage = $"Could not assign to '{name}'.";
+                workspace.DiagnosticMessage = $"Could not assign to '{name}'.";
                 result = Default;
                 return false;
             }

@@ -27,7 +27,7 @@ namespace MaxwellCalc.Workspaces
         public IDomain<T> Resolver { get; }
 
         /// <inheritdoc />
-        public string? ErrorMessage { get; set; } = null;
+        public string? DiagnosticMessage { get; set; } = null;
 
         /// <inheritdoc />
         public IVariableScope<T> Scope => _scopes.Peek();
@@ -136,7 +136,7 @@ namespace MaxwellCalc.Workspaces
             }
             if (_builtInFunctions.TryGetValue(name, out var function))
                 return function(arguments, this, out result);
-            ErrorMessage = $"Cannot find function '{name}' with {arguments.Count} argument(s).";
+            DiagnosticMessage = $"Cannot find function '{name}' with {arguments.Count} argument(s).";
             result = default;
             return false;
         }
@@ -241,7 +241,7 @@ namespace MaxwellCalc.Workspaces
                             {
                                 if (left.Unit != right.Unit)
                                 {
-                                    ErrorMessage = "Base units do not match.";
+                                    DiagnosticMessage = "Base units do not match.";
                                     result = default;
                                     return false;
                                 }
@@ -252,6 +252,20 @@ namespace MaxwellCalc.Workspaces
                                 }
                                 r = new Quantity<T>(intermediary.Scalar, new((bn.Right.Content.ToString(), 1)));
                             }
+                        }
+                        break;
+
+                    case BinaryOperatorTypes.Assign:
+                        if (!bn.TryResolve(Resolver, this, out r))
+                        {
+                            result = default;
+                            return false;
+                        }
+                        if (bn.Left is FunctionNode fn)
+                        {
+                            result = default;
+                            DiagnosticMessage = $"Stored function '{fn.Name}'.";
+                            return true;
                         }
                         break;
 
@@ -293,7 +307,7 @@ namespace MaxwellCalc.Workspaces
         {
             if (inputUnit.Value.Unit == Unit.UnitNone)
             {
-                ErrorMessage = "Cannot add an input unit without a base unit.";
+                DiagnosticMessage = "Cannot add an input unit without a base unit.";
                 return false;
             }
             if (!Resolver.TryScalar(inputUnit.Value.Scalar, this, out var q))
@@ -309,7 +323,7 @@ namespace MaxwellCalc.Workspaces
                 return false;
             if (q.Unit == Unit.UnitNone)
             {
-                ErrorMessage = "Cannot add an input unit without a base unit.";
+                DiagnosticMessage = "Cannot add an input unit without a base unit.";
                 return false;
             }
             _inputUnits[name] = q;
@@ -380,7 +394,7 @@ namespace MaxwellCalc.Workspaces
             _userFunctions.Clear();
             _scopes.Clear();
             _scopes.Push(new VariableScope<T>());
-            ErrorMessage = string.Empty;
+            DiagnosticMessage = string.Empty;
         }
 
         /// <inheritdoc />

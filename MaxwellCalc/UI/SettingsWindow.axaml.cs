@@ -248,7 +248,7 @@ public partial class SettingsWindow : Window
         {
             var dlg = new ErrorMessageBox
             {
-                Message = Workspace.ErrorMessage
+                Message = Workspace.DiagnosticMessage
             };
             dlg.ShowDialog(this);
             return;
@@ -304,7 +304,7 @@ public partial class SettingsWindow : Window
 
         if (!Workspace.TryRegisterOutputUnit(nodeOutputUnitExpression, nodeOutputBaseUnitExpression))
         {
-            var dlg = new ErrorMessageBox { Message = Workspace.ErrorMessage };
+            var dlg = new ErrorMessageBox { Message = Workspace.DiagnosticMessage };
             dlg.ShowDialog(this);
             return;
         }

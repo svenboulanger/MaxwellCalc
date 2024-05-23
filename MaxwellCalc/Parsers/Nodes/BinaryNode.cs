@@ -53,7 +53,7 @@ namespace MaxwellCalc.Parsers.Nodes
                         if (function.Arguments[i] is not VariableNode argNode)
                         {
                             if (workspace is not null)
-                                workspace.ErrorMessage = "Function argument has to be a simple variable.";
+                                workspace.DiagnosticMessage = "Function argument has to be a simple variable.";
                             result = resolver.Default;
                             return false;
                         }
@@ -70,7 +70,7 @@ namespace MaxwellCalc.Parsers.Nodes
                 else
                 {
                     if (workspace is not null)
-                        workspace.ErrorMessage = "Can only assign to variables or functions.";
+                        workspace.DiagnosticMessage = "Can only assign to variables or functions.";
                     result = resolver.Default;
                     return false;
                 }

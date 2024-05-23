@@ -60,7 +60,7 @@ namespace MaxwellCalc.Workspaces
                         foreach (var inputUnit in inputUnits)
                         {
                             if (!workspace.TryRegisterInputUnit(inputUnit))
-                                throw new NotSupportedException(workspace.ErrorMessage);
+                                throw new NotSupportedException(workspace.DiagnosticMessage);
                         }
                         reader.Read();
                         break;
@@ -71,7 +71,7 @@ namespace MaxwellCalc.Workspaces
                         foreach (var outputUnit in outputUnits)
                         {
                             if (!workspace.TryRegisterOutputUnit(outputUnit))
-                                throw new NotSupportedException(workspace.ErrorMessage);
+                                throw new NotSupportedException(workspace.DiagnosticMessage);
                         }
                         reader.Read();
                         break;
@@ -82,7 +82,7 @@ namespace MaxwellCalc.Workspaces
                         foreach (var variable in variables)
                         {
                             if (!workspace.TrySetVariable(variable))
-                                throw new NotSupportedException(workspace.ErrorMessage);
+                                throw new NotSupportedException(workspace.DiagnosticMessage);
                         }
                         reader.Read();
                         break;
@@ -93,7 +93,7 @@ namespace MaxwellCalc.Workspaces
                         foreach (var function in userFunctions)
                         {
                             if (!workspace.TryRegisterUserFunction(function))
-                                throw new NotSupportedException(workspace.ErrorMessage);
+                                throw new NotSupportedException(workspace.DiagnosticMessage);
                         }
                         reader.Read();
                         break;
