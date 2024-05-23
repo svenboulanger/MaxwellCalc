@@ -230,6 +230,7 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
         {
+            DiagnosticMessage = null;
             Quantity<T> r;
             if (node is BinaryNode bn)
             {
@@ -296,11 +297,7 @@ namespace MaxwellCalc.Workspaces
                 }
 
                 // Resolve output unit
-                if (!TryResolveOutputUnits(r, out r))
-                {
-                    result = default;
-                    return false;
-                }
+                TryResolveOutputUnits(r, out r);
             }
 
             if (!Resolver.TryFormat(r, format, formatProvider, out result))

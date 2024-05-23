@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.UI;
@@ -8,11 +7,7 @@ using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
 using System.IO;
-using System.Net;
 using System.Numerics;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MaxwellCalc
 {
@@ -70,6 +65,8 @@ namespace MaxwellCalc
                         UnitHelper.RegisterCommonUnits(dws);
                         UnitHelper.RegisterCommonElectronicsUnits(dws);
                         DoubleMathHelper.RegisterFunctions(dws);
+                        DoubleMathHelper.RegisterCommonConstants(dws);
+                        DoubleMathHelper.RegisterCommonElectronicsConstants(dws);
                         break;
 
                     case DomainTypes.Complex:
@@ -77,6 +74,8 @@ namespace MaxwellCalc
                         UnitHelper.RegisterCommonUnits(cws);
                         UnitHelper.RegisterCommonElectronicsUnits(cws);
                         ComplexMathHelper.RegisterFunctions(cws);
+                        ComplexMathHelper.RegisterCommonConstants(cws);
+                        ComplexMathHelper.RegisterCommonElectronicsConstants(cws);
                         break;
                 }
             }
