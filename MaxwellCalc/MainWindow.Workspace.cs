@@ -4,6 +4,7 @@ using MaxwellCalc.UI;
 using MaxwellCalc.Workspaces;
 using System;
 using System.IO;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 
@@ -59,6 +60,12 @@ namespace MaxwellCalc
             _workspace.ReadFromJson(ref jsonReader);
             _workspaceFilename = filename;
 
+            // Register built-in functions
+            if (_workspace is IWorkspace<double> dws)
+                DoubleMathHelper.RegisterFunctions(dws);
+            else if (_workspace is IWorkspace<Complex> cws)
+                ComplexMathHelper.RegisterFunctions(cws);
+
             // Update GUI
             Functions.ViewModel.Update(_workspace);
             Variables.ViewModel.Update(_workspace);
@@ -74,7 +81,7 @@ namespace MaxwellCalc
             }
 
             // Save the workspace
-            if (_workspaceFilename is null)
+            if (_workspaceFilename is null || saveAs)
             {
                 // Automatically open a save file dialog
                 var fileTask = StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
