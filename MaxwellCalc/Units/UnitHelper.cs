@@ -301,7 +301,12 @@ namespace MaxwellCalc.Units
             // Volts per square meter - electric field gradient
             workspace.TryRegisterModifierOutputUnits(
                 new(("V", 1), (Unit.Meter, -2)),
-                new Unit((Unit.Kilogram, 1), (Unit.Meter, 1), (Unit.Second, -3), (Unit.Ampere, -1)), "V");
+                new Unit((Unit.Kilogram, 1), (Unit.Second, -3), (Unit.Ampere, -1)), "V");
+
+            // Volts per second - slew rate
+            workspace.TryRegisterModifierOutputUnits(
+                new(("V", 1), (Unit.Second, -1)),
+                new Unit((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -4), (Unit.Ampere, -1)), "V");
             
             // Watts
             workspace.TryRegisterModifierInputOutputUnits("W", 
