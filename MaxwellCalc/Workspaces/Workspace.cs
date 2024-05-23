@@ -263,11 +263,7 @@ namespace MaxwellCalc.Workspaces
                         }
 
                         // Resolve output unit
-                        if (!TryResolveOutputUnits(r, out r))
-                        {
-                            result = default;
-                            return false;
-                        }
+                        TryResolveOutputUnits(r, out r);
                         break;
                 }
             }
