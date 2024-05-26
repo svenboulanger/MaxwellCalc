@@ -279,12 +279,53 @@ namespace MaxwellCalc.Domains
         public static bool operator !=(BigFloat left, BigFloat right) => !left.Equals(right);
 
         /// <summary>
-        /// Formats a <see cref="BigFloat"/> to a string according to the "F" format.
+        /// Finds the exponent of the leading decimal digit without any rounding error.
+        /// This implementation is rather slow, but for a calculator we prefer a robust method.
+        /// </summary>
+        /// <param name="mantissa">The mantissa, which should be positive.</param>
+        /// <param name="exponent">The exponent.</param>
+        /// <param name="numerator">The resulting numerator for the normalized value.</param>
+        /// <param name="denominator">The resulting denominator for the normalized value.</param>
+        /// <returns>Returns the base 10 exponent of the leading decimal digit.</returns>
+        private static int FindBase10Exponent(BigInteger mantissa, long exponent,
+            out BigInteger numerator, out BigInteger denominator)
+        {
+            // As an initial guess, we can still use a floating point arithmetic
+            int decimalPlace = (int)Math.Floor(BigInteger.Log10(mantissa) + 0.30102999566398119521 * exponent);
+            numerator = mantissa;
+            denominator = BigInteger.One;
+            if (exponent > 0)
+                numerator = ShiftLeft(numerator, exponent);
+            else if (exponent < 0)
+                denominator = ShiftLeft(denominator, -exponent);
+
+            // Check for validity of the number of decimal places
+            if (decimalPlace > 0)
+                denominator *= BigInteger.Pow(10, decimalPlace);
+            else if (decimalPlace < 0)
+                numerator *= BigInteger.Pow(10, -decimalPlace);
+
+            // Final check to make sure that there were no weird rounding errors from the log10 computation
+            if (numerator < denominator)
+            {
+                denominator /= 10;
+                decimalPlace--;
+            }
+            else if (numerator >= denominator * 10)
+            {
+                denominator *= 10;
+                decimalPlace++;
+            }
+            return decimalPlace;
+        }
+
+        /// <summary>
+        /// Formats a <see cref="BigFloat"/> to a string to infinite precision.
         /// </summary>
         /// <param name="value">The big float.</param>
-        /// <param name="precision">The number of digits. If negative, the value is rounded to the precision of the <see cref="BigFloat"/> least significant bit.</param>
-        /// <returns>Returns the formatted float.</returns>
-        public static string FormatFloat(BigFloat value, int precision, out int decimalPlace)
+        /// <param name="decimalPlace">The exponent in base 10 of the leading decimal digit of the result.</param>
+        /// <returns>Returns the formatted result.</returns>
+        public static string FormatFull(BigFloat value, out int decimalPlace)
         {
             var result = new StringBuilder();
 
@@ -296,54 +337,119 @@ namespace MaxwellCalc.Domains
             }
 
             // Minus sign
-            BigInteger mantissa = value.Mantissa;
+            var mantissa = value.Mantissa;
             if (mantissa.Sign < 0)
             {
                 result.Append('-');
                 mantissa = -mantissa;
-            }    
-
-            // Apply Steele-White
-            BigInteger numerator, denominator, numerator_minus, numerator_plus;
-            if (value.Exponent > 0)
-            {
-                numerator = ShiftLeft(mantissa, value.Exponent);
-                denominator = BigInteger.One;
-                numerator_minus = 1;
-                numerator_plus = 1;
-            }
-            else
-            {
-                numerator = mantissa;
-                denominator = ShiftLeft(BigInteger.One, -value.Exponent);
-                numerator_minus = 1;
-                numerator_plus = 1;
             }
 
-            // Find the position of the leading digit
-            int insertDecimalAt = 1;
-            decimalPlace = (int)Math.Floor(BigInteger.Log10(mantissa) + Math.Log10(2) * value.Exponent + 0.1);
-            if (decimalPlace < 0)
-                denominator *= BigInteger.Pow(10, -decimalPlace - 1);
-
-            int cDigit = 0;
+            decimalPlace = FindBase10Exponent(mantissa, value.Exponent, out var numerator, out var denominator);
             while (numerator > 0)
             {
                 var (digit, remainder) = BigInteger.DivRem(numerator, denominator);
-                
-
-                // The quotient is the digit
-                if (digit >= 10)
-                {
-                    // The
-                }
                 result.Append((char)((char)digit + '0'));
-
                 numerator = remainder * 10;
-                numerator_minus *= 10;
-                numerator_plus = numerator_minus;
-                cDigit++;
             }
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Formats a <see cref="BigFloat"/> to a string with fixed precision after the comma.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="precision">The number of digits after the decimal.</param>
+        /// <param name="decimalPlace">The exponent in base 10 of the leading decimal digit of the result.</param>
+        /// <returns>Returns the formatted result.</returns>
+        // public static string FormatFixedPrecision(BigFloat value, int precision, out int decimalPlace)
+        // {
+        //     
+        // }
+
+        /// <summary>
+        /// Formats a <see cref="BigFloat"/> to a string with relative precision to the leading decimal.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="precision">The number of digits after the leading digit.</param>
+        /// <param name="decimalPlace">The exponent in base 10 of the leading decimal digit of the result.</param>
+        /// <returns>Returns the formatted result.</returns>
+        public static string FormatRelativePrecision(BigFloat value, int precision, out int decimalPlace)
+        {
+            var result = new StringBuilder();
+
+            // Trivial case
+            if (value.Mantissa.IsZero)
+            {
+                decimalPlace = 0;
+                return "0";
+            }
+
+            // Minus sign
+            var mantissa = value.Mantissa;
+            if (mantissa.Sign < 0)
+            {
+                result.Append('-');
+                mantissa = -mantissa;
+            }
+
+            // Rewrite the normalized value as a fraction
+            decimalPlace = FindBase10Exponent(mantissa, value.Exponent, out var numerator, out var denominator);
+
+            // Compared to numerator / denominator, we need to have a precision of 5*10^(-precision)
+            // If decimalPlace is negative, then the numerator has been multiplied by 10^-decimalPlace
+            // If decimalPlace is positive, then the denominator has been multiplied by 10^decimalPlace
+            var b10 = BigInteger.Pow(10, precision - 1);
+            BigInteger margin = denominator;
+            numerator *= b10;
+            denominator *= b10;
+
+            BigInteger digit = 0, remainder = 0;
+            bool canRoundLow = false, canRoundHigh = false, isFirst = true;
+            while (numerator > 0)
+            {
+                (digit, remainder) = BigInteger.DivRem(numerator, denominator);
+                canRoundLow = remainder < margin;
+                canRoundHigh = remainder + margin > denominator;
+                if (canRoundHigh || canRoundLow)
+                    break;
+
+                result.Append((char)((char)digit + '0'));
+                isFirst = false;
+                numerator = remainder * 10;
+                margin *= 10;
+            }
+
+            if (canRoundHigh && canRoundLow)
+            {
+                // We need to take a look at the remainder and see which way we need to round
+                remainder <<= 1;
+                if (remainder >= denominator)
+                {
+                    if (isFirst && digit == 9)
+                    {
+                        // This case can happen if the first digit is a '9' and we need to round up
+                        result.Append('1');
+                        decimalPlace++;
+                    }
+                    else
+                        result.Append((char)((char)digit + '1'));
+                }
+                else
+                    result.Append((char)((char)digit + '0'));
+            }
+            else if (canRoundHigh)
+            {
+                if (isFirst && digit == 9)
+                {
+                    // This case can happen if the first digit is a '9' and we need to round up
+                    result.Append('1');
+                    decimalPlace++;
+                }
+                else
+                    result.Append((char)((char)digit + '1'));
+            }
+            else if (canRoundLow)
+                result.Append((char)((char)digit + '0'));
 
             return result.ToString();
         }
