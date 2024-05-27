@@ -203,10 +203,17 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is greater than <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator >(BigFloat a, BigFloat b)
         {
-            // This assumes both are normalized
-            if (a.Exponent > b.Exponent)
+            long la = a.Mantissa.GetBitLength();
+            long lb = b.Mantissa.GetBitLength();
+            long ea = la + a.Exponent;
+            long eb = lb + b.Exponent;
+            if (ea > eb)
                 return true;
-            else if (a.Exponent < b.Exponent)
+            else if (ea < eb)
+                return false;
+            else if (la > lb)
+                return true;
+            else if (la < lb)
                 return false;
             else
                 return a.Mantissa > b.Mantissa;
@@ -220,10 +227,17 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is greater than <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator >=(BigFloat a, BigFloat b)
         {
-            // This assumes both are normalized
-            if (a.Exponent > b.Exponent)
+            long la = a.Mantissa.GetBitLength();
+            long lb = b.Mantissa.GetBitLength();
+            long ea = la + a.Exponent;
+            long eb = lb + b.Exponent;
+            if (ea > eb)
                 return true;
-            else if (a.Exponent < b.Exponent)
+            else if (ea < eb)
+                return false;
+            else if (la > lb)
+                return true;
+            else if (la < lb)
                 return false;
             else
                 return a.Mantissa >= b.Mantissa;
@@ -237,10 +251,17 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is smaller than <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator <(BigFloat a, BigFloat b)
         {
-            // This assumes both are normalized
-            if (a.Exponent < b.Exponent)
+            long la = a.Mantissa.GetBitLength();
+            long lb = b.Mantissa.GetBitLength();
+            long ea = la + a.Exponent;
+            long eb = lb + b.Exponent;
+            if (ea < eb)
                 return true;
-            else if (a.Exponent > b.Exponent)
+            else if (ea > eb)
+                return false;
+            else if (la < lb)
+                return true;
+            else if (la > lb)
                 return false;
             else
                 return a.Mantissa < b.Mantissa;
@@ -254,10 +275,17 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is smaller or equal to <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator <=(BigFloat a, BigFloat b)
         {
-            // This assumes both are normalized
-            if (a.Exponent < b.Exponent)
+            long la = a.Mantissa.GetBitLength();
+            long lb = b.Mantissa.GetBitLength();
+            long ea = la + a.Exponent;
+            long eb = lb + b.Exponent;
+            if (ea < eb)
                 return true;
-            else if (a.Exponent > b.Exponent)
+            else if (ea > eb)
+                return false;
+            else if (la < lb)
+                return true;
+            else if (la > lb)
                 return false;
             else
                 return a.Mantissa <= b.Mantissa;
