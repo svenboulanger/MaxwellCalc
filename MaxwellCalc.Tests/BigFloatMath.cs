@@ -1,4 +1,5 @@
 using MaxwellCalc.Domains;
+using System.Globalization;
 using System.Numerics;
 
 namespace MaxwellCalc.Tests
@@ -85,51 +86,48 @@ namespace MaxwellCalc.Tests
         }
 
         [Test]
-        [TestCaseSource(nameof(BigFloatToString))]
-        public void When_BigFloatToString_Expect_Reference(BigFloat input, string expectedOutput, int expectedDecimalPlace)
+        [TestCaseSource(nameof(BigFloatGeneralToString))]
+        public void When_BigFloatGeneralToString_Expect_Reference(BigFloat input, int precision, NumberFormatInfo format, string expectedOutput)
         {
-            string actual = BigFloat.FormatFull(input, out int decimalPlace);
+            string actual = BigFloat.FormatGeneral(input, precision, format, "E");
             Assert.That(actual, Is.EqualTo(expectedOutput));
-            Assert.That(decimalPlace, Is.EqualTo(expectedDecimalPlace));
         }
 
-        private static IEnumerable<TestCaseData> BigFloatToString()
+        private static IEnumerable<TestCaseData> BigFloatGeneralToString()
         {
-            yield return new TestCaseData(new BigFloat(0, 0), "0", 0); // 0
-            yield return new TestCaseData(new BigFloat(1, 0), "1", 0); // 1
-            yield return new TestCaseData(new BigFloat(1, -2), "25", -1); // 0.25
-            yield return new TestCaseData(new BigFloat(-3, -5), "-9375", -2); // -0.09375
-            yield return new TestCaseData(new BigFloat(3, -1), "15", 0); // 1.5
-            yield return new TestCaseData(new BigFloat(11 * 4 + 1, -2), "1125", 1); // 11.25
-        }
+            var format = new NumberFormatInfo()
+            {
+                NegativeSign = "-",
+                PositiveSign = "+",
+                NumberDecimalSeparator = "."
+            };
 
-        [Test]
-        [TestCaseSource(nameof(BigFloatToStringRelative))]
-        public void When_BigFloatToStringRelative(BigFloat input, int precision, string expectedOutput, int expectedDecimalPlace)
-        {
-            string actual = BigFloat.FormatRelativePrecision(input, precision, out int decimalPlace);
-            Assert.That(actual, Is.EqualTo(expectedOutput));
-            Assert.That(decimalPlace, Is.EqualTo(expectedDecimalPlace));
-        }
+            // Full precision
+            yield return new TestCaseData(new BigFloat(0, 0), 0, format, "0") { TestName = "{m}(0 [0])" };
+            yield return new TestCaseData(new BigFloat(1, 0), 0, format, "1") { TestName = "{m}(1 [1])" };
+            yield return new TestCaseData(new BigFloat(1, -2), 0, format, "0.25") { TestName = "{m}(0.25 [0.25])" };
+            yield return new TestCaseData(new BigFloat(-3, -5), 0, format, "-0.09375") { TestName = "{m}(-0.09375 [-0.09375])" };
+            yield return new TestCaseData(new BigFloat(3, -1), 0, format, "1.5") { TestName = "{m}(1.5 [1.5])" };
+            yield return new TestCaseData(new BigFloat(45, -2), 0, format, "11.25") { TestName = "{m}(11.25 [11.25])" };
 
-        private static IEnumerable<TestCaseData> BigFloatToStringRelative()
-        {
-            yield return new TestCaseData(new BigFloat(1, -2), 1, "3", -1);
-            yield return new TestCaseData(new BigFloat(16, 0), 1, "2", 1);
-            yield return new TestCaseData(new BigFloat(99, 0), 1, "1", 2);
-            yield return new TestCaseData(new BigFloat(95, 0), 1, "1", 2);
-            yield return new TestCaseData(new BigFloat(949, 0), 1, "9", 2);
-            yield return new TestCaseData(new BigFloat(9499999999L, 0), 1, "9", 9);
-            yield return new TestCaseData(new BigFloat(9449999999L, 0), 2, "94", 9);
-            yield return new TestCaseData(new BigFloat(9450000000L, 0), 2, "95", 9);
-            yield return new TestCaseData(new BigFloat(1, -3), 1, "1", -1);
-            yield return new TestCaseData(new BigFloat(1, -3), 2, "13", -1);
-            yield return new TestCaseData(new BigFloat(1, -3), 3, "125", -1);
-            yield return new TestCaseData(new BigFloat(1, -3), 4, "125", -1);
-            yield return new TestCaseData(new BigFloat(1, -4), 1, "6", -2);
-            yield return new TestCaseData(new BigFloat(1, -4), 2, "63", -2);
-            yield return new TestCaseData(new BigFloat(1, -4), 3, "625", -2);
-            yield return new TestCaseData(new BigFloat(1, -4), 4, "625", -2);
+            // Limited precision - testing rounding
+            yield return new TestCaseData(new BigFloat(1, -2), 1, format, "0.3") { TestName = "{m}(0.3 [0.25])" };
+            yield return new TestCaseData(new BigFloat(16, 0), 1, format, "2E+01") { TestName = "{m}(2E+01 [16])" };
+            yield return new TestCaseData(new BigFloat(99, 0), 1, format, "1E+02") { TestName = "{m}(1E+02 [99])" };
+            yield return new TestCaseData(new BigFloat(95, 0), 1, format, "1E+02") { TestName = "{m}(1E+02 [95])" };
+            yield return new TestCaseData(new BigFloat(949, 0), 1, format, "9E+02") { TestName = "{m}(9E+02 [949])" };
+            yield return new TestCaseData(new BigFloat(951, 0), 1, format, "1E+03") { TestName = "{m}(1E+03 [951])" };
+            yield return new TestCaseData(new BigFloat(9499999999L, 0), 1, format, "9E+09") { TestName = "{m}(9E+09 [9499999999])" };
+            yield return new TestCaseData(new BigFloat(9449999999L, 0), 2, format, "9.4E+09") { TestName = "{m}(9.4E+09 [9449999999])" };
+            yield return new TestCaseData(new BigFloat(9450000000L, 0), 2, format, "9.5E+09") { TestName = "{m}(9.5E+09 [9450000000])" };
+            yield return new TestCaseData(new BigFloat(1, -3), 1, format, "0.1") { TestName = "{m}(0.1 [0.125])" };
+            yield return new TestCaseData(new BigFloat(1, -3), 2, format, "0.13") { TestName = "{m}(0.13 [0.125])" };
+            yield return new TestCaseData(new BigFloat(1, -3), 3, format, "0.125") { TestName = "{m}(0.125 [0.125])" };
+            yield return new TestCaseData(new BigFloat(1, -3), 4, format, "0.125") { TestName = "{m}(0.125 [0.125 _4])" };
+            yield return new TestCaseData(new BigFloat(1, -4), 1, format, "0.06") { TestName = "{m}(0.06 [0.0625])" };
+            yield return new TestCaseData(new BigFloat(1, -4), 2, format, "0.063") { TestName = "{m}(0.063 [0.0625])" };
+            yield return new TestCaseData(new BigFloat(1, -4), 3, format, "0.0625") { TestName = "{m}(0.0625 [0.0625])" };
+            yield return new TestCaseData(new BigFloat(1, -4), 4, format, "0.0625") { TestName = "{m}(0.0625 [0.0625 _4])" };
         }
     }
 }
