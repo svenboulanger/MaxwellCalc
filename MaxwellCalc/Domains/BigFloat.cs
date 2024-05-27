@@ -124,6 +124,36 @@ namespace MaxwellCalc.Domains
         }
 
         /// <summary>
+        /// Divides two <see cref="BigFloat"/>, truncating to the given precision.
+        /// </summary>
+        /// <param name="a">The first argument.</param>
+        /// <param name="b">The second argument.</param>
+        /// <param name="bitsPrecision">The number of bits to be truncated after.</param>
+        /// <returns>Returns the result.</returns>
+        public static BigFloat Divide(BigFloat a, BigFloat b, int bitsPrecision)
+        {
+            // Let's figure out what we need to achieve the given accuracy
+            BigInteger numerator = a.Mantissa;
+            long numExp = a.Exponent;
+            BigInteger denominator = b.Mantissa;
+            long denomExp = b.Exponent;
+            long numBits = numerator.GetBitLength();
+            long denomBits = denominator.GetBitLength();
+
+            // The minimum number of bits needed from the numerator would be denomBits + bitsPrecision
+            long neededBits = denomBits + bitsPrecision - numBits; // Add 1 to be able to round off
+            numerator = ShiftLeft(numerator, neededBits);
+            numExp -= neededBits;
+
+            // Perform the division
+            var (division, remainder) = BigInteger.DivRem(numerator, denominator);
+            denominator >>= 1;
+            if (remainder > denominator)
+                division++;
+            return new BigFloat(division, numExp - denomExp);
+        }
+
+        /// <summary>
         /// Exponentatiation of a big integer.
         /// </summary>
         /// <param name="base">The base.</param>

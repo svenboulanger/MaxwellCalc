@@ -47,6 +47,20 @@ namespace MaxwellCalc.Tests
         }
 
         [Test]
+        [TestCaseSource(nameof(Division))]
+        public void When_DivideBigFloats_Expect_Reference(BigFloat a, BigFloat b, int bitsPrecision, BigFloat expected)
+        {
+            var actual = BigFloat.Divide(a, b, bitsPrecision);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Division()
+        {
+            yield return new TestCaseData(new BigFloat(1, 0), new BigFloat(2, 0), 128, new BigFloat(1, -1)) {  TestName = "{m}(1, 2, 0.5)" };
+            yield return new TestCaseData(new BigFloat(1, 0), new BigFloat(10, 0), 128, new BigFloat(BigInteger.Parse("272225893536750770770699685945414569165"), -131)) { TestName = "{m}(1, 10, 0.1)" };
+        }
+
+        [Test]
         [TestCaseSource(nameof(RelativeComparison))]
         public void When_RelativeComparisonBigFloats_Expect_Reference(BigFloat a, BigFloat b, bool greaterThan, bool equal)
         {
