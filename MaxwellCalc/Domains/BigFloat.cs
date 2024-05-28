@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
-using System.Text;
 
 namespace MaxwellCalc.Domains
 {
@@ -52,9 +51,9 @@ namespace MaxwellCalc.Domains
         /// <inheritdoc />
         public bool Equals(BigFloat other)
         {
-            if (!Mantissa.Equals(other.Mantissa))
-                return false;
             if (!Exponent.Equals(other.Exponent))
+                return false;
+            if (!Mantissa.Equals(other.Mantissa))
                 return false;
             return true;
         }
@@ -150,13 +149,15 @@ namespace MaxwellCalc.Domains
             long divBits = division.GetBitLength();
             if (divBits > bitsPrecision + 1)
             {
+                // This can happen for pure powers of 2
+                // E.g., an equivalent in base 10 would be 100/10 = 10 (2 digits), but 100/11 = 9 (1 digit)
                 division >>= 1;
                 numExp++;
             }
 
             // Shave of one more digit for rounding
             if (division.IsEven)
-                division = (division >> 1);
+                division >>= 1;
             else if (division.Sign < 0)
                 division = (division >> 1) - 1;
             else
@@ -370,6 +371,24 @@ namespace MaxwellCalc.Domains
         /// <param name="right">The right argument.</param>
         /// <returns>Returns <c>true</c> if both arguments are not equal; otherwise, <c>false</c>.</returns>
         public static bool operator !=(BigFloat left, BigFloat right) => !left.Equals(right);
+
+        /// <summary>
+        /// Implicitly converts an <see cref="int"/> to a <see cref="BigFloat"/>.
+        /// </summary>
+        /// <param name="a">The argument.</param>
+        public static implicit operator BigFloat(int a) => new BigFloat(a, 0);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="long"/> to a <see cref="BigFloat"/>.
+        /// </summary>
+        /// <param name="a">The argument.</param>
+        public static implicit operator BigFloat(long a) => new BigFloat(a, 0);
+
+        /// <summary>
+        /// Explicitly converts a <see cref="BigFloat"/> to a double.
+        /// </summary>
+        /// <param name="f">The argument.</param>
+        public static explicit operator double(BigFloat f) => (double)f.Mantissa * Math.Pow(2, f.Exponent);
 
         /// <inheritdoc />
         public override string ToString()

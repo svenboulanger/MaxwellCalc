@@ -157,7 +157,22 @@ namespace MaxwellCalc.Tests
         {
             yield return new TestCaseData(new BigFloat(1, 0), 16, 5, "1");
             yield return new TestCaseData(new BigFloat(1, 2), 16, 5, "2");
-            yield return new TestCaseData(new BigFloat(1, 1), 64, 20, "1.4142135623730950488");
+            yield return new TestCaseData(new BigFloat(1, 1), 80, 21, "1.4142135623730950488");
+        }
+
+        [Test]
+        [TestCaseSource(nameof(Pi))]
+        public void When_Pi_Expect_Reference(int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Pi(bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Pi()
+        {
+            yield return new TestCaseData(16, 5, "3.1416");
+            yield return new TestCaseData(80, 21, "3.14159265358979323846");
         }
     }
 }
