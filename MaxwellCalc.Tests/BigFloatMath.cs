@@ -143,5 +143,21 @@ namespace MaxwellCalc.Tests
             yield return new TestCaseData(new BigFloat(1, -4), 3, format, "0.0625") { TestName = "{m}(0.0625 [0.0625])" };
             yield return new TestCaseData(new BigFloat(1, -4), 4, format, "0.0625") { TestName = "{m}(0.0625 [0.0625 _4])" };
         }
+
+        [Test]
+        [TestCaseSource(nameof(Sqrt))]
+        public void When_Sqrt_Expect_Reference(BigFloat input, int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Sqrt(input, bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Sqrt()
+        {
+            yield return new TestCaseData(new BigFloat(1, 0), 16, 5, "1");
+            yield return new TestCaseData(new BigFloat(1, 2), 16, 5, "2");
+            yield return new TestCaseData(new BigFloat(1, 1), 64, 20, "1.4142135623730950488");
+        }
     }
 }
