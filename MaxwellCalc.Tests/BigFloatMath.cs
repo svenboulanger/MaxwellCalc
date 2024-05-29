@@ -129,7 +129,7 @@ namespace MaxwellCalc.Tests
             yield return new TestCaseData(new BigFloat(16, 0), 1, format, "2E+01") { TestName = "{m}(2E+01 [16])" };
             yield return new TestCaseData(new BigFloat(99, 0), 1, format, "1E+02") { TestName = "{m}(1E+02 [99])" };
             yield return new TestCaseData(new BigFloat(95, 0), 1, format, "1E+02") { TestName = "{m}(1E+02 [95])" };
-            yield return new TestCaseData(new BigFloat(949, 0), 1, format, "9E+02") { TestName = "{m}(9E+02 [949])" };
+            yield return new TestCaseData(new BigFloat(-949, 0), 1, format, "-9E+02") { TestName = "{m}(-9E+02 [-949])" };
             yield return new TestCaseData(new BigFloat(951, 0), 1, format, "1E+03") { TestName = "{m}(1E+03 [951])" };
             yield return new TestCaseData(new BigFloat(9499999999L, 0), 1, format, "9E+09") { TestName = "{m}(9E+09 [9499999999])" };
             yield return new TestCaseData(new BigFloat(9449999999L, 0), 2, format, "9.4E+09") { TestName = "{m}(9.4E+09 [9449999999])" };
@@ -173,6 +173,54 @@ namespace MaxwellCalc.Tests
         {
             yield return new TestCaseData(16, 5, "3.1416");
             yield return new TestCaseData(80, 21, "3.14159265358979323846");
+        }
+
+        [Test]
+        [TestCaseSource(nameof(Cos))]
+        public void When_Cos_Expect_Reference(BigFloat input, BigFloat pi, int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Cos(input, pi, bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Cos()
+        {
+            var pi = Domains.BigFloatMath.Pi(128);
+
+            yield return new TestCaseData(new BigFloat(0, 0), pi, 20, 5, "1");
+            yield return new TestCaseData(BigFloat.Divide(pi, 3, 128), pi, 20, 5, "0.5");
+            yield return new TestCaseData(BigFloat.Divide(pi, 2, 128), pi, 20, 5, "0");
+            yield return new TestCaseData(BigFloat.Divide(pi * 2, 3, 128), pi, 20, 5, "-0.5");
+            yield return new TestCaseData(pi, pi, 20, 5, "-1");
+            yield return new TestCaseData(-pi, pi, 20, 5, "-1");
+            yield return new TestCaseData(BigFloat.Divide(-pi * 2, 3, 128), pi, 20, 5, "-0.5");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 2, 128), pi, 20, 5, "0");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 3, 128), pi, 20, 5, "0.5");
+        }
+
+        [Test]
+        [TestCaseSource(nameof(Sin))]
+        public void When_Sin_Expect_Reference(BigFloat input, BigFloat pi, int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Sin(input, pi, bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Sin()
+        {
+            var pi = Domains.BigFloatMath.Pi(128);
+
+            yield return new TestCaseData(new BigFloat(0, 0), pi, 20, 5, "0");
+            yield return new TestCaseData(BigFloat.Divide(pi, 6, 128), pi, 20, 5, "0.5");
+            yield return new TestCaseData(BigFloat.Divide(pi, 2, 128), pi, 20, 5, "1");
+            yield return new TestCaseData(BigFloat.Divide(pi * 5, 6, 128), pi, 20, 5, "0.5");
+            yield return new TestCaseData(pi, pi, 20, 5, "0");
+            yield return new TestCaseData(-pi, pi, 20, 5, "0");
+            yield return new TestCaseData(BigFloat.Divide(-pi * 5, 6, 128), pi, 20, 5, "-0.5");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 2, 128), pi, 20, 5, "-1");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 6, 128), pi, 20, 5, "-0.5");
         }
     }
 }

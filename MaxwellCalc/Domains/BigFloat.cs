@@ -166,6 +166,19 @@ namespace MaxwellCalc.Domains
         }
 
         /// <summary>
+        /// Computes integer division and remainder.
+        /// </summary>
+        /// <param name="a">The first argument.</param>
+        /// <param name="b">The second argument.</param>
+        /// <returns>Returns the division result and its remainder.</returns>
+        public static (BigFloat, BigFloat) DivRem(BigFloat a, BigFloat b)
+        {
+            Normalize(a, b, out var ma, out var mb, out var exp);
+            var (div, rem) = BigInteger.DivRem(ma, mb);
+            return (new BigFloat(div, 0), new BigFloat(rem, exp));
+        }
+
+        /// <summary>
         /// Exponentatiation of a big integer.
         /// </summary>
         /// <param name="base">The base.</param>
@@ -261,6 +274,27 @@ namespace MaxwellCalc.Domains
         }
 
         /// <summary>
+        /// Computes the unary negative of the <see cref="BigFloat"/>.
+        /// </summary>
+        /// <param name="a">The argument.</param>
+        /// <returns>Returns the negative value.</returns>
+        public static BigFloat operator -(BigFloat a)
+            => new BigFloat(-a.Mantissa, a.Exponent);
+
+        /// <summary>
+        /// Computes the modulo operator.
+        /// </summary>
+        /// <param name="a">The left argument.</param>
+        /// <param name="b">The right argument.</param>
+        /// <returns>Returns the remainder.</returns>
+        public static BigFloat operator %(BigFloat a, BigFloat b)
+        {
+            // Normalize to the smallest exponent
+            Normalize(a, b, out var ma, out var mb, out var exp);
+            return new BigFloat(ma % mb, exp);
+        }
+
+        /// <summary>
         /// Checks whether a <see cref="BigFloat"/> is greater than another.
         /// </summary>
         /// <param name="a">The left argument.</param>
@@ -268,20 +302,27 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is greater than <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator >(BigFloat a, BigFloat b)
         {
+            // First we can check the signs
+            if (a.Mantissa.Sign < b.Mantissa.Sign)
+                return false;
+            else if (a.Mantissa.Sign > b.Mantissa.Sign)
+                return true;
+
+            // Look at the length of the mantissa and exponent to figure out amplitudes
             long la = a.Mantissa.GetBitLength();
             long lb = b.Mantissa.GetBitLength();
             long ea = la + a.Exponent;
             long eb = lb + b.Exponent;
             if (ea > eb)
-                return true;
+                return a.Mantissa.Sign >= 0; // Amplitude of a is larger
             else if (ea < eb)
-                return false;
+                return a.Mantissa.Sign <= 0; // Amplitude of a is smaller
             else if (la > lb)
-                return true;
+                return a.Mantissa.Sign >= 0; // Mantissa of a is longer so has a higher fractional part
             else if (la < lb)
-                return false;
+                return a.Mantissa.Sign <= 0; // Mantissa of a is smaller so b has a higher fractional part
             else
-                return a.Mantissa > b.Mantissa;
+                return a.Mantissa > b.Mantissa; // Same number of bits, so we can simply compare mantissa
         }
 
         /// <summary>
@@ -292,20 +333,27 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is greater than <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator >=(BigFloat a, BigFloat b)
         {
+            // First we can check the signs
+            if (a.Mantissa.Sign < b.Mantissa.Sign)
+                return false;
+            else if (a.Mantissa.Sign > b.Mantissa.Sign)
+                return true;
+
+            // Look at the length of the mantissa and exponent to figure out amplitudes
             long la = a.Mantissa.GetBitLength();
             long lb = b.Mantissa.GetBitLength();
             long ea = la + a.Exponent;
             long eb = lb + b.Exponent;
             if (ea > eb)
-                return true;
+                return a.Mantissa.Sign >= 0; // Amplitude of a is larger
             else if (ea < eb)
-                return false;
+                return a.Mantissa.Sign <= 0; // Amplitude of a is smaller
             else if (la > lb)
-                return true;
+                return a.Mantissa.Sign >= 0; // Mantissa of a is longer so has a higher fractional part
             else if (la < lb)
-                return false;
+                return a.Mantissa.Sign <= 0; // Mantissa of a is smaller so b has a higher fractional part
             else
-                return a.Mantissa >= b.Mantissa;
+                return a.Mantissa >= b.Mantissa; // Same number of bits, so we can simply compare mantissa
         }
 
         /// <summary>
@@ -316,20 +364,27 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is smaller than <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator <(BigFloat a, BigFloat b)
         {
+            // First we can check the signs
+            if (a.Mantissa.Sign < b.Mantissa.Sign)
+                return true;
+            else if (a.Mantissa.Sign > b.Mantissa.Sign)
+                return false;
+
+            // Look at the length of the mantissa and exponent to figure out amplitudes
             long la = a.Mantissa.GetBitLength();
             long lb = b.Mantissa.GetBitLength();
             long ea = la + a.Exponent;
             long eb = lb + b.Exponent;
-            if (ea < eb)
-                return true;
-            else if (ea > eb)
-                return false;
-            else if (la < lb)
-                return true;
+            if (ea > eb)
+                return a.Mantissa.Sign <= 0; // Amplitude of a is larger
+            else if (ea < eb)
+                return a.Mantissa.Sign >= 0; // Amplitude of a is smaller
             else if (la > lb)
-                return false;
+                return a.Mantissa.Sign <= 0; // Mantissa of a is longer so has a higher fractional part
+            else if (la < lb)
+                return a.Mantissa.Sign >= 0; // Mantissa of a is smaller so b has a higher fractional part
             else
-                return a.Mantissa < b.Mantissa;
+                return a.Mantissa < b.Mantissa; // Same number of bits, so we can simply compare mantissa
         }
 
         /// <summary>
@@ -340,20 +395,27 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns <c>true</c> if <paramref name="a"/> is smaller or equal to <paramref name="b"/>; otherwise, <c>false</c>.</returns>
         public static bool operator <=(BigFloat a, BigFloat b)
         {
+            // First we can check the signs
+            if (a.Mantissa.Sign < b.Mantissa.Sign)
+                return true;
+            else if (a.Mantissa.Sign > b.Mantissa.Sign)
+                return false;
+
+            // Look at the length of the mantissa and exponent to figure out amplitudes
             long la = a.Mantissa.GetBitLength();
             long lb = b.Mantissa.GetBitLength();
             long ea = la + a.Exponent;
             long eb = lb + b.Exponent;
-            if (ea < eb)
-                return true;
-            else if (ea > eb)
-                return false;
-            else if (la < lb)
-                return true;
+            if (ea > eb)
+                return a.Mantissa.Sign <= 0; // Amplitude of a is larger
+            else if (ea < eb)
+                return a.Mantissa.Sign >= 0; // Amplitude of a is smaller
             else if (la > lb)
-                return false;
+                return a.Mantissa.Sign <= 0; // Mantissa of a is longer so has a higher fractional part
+            else if (la < lb)
+                return a.Mantissa.Sign >= 0; // Mantissa of a is smaller so b has a higher fractional part
             else
-                return a.Mantissa <= b.Mantissa;
+                return a.Mantissa <= b.Mantissa; // Same number of bits, so we can simply compare mantissa
         }
 
         /// <summary>

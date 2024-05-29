@@ -60,8 +60,6 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns the formatted result.</returns>
         private static string FormatFull(BigInteger mantissa, long exponent, out int decimalPlace)
         {
-            var result = new StringBuilder();
-
             // Trivial case
             if (mantissa.IsZero)
             {
@@ -69,6 +67,7 @@ namespace MaxwellCalc.Domains
                 return "0";
             }
 
+            var result = new StringBuilder();
             decimalPlace = FindBase10Exponent(mantissa, exponent, out var numerator, out var denominator);
             while (numerator > 0)
             {
@@ -89,7 +88,12 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns the formatted result.</returns>
         private static string FormatFixedPrecision(BigInteger mantissa, long exponent, int precision, out int decimalPlace)
         {
-            var result = new StringBuilder();
+            // Trivial case
+            if (mantissa.IsZero)
+            {
+                decimalPlace = 0;
+                return "0";
+            }
 
             // Rewrite the normalized value as a fraction
             decimalPlace = FindBase10Exponent(mantissa, exponent, out var numerator, out var denominator);
@@ -102,6 +106,7 @@ namespace MaxwellCalc.Domains
             numerator *= b10;
             denominator *= b10;
 
+            var result = new StringBuilder();
             BigInteger digit = 0, remainder = 0;
             bool canRoundLow = false, canRoundHigh = false, isFirst = true;
             while (numerator > 0)
@@ -163,7 +168,13 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns the formatted result.</returns>
         private static string FormatRelativePrecision(BigInteger mantissa, long exponent, int precision, out int decimalPlace)
         {
-            var result = new StringBuilder();
+
+            // Trivial case
+            if (mantissa.IsZero)
+            {
+                decimalPlace = 0;
+                return "0";
+            }
 
             // Rewrite the normalized value as a fraction
             decimalPlace = FindBase10Exponent(mantissa, exponent, out var numerator, out var denominator);
@@ -176,6 +187,7 @@ namespace MaxwellCalc.Domains
             numerator *= b10;
             denominator *= b10;
 
+            var result = new StringBuilder();
             BigInteger digit = 0, remainder = 0;
             bool canRoundLow = false, canRoundHigh = false, isFirst = true;
             while (numerator > 0)
@@ -290,6 +302,10 @@ namespace MaxwellCalc.Domains
         /// <returns>Returns the formatted value.</returns>
         public static string FormatGeneral(BigFloat value, int precision, NumberFormatInfo format, string exponent)
         {
+            // Trivial case of 0
+            if (value.Mantissa.Sign == 0)
+                return "0";
+
             // Deal with the sign of the value
             string sign;
             BigInteger mantissa;
