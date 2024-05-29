@@ -277,17 +277,20 @@ namespace MaxwellCalc.Domains
             else if (decimalPlace > 0)
             {
                 if (decimalPlace + 1 == digits.Length)
-                    return $"{sign}{digits}";
-                else if (decimalPlace <= digits.Length)
+                    return $"{sign}{digits}"; // No trailing zeros necessary
+                else if (decimalPlace < digits.Length)
                 {
+                    // There are more digits after the decimal point
                     decimalPlace++;
                     return $"{sign}{digits[0..decimalPlace]}{format.NumberDecimalSeparator}{digits[decimalPlace..]}";
                 }
                 else
-                    return $"{sign}{digits}{new string('0', decimalPlace - digits.Length)}";
+                    // There are trailing zeroes
+                    return $"{sign}{digits}{new string('0', decimalPlace - digits.Length + 1)}";
             }
             else
             {
+                // The leading digit is already after the decimal point
                 return $"{sign}0.{new string('0', -decimalPlace - 1)}{digits}";
             }
         }

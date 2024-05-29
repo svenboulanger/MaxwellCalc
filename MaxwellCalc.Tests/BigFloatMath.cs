@@ -123,6 +123,8 @@ namespace MaxwellCalc.Tests
             yield return new TestCaseData(new BigFloat(-3, -5), 0, format, "-0.09375") { TestName = "{m}(-0.09375 [-0.09375])" };
             yield return new TestCaseData(new BigFloat(3, -1), 0, format, "1.5") { TestName = "{m}(1.5 [1.5])" };
             yield return new TestCaseData(new BigFloat(45, -2), 0, format, "11.25") { TestName = "{m}(11.25 [11.25])" };
+            yield return new TestCaseData(new BigFloat(40, 0), 0, format, "40") { TestName = "{m}(40 [40])" };
+            yield return new TestCaseData(new BigFloat(-40, 0), 0, format, "-40") { TestName = "{m}(-40 [-40])" };
 
             // Limited precision - testing rounding
             yield return new TestCaseData(new BigFloat(1, -2), 1, format, "0.3") { TestName = "{m}(0.3 [0.25])" };
@@ -188,15 +190,15 @@ namespace MaxwellCalc.Tests
         {
             var pi = Domains.BigFloatMath.Pi(128);
 
-            yield return new TestCaseData(new BigFloat(0, 0), pi, 20, 5, "1");
-            yield return new TestCaseData(BigFloat.Divide(pi, 3, 128), pi, 20, 5, "0.5");
-            yield return new TestCaseData(BigFloat.Divide(pi, 2, 128), pi, 20, 5, "0");
-            yield return new TestCaseData(BigFloat.Divide(pi * 2, 3, 128), pi, 20, 5, "-0.5");
-            yield return new TestCaseData(pi, pi, 20, 5, "-1");
-            yield return new TestCaseData(-pi, pi, 20, 5, "-1");
-            yield return new TestCaseData(BigFloat.Divide(-pi * 2, 3, 128), pi, 20, 5, "-0.5");
-            yield return new TestCaseData(BigFloat.Divide(-pi, 2, 128), pi, 20, 5, "0");
-            yield return new TestCaseData(BigFloat.Divide(-pi, 3, 128), pi, 20, 5, "0.5");
+            yield return new TestCaseData(new BigFloat(0, 0), pi, 128, 20, "1");
+            yield return new TestCaseData(BigFloat.Divide(pi, 3, 128), pi, 128, 20, "0.5");
+            yield return new TestCaseData(BigFloat.Divide(pi, 2, 128), pi, 128, 20, "0");
+            yield return new TestCaseData(BigFloat.Divide(pi * 2, 3, 128), pi, 128, 20, "-0.5");
+            yield return new TestCaseData(pi, pi, 128, 20, "-1");
+            yield return new TestCaseData(-pi, pi, 128, 20, "-1");
+            yield return new TestCaseData(BigFloat.Divide(-pi * 2, 3, 128), pi, 128, 20, "-0.5");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 2, 128), pi, 128, 20, "0");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 3, 128), pi, 128, 20, "0.5");
         }
 
         [Test]
@@ -212,15 +214,55 @@ namespace MaxwellCalc.Tests
         {
             var pi = Domains.BigFloatMath.Pi(128);
 
-            yield return new TestCaseData(new BigFloat(0, 0), pi, 20, 5, "0");
-            yield return new TestCaseData(BigFloat.Divide(pi, 6, 128), pi, 20, 5, "0.5");
-            yield return new TestCaseData(BigFloat.Divide(pi, 2, 128), pi, 20, 5, "1");
-            yield return new TestCaseData(BigFloat.Divide(pi * 5, 6, 128), pi, 20, 5, "0.5");
-            yield return new TestCaseData(pi, pi, 20, 5, "0");
-            yield return new TestCaseData(-pi, pi, 20, 5, "0");
-            yield return new TestCaseData(BigFloat.Divide(-pi * 5, 6, 128), pi, 20, 5, "-0.5");
-            yield return new TestCaseData(BigFloat.Divide(-pi, 2, 128), pi, 20, 5, "-1");
-            yield return new TestCaseData(BigFloat.Divide(-pi, 6, 128), pi, 20, 5, "-0.5");
+            yield return new TestCaseData(new BigFloat(0, 0), pi, 128, 20, "0");
+            yield return new TestCaseData(BigFloat.Divide(pi, 6, 128), pi, 128, 20, "0.5");
+            yield return new TestCaseData(BigFloat.Divide(pi, 2, 128), pi, 128, 20, "1");
+            yield return new TestCaseData(BigFloat.Divide(pi * 5, 6, 128), pi, 128, 20, "0.5");
+            yield return new TestCaseData(pi, pi, 128, 20, "0");
+            yield return new TestCaseData(-pi, pi, 128, 20, "0");
+            yield return new TestCaseData(BigFloat.Divide(-pi * 5, 6, 128), pi, 128, 20, "-0.5");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 2, 128), pi, 128, 20, "-1");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 6, 128), pi, 128, 20, "-0.5");
+        }
+
+        [Test]
+        [TestCaseSource(nameof(Tan))]
+        public void When_Tan_Expect_Reference(BigFloat input, BigFloat pi, int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Tan(input, pi, bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Tan()
+        {
+            var pi = Domains.BigFloatMath.Pi(128);
+
+            yield return new TestCaseData(new BigFloat(0, 0), pi, 128, 20, "0");
+            yield return new TestCaseData(BigFloat.Divide(pi, 4, 128), pi, 128, 20, "1");
+            yield return new TestCaseData(new BigFloat(3, -1), pi, 128, 20, "14.101419947171719388");
+            yield return new TestCaseData(BigFloat.Divide(pi * 3, 4, 128), pi, 128, 20, "1");
+            yield return new TestCaseData(pi, pi, 128, 20, "0");
+            yield return new TestCaseData(-pi, pi, 128, 20, "0");
+            yield return new TestCaseData(BigFloat.Divide(-pi, 4, 128), pi, 128, 20, "-1");
+            yield return new TestCaseData(new BigFloat(-3, -1), pi, 128, 20, "-14.101419947171719388");
+            yield return new TestCaseData(BigFloat.Divide(-pi * 3, 4, 128), pi, 128, 20, "-1");
+        }
+
+        [Test]
+        [TestCaseSource(nameof(Exp))]
+        public void When_Exp_Expect_Reference(BigFloat arg, int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Exp(arg, bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Exp()
+        {
+            yield return new TestCaseData(new BigFloat(1, 0), 128, 20, "2.7182818284590452354");
+            yield return new TestCaseData(new BigFloat(-40, 0), 128, 20, "4.2483542552915889953e-18");
+            yield return new TestCaseData(new BigFloat(40, 0), 128, 20, "235385266837019985.41");
         }
     }
 }
