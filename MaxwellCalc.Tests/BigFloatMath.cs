@@ -264,5 +264,22 @@ namespace MaxwellCalc.Tests
             yield return new TestCaseData(new BigFloat(-40, 0), 128, 20, "4.2483542552915889953e-18");
             yield return new TestCaseData(new BigFloat(40, 0), 128, 20, "235385266837019985.41");
         }
+
+        [Test]
+        [TestCaseSource(nameof(Log2))]
+        public void When_Log2_Expect_Reference(BigFloat arg, int bitsPrecision, int decPrecision, string expected)
+        {
+            var output = Domains.BigFloatMath.Log2(arg, bitsPrecision);
+            Assert.That(BigFloat.FormatGeneral(output, decPrecision, CultureInfo.InvariantCulture.NumberFormat, "e"),
+                Is.EqualTo(expected));
+        }
+
+        private static IEnumerable<TestCaseData> Log2()
+        {
+            yield return new TestCaseData(new BigFloat(1, 0), 128, 20, "0");
+            yield return new TestCaseData(new BigFloat(1, -1), 128, 20, "-1");
+            yield return new TestCaseData(new BigFloat(1, 1), 128, 20, "1");
+            yield return new TestCaseData(new BigFloat(5, 0), 128, 20, "2.3219280948873623479");
+        }
     }
 }

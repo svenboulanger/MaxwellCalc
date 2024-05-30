@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 
 namespace MaxwellCalc.Domains
 {
@@ -332,6 +333,65 @@ namespace MaxwellCalc.Domains
             }
             xn = xn.Truncate(bitsPrecision);
             return xn;
+        }
+
+        /// <summary>
+        /// Computes the logarithm base 2.
+        /// </summary>
+        /// <param name="x">The argument.</param>
+        /// <param name="bitsPrecision">The number of bits of precision.</param>
+        /// <returns>The result of log2(x).</returns>
+        public static BigFloat Log2(BigFloat x, int bitsPrecision)
+        {
+            if (x.Mantissa.Sign <= 0)
+                throw new ArgumentOutOfRangeException(nameof(x));
+
+            // First, normalize the quantity to a value between 1 and 2
+            long n = x.Mantissa.GetBitLength() - 1;
+            var remaining = Log2_BitByBit(new BigFloat(x.Mantissa, -n), bitsPrecision);
+            var result = new BigFloat(n + x.Exponent, 0) + remaining;
+            result = result.Truncate(bitsPrecision);
+            return result;
+        }
+
+        public static BigFloat Log2_BitByBit(BigFloat x, int bitsPrecision)
+        {
+            int internalPrecision = bitsPrecision + 2;
+            if (x == 1)
+                return 0;
+
+            BigInteger result = 0;
+            for (int i = 0; i < bitsPrecision; i++)
+            {
+                x *= x;
+                x = x.Truncate(internalPrecision);
+                bool bit;
+                if (x >= 2)
+                {
+                    bit = true;
+                    x = new BigFloat(x.Mantissa, x.Exponent - 1);
+                }
+                else
+                    bit = false;
+                result <<= 1;
+                if (bit)
+                    result++;
+            }
+            return new BigFloat(result, -bitsPrecision);
+        }
+
+        /// <summary>
+        /// Computes the natural logarithm of <paramref name="x"/>.
+        /// </summary>
+        /// <param name="x">The argument.</param>
+        /// <param name="log2b">The log2 of the base.</param>
+        /// <param name="bitsPrecision">The number of bits of precision.</param>
+        /// <returns>Returns the logarithm with base b, as computed in log2b.</returns>
+        public static BigFloat LogBase(BigFloat x, BigFloat log2b, int bitsPrecision)
+        {
+            int internalPrecision = bitsPrecision + 2;
+            var l2 = Log2(x, internalPrecision);
+            return BigFloat.Divide(l2, log2b, bitsPrecision);
         }
     }
 }
