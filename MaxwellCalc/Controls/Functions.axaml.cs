@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using MaxwellCalc.ViewModels;
 
-namespace MaxwellCalc.UI
+namespace MaxwellCalc.Controls
 {
     public partial class Functions : UserControl
     {

@@ -5,7 +5,7 @@
         xmlns:controls="clr-namespace:MaxwellCalc"
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
         Width="400" Height="500"
-        x:Class="MaxwellCalc.UI.SettingsWindow"
+        x:Class="MaxwellCalc.Controls.SettingsWindow"
         Title="SettingsWindow">
   <TabControl>
     <TabItem Header="Units">

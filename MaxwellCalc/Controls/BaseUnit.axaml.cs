@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 
-namespace MaxwellCalc.UI;
+namespace MaxwellCalc.Controls;
 
 public class BaseUnit : TemplatedControl
 {

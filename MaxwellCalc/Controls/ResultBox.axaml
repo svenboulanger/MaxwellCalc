@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:MaxwellCalc.UI">
+		xmlns:material="using:Material.Styles.Controls"
+        xmlns:controls="using:MaxwellCalc.Controls">
 	<Design.PreviewWith>
 		<controls:ResultBox />
 	</Design.PreviewWith>
@@ -14,25 +15,19 @@
 
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Border
-						Background="{TemplateBinding Background}"
-						BorderBrush="{TemplateBinding BorderBrush}"
-						BorderThickness="2"
-						CornerRadius="4"
-						Margin="5">
+				<material:Card Margin="4">
 					<StackPanel Orientation="Vertical">
 						<StackPanel Orientation="Horizontal">
 							<SelectableTextBlock
 							  Name="InputBlock"
 							  VerticalAlignment="Center"
 							  FontFamily="{TemplateBinding FontFamily}"
-							  Padding="0"
-							  Margin="3"
+							  Padding="2"
+							  Margin="2"
 							  Foreground="{TemplateBinding InputForeground}"
 							  Text="{TemplateBinding Input}" />
-							<Button Margin="2" Background="Transparent" Name="CopyInputButton">
+							<Button Classes="Outline and Accent" Margin="2" Background="Transparent" Name="CopyInputButton">
 								<PathIcon
-								  Foreground="#ccc"
 								  Width="{TemplateBinding FontSize}"
 								  Height="{TemplateBinding FontSize}"
 								  Data="{StaticResource copy}" />
@@ -40,7 +35,7 @@
 						</StackPanel>
 						<controls:CopyableQuantity Name="OutputBlock" />
 					</StackPanel>
-				</Border>
+				</material:Card>
 			</ControlTemplate>
 		</Setter>
 	</Style>

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:mv="using:MaxwellCalc.ViewModels"
              mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="450"
-             x:Class="MaxwellCalc.UI.Functions"
+             x:Class="MaxwellCalc.Controls.Functions"
 			 Margin="0"
 			 Padding="0">
 	<DataGrid x:DataType="mv:FunctionsViewModel"

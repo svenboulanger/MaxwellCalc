@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using MaxwellCalc.Workspaces;
 
-namespace MaxwellCalc.UI;
+namespace MaxwellCalc.Controls;
 
 public partial class ErrorMessageBox : Window
 {

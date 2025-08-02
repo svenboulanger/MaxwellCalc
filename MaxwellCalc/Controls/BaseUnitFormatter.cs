@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MaxwellCalc.UI
+namespace MaxwellCalc.Controls
 {
     public class UnitFormatter
     {

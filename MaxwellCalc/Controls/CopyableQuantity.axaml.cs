@@ -4,7 +4,7 @@ using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using MaxwellCalc.Units;
 
-namespace MaxwellCalc.UI
+namespace MaxwellCalc.Controls
 {
     public class CopyableQuantity : TemplatedControl
     {

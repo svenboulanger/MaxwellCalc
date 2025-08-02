@@ -1,6 +1,6 @@
 ﻿using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using MaxwellCalc.UI;
+using MaxwellCalc.Controls;
 using MaxwellCalc.Workspaces;
 using System;
 using System.IO;
@@ -30,8 +30,8 @@ namespace MaxwellCalc
                 LoadWorkspace(defaultWorkspace.AbsolutePath);
 
             // Update GUI
-            Functions.ViewModel.Update(_workspace);
-            Variables.ViewModel.Update(_workspace);
+            // Functions.ViewModel.Update(_workspace);
+            // Variables.ViewModel.Update(_workspace);
         }
         private void ClearWorkspace(object? sender, RoutedEventArgs args)
         {
@@ -67,8 +67,8 @@ namespace MaxwellCalc
                 ComplexMathHelper.RegisterFunctions(cws);
 
             // Update GUI
-            Functions.ViewModel.Update(_workspace);
-            Variables.ViewModel.Update(_workspace);
+            // Functions.ViewModel.Update(_workspace);
+            // Variables.ViewModel.Update(_workspace);
         }
 
         private void SaveWorkspace(bool saveAs = false)

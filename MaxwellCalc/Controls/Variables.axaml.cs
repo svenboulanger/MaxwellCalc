@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using MaxwellCalc.ViewModels;
 using MaxwellCalc.Workspaces;
 
-namespace MaxwellCalc.UI
+namespace MaxwellCalc.Controls
 {
     public partial class Variables : UserControl
     {

@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.UI;
+using MaxwellCalc.Controls;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -81,12 +81,12 @@ namespace MaxwellCalc
             }
 
             // Update the variable and function list
-            Variables.ViewModel.Update(_workspace);
-            Functions.ViewModel.Update(_workspace);
-
-            // Register for events
-            _workspace.VariableChanged += (sender, args) => Variables.ViewModel.Update(_workspace);
-            _workspace.FunctionChanged += (sender, args) => Functions.ViewModel.Update(_workspace);
+            // Variables.ViewModel.Update(_workspace);
+            // Functions.ViewModel.Update(_workspace);
+            // 
+            // // Register for events
+            // _workspace.VariableChanged += (sender, args) => Variables.ViewModel.Update(_workspace);
+            // _workspace.FunctionChanged += (sender, args) => Functions.ViewModel.Update(_workspace);
         }
 
         private void Input_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)

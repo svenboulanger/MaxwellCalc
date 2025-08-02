@@ -7,7 +7,7 @@ using Avalonia.Media;
 using MaxwellCalc.Units;
 using System;
 
-namespace MaxwellCalc.UI;
+namespace MaxwellCalc.Controls;
 
 public class UnitItem : TemplatedControl
 {

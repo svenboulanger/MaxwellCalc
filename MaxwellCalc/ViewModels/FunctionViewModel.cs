@@ -1,15 +1,19 @@
-﻿namespace MaxwellCalc.ViewModels
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace MaxwellCalc.ViewModels
 {
-    public class FunctionViewModel
+    /// <summary>
+    /// A view model for a function.
+    /// </summary>
+    public partial class FunctionViewModel : ViewModelBase
     {
         /// <summary>
         /// Gets or sets the name of the function.
         /// </summary>
-        public string? Name { get; set; }
+        [ObservableProperty]
+        private string? _name;
 
-        /// <summary>
-        /// Gets or sets the value of the function.
-        /// </summary>
-        public string? Value { get; set; }
+        [ObservableProperty]
+        private string? _value;
     }
 }

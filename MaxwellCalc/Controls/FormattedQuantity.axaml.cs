@@ -4,8 +4,9 @@ using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using MaxwellCalc.Units;
+using System.ComponentModel;
 
-namespace MaxwellCalc.UI
+namespace MaxwellCalc.Controls
 {
     public class FormattedQuantity : TemplatedControl
     {
@@ -31,6 +32,10 @@ namespace MaxwellCalc.UI
         {
             get => GetValue(UnitForegroundProperty);
             set => SetValue(UnitForegroundProperty, value);
+        }
+
+        public FormattedQuantity()
+        {
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

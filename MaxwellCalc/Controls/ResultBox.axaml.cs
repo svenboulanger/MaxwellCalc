@@ -4,7 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using MaxwellCalc.Units;
 
-namespace MaxwellCalc.UI;
+namespace MaxwellCalc.Controls;
 
 public class ResultBox : TemplatedControl
 {

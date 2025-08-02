@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls;
-using MaxwellCalc.Units;
+using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Workspaces;
 using System.Collections.ObjectModel;
 
@@ -8,12 +8,15 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A view model for the function list.
     /// </summary>
-    public class FunctionsViewModel
+    public partial class FunctionsViewModel : ViewModelBase
     {
         /// <summary>
         /// The collection of functions.
         /// </summary>
         public ObservableCollection<FunctionViewModel> List { get; } = new();
+
+        [ObservableProperty]
+        private IWorkspace? _workspace;
 
         /// <summary>
         /// Creates a new <see cref="FunctionsViewModel"/>.
