@@ -20,8 +20,14 @@
               FontWeight="Bold"
               Grid.Column="0" />
 
-            <Button Grid.Column="1" Margin="5, 0, 0, 0" Name="RemoveButton">
-              <PathIcon Width="{TemplateBinding FontSize}" Height="{TemplateBinding FontSize}" Data="{StaticResource trash}"/>
+            <Button Classes="Outline" 
+					Grid.Column="1"
+					Margin="5 0 0 0"
+					Padding="5"
+					Name="RemoveButton">
+              <PathIcon Width="{TemplateBinding FontSize}" 
+						Height="{TemplateBinding FontSize}" 
+						Data="{StaticResource trash}"/>
             </Button>
           </Grid>
         </Border>

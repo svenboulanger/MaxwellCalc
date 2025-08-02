@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:controls="using:MaxwellCalc.Controls"
+			 x:DataType="vm:CalculatorViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="MaxwellCalc.Views.CalculatorView">
+	<Design.DataContext>
+		<vm:CalculatorViewModel />
+	</Design.DataContext>
+	<DockPanel>
+		<TextBox DockPanel.Dock="Bottom"
+				 Margin="5"
+				 Padding="1"
+				 Watermark="Your expression ..."
+				 Text="{Binding Expression}">
+			<TextBox.KeyBindings>
+				<KeyBinding Command="{Binding EvaluateCommand}" Gesture="Enter" />
+			</TextBox.KeyBindings>
+		</TextBox>
+		<ScrollViewer>
+			<ItemsControl ItemsSource="{Binding Results}" />
+		</ScrollViewer>
+	</DockPanel>
+</UserControl>

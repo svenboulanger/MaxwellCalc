@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="500"
+			 xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:material="using:Material.Styles.Controls"
+			 x:DataType="vm:ResultViewModel"
+             x:Class="MaxwellCalc.Views.ResultView">
+	<Design.DataContext>
+		<vm:ResultViewModel />
+	</Design.DataContext>
+	<material:Card Margin="5">
+		<StackPanel Orientation="Vertical">
+			<SelectableTextBlock Text="{Binding Expression}"
+								 Margin="0 0 0 5"
+								 Foreground="{DynamicResource MaterialBodyLightBrush}"/>
+			<SelectableTextBlock Text="{Binding ErrorMessage}"
+								 Foreground="Red"
+								 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+			<StackPanel Orientation="Horizontal"
+						IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+				<controls:FormattedQuantity VerticalAlignment="Center"
+											Margin="3"
+											Value="{Binding Quantity}"
+											Padding="0"
+											x:Name="quantity" />
+				<Button Classes="Outline Dark"
+						Padding="5"
+						Margin="20 0 0 0"
+						Background="Transparent"
+						Name="CopyOutputButton">
+					<PathIcon Width="{Binding #quantity.FontSize}"
+							  Height="{Binding #quantity.FontSize}"
+							  Data="{StaticResource copy}" />
+				</Button>
+			</StackPanel>
+		</StackPanel>
+	</material:Card>
+</UserControl>

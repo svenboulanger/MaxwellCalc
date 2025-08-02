@@ -28,12 +28,10 @@ namespace MaxwellCalc
         public MainWindow()
         {
             InitializeComponent();
-            Input.AttachedToVisualTree += (sender, args) => Input.Focus();
+            // Input.AttachedToVisualTree += (sender, args) => Input.Focus();
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-
-            BuildWorkspace(DomainTypes.Complex);
         }
-
+        /*
         private void BuildWorkspace(DomainTypes type)
         {
             switch (type)
@@ -55,7 +53,9 @@ namespace MaxwellCalc
             var defaultWorkspace = new Uri(Directory.GetCurrentDirectory());
             defaultWorkspace = new Uri(defaultWorkspace, "workspace.json");
             if (File.Exists(defaultWorkspace.AbsolutePath))
-                LoadWorkspace(defaultWorkspace.AbsolutePath);
+            {
+                // LoadWorkspace(defaultWorkspace.AbsolutePath);
+            }
             else
             {
                 switch (type)
@@ -207,5 +207,6 @@ namespace MaxwellCalc
                 _settings.Show();
             }
         }
+        */
     }
 }

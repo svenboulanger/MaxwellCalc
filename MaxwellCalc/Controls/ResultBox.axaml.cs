@@ -61,7 +61,7 @@ public class ResultBox : TemplatedControl
             {
                 btnCopyOutput.Click += (s, e) =>
                 {
-                    clipboard.SetTextAsync(_output.Inlines?.Text);
+                    clipboard.SetTextAsync(_output.Text);
                 };
             }
         }

@@ -14,11 +14,14 @@
 										  VerticalAlignment="Center"
 										  Margin="3"
 										  Padding="0" />
-			  <Button Classes="Outline Dark" Margin="2" Background="Transparent" Name="CopyOutputButton">
-				  <PathIcon
-					Width="{TemplateBinding FontSize}"
-					Height="{TemplateBinding FontSize}"
-					Data="{StaticResource copy}" />
+			  <Button Classes="Outline Dark"
+					  Padding="5"
+					  Margin="1"
+					  Background="Transparent"
+					  Name="CopyOutputButton">
+				  <PathIcon Width="{TemplateBinding FontSize}"
+							Height="{TemplateBinding FontSize}"
+							Data="{StaticResource copy}" />
 			  </Button>
 		  </StackPanel>
       </ControlTemplate>

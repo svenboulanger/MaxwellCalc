@@ -13,13 +13,19 @@ namespace MaxwellCalc.Controls
         public static readonly StyledProperty<Quantity<string>> ValueProperty =
             AvaloniaProperty.Register<ResultBox, Quantity<string>>(nameof(Value), new Quantity<string>("Unrecognized", Unit.UnitNone));
 
-        public InlineCollection? Inlines => _output?.Inlines;
-
+        /// <summary>
+        /// Gets or sets the value.
+        /// </summary>
         public Quantity<string> Value
         {
             get => GetValue(ValueProperty);
             set => SetValue(ValueProperty, value);
         }
+
+        /// <summary>
+        /// Gets the text.
+        /// </summary>
+        public string Text => _output?.Text ?? string.Empty;
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
@@ -31,7 +37,7 @@ namespace MaxwellCalc.Controls
                 _output.Value = Value;
 
             if (clipboard is not null && _output is not null && btnCopyOutput is not null)
-                btnCopyOutput.Click += (sender, args) => clipboard.SetTextAsync(_output.Inlines?.Text);
+                btnCopyOutput.Click += (sender, args) => clipboard.SetTextAsync(_output?.Text);
             else if (btnCopyOutput is not null)
                 btnCopyOutput.IsVisible = false; // Hide as we cannot copy to clibboard anyway
         }

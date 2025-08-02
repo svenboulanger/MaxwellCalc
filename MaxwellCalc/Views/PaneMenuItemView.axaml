@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:mv="using:MaxwellCalc.ViewModels"
+			 x:DataType="mv:PaneMenuItemViewModel"
+             x:Class="MaxwellCalc.Views.PaneMenuItemView">
+	<StackPanel Orientation="Horizontal">
+		<PathIcon Data="{Binding IconData}"
+				  Width="26"
+				  Height="26"
+				  Margin="0 0 10 0"
+				  Padding="0"/>
+		<TextBlock FontSize="20"
+				   VerticalAlignment="Center"
+				   Text="{Binding Text}" />
+	</StackPanel>
+</UserControl>

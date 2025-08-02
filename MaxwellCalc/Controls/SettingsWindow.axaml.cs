@@ -135,7 +135,7 @@ public partial class SettingsWindow : Window
         else
         {
             // Only show the items that match in some way
-            string[] search = tb.Text.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            string[] search = tb.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             foreach (var item in _inputUnitList.Children)
             {
                 if (item is not UnitItem ui)
@@ -172,7 +172,7 @@ public partial class SettingsWindow : Window
         else
         {
             // Only show the items that match in some way
-            string[] search = tb.Text.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            string[] search = tb.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             foreach (var item in _outputUnitList.Children)
             {
                 if (item is not UnitItem ui)

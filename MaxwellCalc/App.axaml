@@ -1,16 +1,22 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MaxwellCalc.App"
+			 xmlns:local="using:MaxwellCalc"
 			 xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
              RequestedThemeVariant="Default">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
+	<Application.DataTemplates>
+		<local:ViewLocator />
+	</Application.DataTemplates>
+	
 	<Application.Styles>
 		<themes:MaterialTheme BaseTheme="Dark" PrimaryColor="Purple" SecondaryColor="Lime" />
 		<StyleInclude Source="/Controls/ResultBox.axaml"/>
 		<StyleInclude Source="/Controls/UnitItem.axaml" />
 		<StyleInclude Source="/Controls/FormattedQuantity.axaml" />
 		<StyleInclude Source="/Controls/CopyableQuantity.axaml" />
+		<StyleInclude Source="/Assets/Icons.axaml" />
 	</Application.Styles>
 
 	<Application.Resources>

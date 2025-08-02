@@ -2,20 +2,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:MaxwellCalc.ViewModels"
 			 xmlns:controls="using:MaxwellCalc.Controls"
-			 xmlns:mv="using:MaxwellCalc.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="450"
-			 x:CompileBindings="True"
-			 Margin="0"
-			 Padding="0"
-             x:Class="MaxwellCalc.Controls.Variables">
-	<DataGrid x:DataType="mv:VariablesViewModel"
-			  ItemsSource="{Binding List}"
-			  IsReadOnly="True"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:DataType="vm:VariablesViewModel"
+             x:Class="MaxwellCalc.Views.VariablesView">
+	<Design.DataContext>
+		<vm:VariablesViewModel />
+	</Design.DataContext>
+	<DataGrid IsReadOnly="True"
 			  GridLinesVisibility="All"
 			  CanUserResizeColumns="True"
 			  CanUserSortColumns="True"
-			  Margin="3">
+			  Margin="10"
+			  SelectedItem="{Binding SelectedItem}"
+			  ItemsSource="{Binding Variables}">
 		<DataGrid.Columns>
 			<DataGridTextColumn
 				Header="Parameter"
@@ -25,8 +26,7 @@
 				Width="2*"
 				Header="Value">
 				<DataGridTemplateColumn.CellTemplate>
-					<DataTemplate
-						DataType="mv:VariableViewModel">
+					<DataTemplate>
 						<controls:CopyableQuantity
 							Value="{Binding Value}"
 							VerticalAlignment="Center"

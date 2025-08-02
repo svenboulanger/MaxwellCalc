@@ -1,0 +1,59 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="using:MaxwellCalc.Controls"
+		xmlns:loc="using:MaxwellCalc.Controls"
+		xmlns:views="using:MaxwellCalc.Views"
+		xmlns:vm="using:MaxwellCalc.ViewModels"
+		xmlns:material="using:Material.Styles.Controls"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="MaxwellCalc.MainWindow"
+		x:DataType="vm:MainWindowViewModel"
+        Title="Maxwell Calculator">
+	<Window.Styles>
+		<Style Selector="controls|FormattedQuantity">
+			<Setter Property="UnitForeground" Value="{DynamicResource MaterialSecondaryLightBrush}" />
+		</Style>
+	</Window.Styles>
+	<DockPanel>
+		<SplitView IsPaneOpen="{Binding IsPaneOpen}"
+				   OpenPaneLength="200"
+				   CompactPaneLength="40"
+				   DisplayMode="CompactInline">
+			<SplitView.Pane>
+				<StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<Button Classes="Flat"
+								Padding="8 5 5 5"
+								Margin="0"
+								Command="{Binding TogglePaneCommand}">
+							<PathIcon Data="{StaticResource DonutIcon}"
+									  Width="26"
+									  Height="26"
+									  Margin="0"
+									  Padding="0"/>
+						</Button>
+						<TextBlock FontSize="20"
+								   VerticalAlignment="Center"
+								   Text="" />
+					</StackPanel>
+					<ListBox ItemsSource="{Binding Panes}"
+							 SelectedItem="{Binding SelectedListItem}"
+							 SelectedIndex="0"
+							 Margin="0"
+							 Padding="0">
+						<ListBox.Styles>
+							<Style Selector="ListBoxItem">
+								<Setter Property="Padding" Value="8 5 5 5" />
+							</Style>
+						</ListBox.Styles>
+					</ListBox>
+				</StackPanel>
+			</SplitView.Pane>
+			<SplitView.Content>
+				<TransitioningContentControl Content="{Binding CurrentPage}" />
+			</SplitView.Content>
+		</SplitView>
+	</DockPanel>
+</Window>
