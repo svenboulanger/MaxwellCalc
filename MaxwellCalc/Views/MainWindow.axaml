@@ -11,6 +11,9 @@
         x:Class="MaxwellCalc.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
         Title="Maxwell Calculator">
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
 	<Window.Styles>
 		<Style Selector="controls|FormattedQuantity">
 			<Setter Property="UnitForeground" Value="{DynamicResource MaterialSecondaryLightBrush}" />

@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -39,12 +41,77 @@ namespace MaxwellCalc.ViewModels
         private ViewModelBase? _currentPage = null;
 
         [ObservableProperty]
-        ObservableCollection<PaneMenuItemViewModel> _panes = [
-            new PaneMenuItemViewModel() { Text="Calculator", IconName="CalculatorIcon", ViewModel = new CalculatorViewModel() },
-            new PaneMenuItemViewModel() { Text="Variables", IconName="VariablesIcon", ViewModel = new VariablesViewModel() },
-            new PaneMenuItemViewModel() { Text="Functions", IconName="FormulaIcon", ViewModel = new FunctionsViewModel() },
-            new PaneMenuItemViewModel() { Text="Settings", IconName="SettingsIcon", ViewModel = new SettingsViewModel() }
-            ];
+        ObservableCollection<PaneMenuItemViewModel> _panes = [];
+
+        /// <summary>
+        /// Creates a new <see cref="MainWindowViewModel"/>.
+        /// </summary>
+        public MainWindowViewModel()
+        {
+            if (Design.IsDesignMode)
+            {
+                // Add the different panes
+                _panes.Add(new PaneMenuItemViewModel()
+                {
+                    Text = "Calculator",
+                    IconName = "CalculatorIcon",
+                    ViewModel = new CalculatorViewModel()
+                });
+                _panes.Add(new PaneMenuItemViewModel()
+                {
+                    Text = "Variables",
+                    IconName = "VariablesIcon",
+                    ViewModel = new VariablesViewModel()
+                });
+                _panes.Add(new PaneMenuItemViewModel()
+                {
+                    Text = "Functions",
+                    IconName = "FormulaIcon",
+                    ViewModel = new FunctionsViewModel()
+                });
+                _panes.Add(new PaneMenuItemViewModel()
+                {
+                    Text = "Settings",
+                    IconName = "SettingsIcon",
+                    ViewModel = new SettingsViewModel()
+                });
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MainWindowViewModel"/>.
+        /// </summary>
+        /// <param name="sp">The service provider.</param>
+        public MainWindowViewModel(IServiceProvider sp)
+        {
+            // Add the different panes
+            _panes.Add(new PaneMenuItemViewModel()
+            {
+                Text = "Calculator",
+                IconName = "CalculatorIcon",
+                ViewModel = sp.GetRequiredService<CalculatorViewModel>()
+            });
+            _panes.Add(new PaneMenuItemViewModel()
+            {
+                Text = "Variables",
+                IconName = "VariablesIcon",
+                ViewModel = sp.GetRequiredService<VariablesViewModel>()
+            });
+            _panes.Add(new PaneMenuItemViewModel()
+            {
+                Text = "Functions",
+                IconName = "FormulaIcon",
+                ViewModel = sp.GetRequiredService<FunctionsViewModel>()
+            });
+            _panes.Add(new PaneMenuItemViewModel()
+            {
+                Text = "Settings",
+                IconName = "SettingsIcon",
+                ViewModel = sp.GetRequiredService<SettingsViewModel>()
+            });
+
+            _workspace = sp.GetRequiredService<IWorkspace>();
+        }
 
         [RelayCommand]
         private void TogglePane() => IsPaneOpen = !IsPaneOpen;
@@ -57,7 +124,7 @@ namespace MaxwellCalc.ViewModels
         }
 
         [RelayCommand]
-        private void BuildWorkspace(DomainTypes type)
+        private void BuildNewWorkspace(DomainTypes type)
         {
             Workspace = type switch
             {

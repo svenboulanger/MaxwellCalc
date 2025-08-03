@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -12,6 +13,9 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         [ObservableProperty]
         private string? _name;
+
+        [ObservableProperty]
+        private ObservableCollection<string>? _arguments;
 
         [ObservableProperty]
         private string? _value;

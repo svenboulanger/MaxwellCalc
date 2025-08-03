@@ -106,6 +106,15 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterUserFunction(UserFunction userFunction);
 
         /// <summary>
+        /// Tries to get a registered user function information.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="arguments">The function arguments.</param>
+        /// <param name="function">The function.</param>
+        /// <returns>Returns the user function.</returns>
+        public bool TryGetUserFunction(string name, int arguments, out UserFunction function);
+
+        /// <summary>
         /// Tries to remove a user function with the given name and number of arguments.
         /// </summary>
         /// <param name="name">The name.</param>

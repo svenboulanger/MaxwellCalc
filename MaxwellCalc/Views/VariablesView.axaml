@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
 			 xmlns:controls="using:MaxwellCalc.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:VariablesViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="MaxwellCalc.Views.VariablesView">
 	<Design.DataContext>
 		<vm:VariablesViewModel />
@@ -18,20 +18,15 @@
 			  SelectedItem="{Binding SelectedItem}"
 			  ItemsSource="{Binding Variables}">
 		<DataGrid.Columns>
-			<DataGridTextColumn
-				Header="Parameter"
-				Width="*"
-				Binding="{Binding Name}" />
-			<DataGridTemplateColumn
-				Width="2*"
-				Header="Value">
+			<DataGridTextColumn Header="Parameter"
+								Width="*"
+								Binding="{Binding Name}" />
+			<DataGridTemplateColumn Width="2*"
+									Header="Value">
 				<DataGridTemplateColumn.CellTemplate>
 					<DataTemplate>
-						<controls:CopyableQuantity
-							Value="{Binding Value}"
-							VerticalAlignment="Center"
-							Margin="3"
-							Padding="0" />
+						<controls:CopyableQuantity Value="{Binding Value}"
+												   VerticalAlignment="Center" />
 					</DataTemplate>
 				</DataGridTemplateColumn.CellTemplate>
 			</DataGridTemplateColumn>

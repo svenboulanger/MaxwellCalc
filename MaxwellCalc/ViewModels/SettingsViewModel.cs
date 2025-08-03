@@ -8,5 +8,21 @@ namespace MaxwellCalc.ViewModels
 {
     public class SettingsViewModel : ViewModelBase
     {
+        /// <summary>
+        /// Creates a new <see cref="SettingsViewModel"/>.
+        /// </summary>
+        public SettingsViewModel()
+        {
+
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="SettingsViewModel"/>.
+        /// </summary>
+        /// <param name="sp">The settings provider.</param>
+        public SettingsViewModel(IServiceProvider sp)
+        {
+
+        }
     }
 }

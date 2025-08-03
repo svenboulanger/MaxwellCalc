@@ -386,6 +386,18 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
+        public bool TryGetUserFunction(string name, int arguments, out UserFunction userFunction)
+        {
+            if (_userFunctions.TryGetValue((name, arguments), out var existing))
+            {
+                userFunction = new(name, existing.Item1, existing.Item2);
+                return true;
+            }
+            userFunction = default;
+            return false;
+        }
+
+        /// <inheritdoc />
         public bool TryRemoveUserFunction(string name, int argumentCount)
         {
             if (_userFunctions.Remove((name, argumentCount)))

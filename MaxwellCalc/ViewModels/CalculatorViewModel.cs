@@ -5,13 +5,16 @@ using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.ViewModels
 {
     public partial class CalculatorViewModel : ViewModelBase
     {
-        private readonly IWorkspace _workspace;
+        [ObservableProperty]
+        private IWorkspace _workspace;
 
         [ObservableProperty]
         ObservableCollection<ResultViewModel> _results = [];
@@ -19,6 +22,9 @@ namespace MaxwellCalc.ViewModels
         [ObservableProperty]
         private string? _expression;
 
+        /// <summary>
+        /// Creates a new <see cref="CalculatorViewModel"/>.
+        /// </summary>
         public CalculatorViewModel()
         {
             if (Design.IsDesignMode)
@@ -48,13 +54,25 @@ namespace MaxwellCalc.ViewModels
             _workspace = ws;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="CalculatorViewModel"/>.
+        /// </summary>
+        /// <param name="sp">The service provider.</param>
+        public CalculatorViewModel(IServiceProvider sp)
+        {
+            _workspace = sp.GetRequiredService<IWorkspace>();
+        }
+
         [RelayCommand]
         private void Evaluate()
         {
+            if (Workspace is null)
+                return;
+
             // Use the current expression to evaluate
             var lexer = new Lexer(Expression ?? string.Empty);
-            var node = Parser.Parse(lexer, _workspace);
-            if (_workspace.TryResolveAndFormat(node, out var result))
+            var node = Parser.Parse(lexer, Workspace);
+            if (Workspace.TryResolveAndFormat(node, out var result))
             {
                 Results.Add(new ResultViewModel()
                 {
@@ -67,7 +85,7 @@ namespace MaxwellCalc.ViewModels
                 Results.Add(new ResultViewModel()
                 {
                     Expression = Expression,
-                    ErrorMessage = _workspace.DiagnosticMessage
+                    ErrorMessage = Workspace.DiagnosticMessage
                 });
             }
             Expression = string.Empty;
