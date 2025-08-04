@@ -18,7 +18,7 @@ namespace MaxwellCalc.Workspaces
         private readonly Dictionary<string, Quantity<T>> _inputUnits = [];
         private readonly Dictionary<Unit, Dictionary<Unit, T>> _outputUnits = [];
         private readonly Stack<IVariableScope<T>> _scopes = new();
-        private readonly Dictionary<string, IWorkspace<T>.FunctionDelegate> _builtInFunctions = [];
+        private readonly Dictionary<string, (IWorkspace<T>.FunctionDelegate Function, BuiltInFunction Meta)> _builtInFunctions = [];
         private readonly Dictionary<(string, int), (string[], string)> _userFunctions = [];
 
         /// <inheritdoc />
@@ -87,6 +87,9 @@ namespace MaxwellCalc.Workspaces
         /// <inheritdoc />
         public IEnumerable<UserFunction> UserFunctions => _userFunctions.Select(p => new UserFunction(p.Key.Item1, p.Value.Item1, p.Value.Item2));
 
+        /// <inheritdoc />
+        public IEnumerable<BuiltInFunction> BuiltInFunctions => _builtInFunctions.Select(p => p.Value.Meta);
+
         /// <summary>
         /// Creates a new <see cref="Workspace"/>.
         /// </summary>
@@ -109,9 +112,9 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TryRegisterBuiltInFunction(string name, IWorkspace<T>.FunctionDelegate function)
+        public bool TryRegisterBuiltInFunction(string name, IWorkspace<T>.FunctionDelegate function, BuiltInFunction meta)
         {
-            _builtInFunctions[name] = function;
+            _builtInFunctions[name] = (function, meta);
             return true;
         }
 
@@ -140,8 +143,8 @@ namespace MaxwellCalc.Workspaces
                 _scopes.Pop();
                 return r;
             }
-            if (_builtInFunctions.TryGetValue(name, out var function))
-                return function(arguments, this, out result);
+            if (_builtInFunctions.TryGetValue(name, out var tuple))
+                return tuple.Function(arguments, this, out result);
             DiagnosticMessage = $"Cannot find function '{name}' with {arguments.Count} argument(s).";
             result = default;
             return false;

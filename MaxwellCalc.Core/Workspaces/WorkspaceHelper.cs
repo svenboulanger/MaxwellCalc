@@ -1,5 +1,9 @@
-﻿using System;
+﻿using MaxwellCalc.Core.Attributes;
+using MaxwellCalc.Units;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace MaxwellCalc.Workspaces
@@ -104,6 +108,73 @@ namespace MaxwellCalc.Workspaces
             }
             if (reader.TokenType != JsonTokenType.EndObject)
                 throw new JsonException();
+        }
+
+        /// <summary>
+        /// Uses reflection to register all static methods on a type that match the signature of the workspace domain.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="type">The type.</param>
+        public static void RegisterBuiltInMethods(this IWorkspace workspace, Type type)
+        {
+            // First we need to figure out what the domain type is of the workspace
+            var workspaceType = workspace.GetType().GetInterfaces().FirstOrDefault(type =>
+            {
+                if (!type.IsGenericType)
+                    return false;
+                return type.GetGenericTypeDefinition() == typeof(IWorkspace<>);
+            }) ?? throw new ArgumentException("Workspace does not have a base type.");
+
+            // Now use that base type ...
+            var domainType = workspaceType.GenericTypeArguments[0];
+            var quantityType = typeof(Quantity<>).MakeGenericType(domainType);
+            var argType = typeof(IReadOnlyList<>).MakeGenericType(quantityType);
+
+            // Get the method to register a new built-in function
+            var registerFunctionDelegate = workspace.GetType().GetMethod("TryRegisterBuiltInFunction", BindingFlags.Public | BindingFlags.Instance);
+            if (registerFunctionDelegate is null)
+                throw new NotImplementedException();
+            var functionDelegateType = registerFunctionDelegate.GetParameters()[1].ParameterType;
+
+            // ... to go through the static members of the parameter type
+            foreach (var member in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                // Check the method signature
+                if (member.ReturnType != typeof(bool))
+                    continue;
+                var parameters = member.GetParameters();
+                if (parameters.Length != 3)
+                    continue;
+                if (parameters[0].ParameterType != argType)
+                    continue;
+                if (parameters[1].ParameterType != typeof(IWorkspace))
+                    continue;
+                if (!parameters[2].IsOut || parameters[2].ParameterType.GetElementType() != quantityType)
+                    continue;
+
+                // We have a match! Let's register it as a built-in method
+                string name = member.Name.ToLower(), description = string.Empty;
+                int minArgCount = 1;
+                int maxArgCount = 1;
+                foreach (var attribute in member.GetCustomAttributes())
+                {
+                    switch (attribute)
+                    {
+                        case FunctionNameAttribute fna: name = fna.Name; break;
+                        case MinArgAttribute minA: minArgCount = minA.Minimum; break;
+                        case MaxArgAttribute maxA: maxArgCount = maxA.Maximum; break;
+                        case FunctionDescriptionAttribute desc: description = desc.Description; break; 
+                    }
+                }
+
+                // Convert the member into a function delegate
+                registerFunctionDelegate.Invoke(workspace,
+                [
+                    name,
+                    member.CreateDelegate(functionDelegateType),
+                    new BuiltInFunction(name, minArgCount, maxArgCount, description)
+                ]);
+            }
         }
     }
 }

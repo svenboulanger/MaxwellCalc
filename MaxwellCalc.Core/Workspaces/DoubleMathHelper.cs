@@ -80,21 +80,21 @@ namespace MaxwellCalc.Workspaces
         /// Registers the functions in the class to a workspace.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        public static void RegisterFunctions(IWorkspace<double> workspace)
-        {
-            workspace.TryRegisterBuiltInFunction("abs", Abs);
-            workspace.TryRegisterBuiltInFunction("sin", Sin);
-            workspace.TryRegisterBuiltInFunction("cos", Cos);
-            workspace.TryRegisterBuiltInFunction("tan", Tan);
-            workspace.TryRegisterBuiltInFunction("sinh", Sinh);
-            workspace.TryRegisterBuiltInFunction("cosh", Cosh);
-            workspace.TryRegisterBuiltInFunction("tanh", Tanh);
-            workspace.TryRegisterBuiltInFunction("ln", Ln);
-            workspace.TryRegisterBuiltInFunction("log10", Log10);
-            workspace.TryRegisterBuiltInFunction("log2", Log2);
-            workspace.TryRegisterBuiltInFunction("exp", Exp);
-            workspace.TryRegisterBuiltInFunction("sqrt", Sqrt);
-        }
+        // public static void RegisterFunctions(IWorkspace<double> workspace)
+        // {
+        //     workspace.TryRegisterBuiltInFunction("abs", Abs);
+        //     workspace.TryRegisterBuiltInFunction("sin", Sin);
+        //     workspace.TryRegisterBuiltInFunction("cos", Cos);
+        //     workspace.TryRegisterBuiltInFunction("tan", Tan);
+        //     workspace.TryRegisterBuiltInFunction("sinh", Sinh);
+        //     workspace.TryRegisterBuiltInFunction("cosh", Cosh);
+        //     workspace.TryRegisterBuiltInFunction("tanh", Tanh);
+        //     workspace.TryRegisterBuiltInFunction("ln", Ln);
+        //     workspace.TryRegisterBuiltInFunction("log10", Log10);
+        //     workspace.TryRegisterBuiltInFunction("log2", Log2);
+        //     workspace.TryRegisterBuiltInFunction("exp", Exp);
+        //     workspace.TryRegisterBuiltInFunction("sqrt", Sqrt);
+        // }
 
         /// <summary>
         /// Computes the absolute value of a quantity.

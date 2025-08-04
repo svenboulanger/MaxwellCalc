@@ -1,4 +1,5 @@
-﻿using MaxwellCalc.Units;
+﻿using MaxwellCalc.Core.Attributes;
+using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -78,40 +79,42 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <summary>
-        /// Registers the functions in the class to a workspace.
-        /// </summary>
-        /// <param name="workspace">The workspace.</param>
-        public static void RegisterFunctions(IWorkspace<Complex> workspace)
-        {
-            workspace.TryRegisterBuiltInFunction("abs", Abs);
-            workspace.TryRegisterBuiltInFunction("sin", Sin);
-            workspace.TryRegisterBuiltInFunction("cos", Cos);
-            workspace.TryRegisterBuiltInFunction("tan", Tan);
-            workspace.TryRegisterBuiltInFunction("sinh", Sinh);
-            workspace.TryRegisterBuiltInFunction("cosh", Cosh);
-            workspace.TryRegisterBuiltInFunction("tanh", Tanh);
-            workspace.TryRegisterBuiltInFunction("ln", Ln);
-            workspace.TryRegisterBuiltInFunction("log10", Log10);
-            workspace.TryRegisterBuiltInFunction("log2", Log2);
-            workspace.TryRegisterBuiltInFunction("exp", Exp);
-            workspace.TryRegisterBuiltInFunction("sqrt", Sqrt);
-        }
-
-        /// <summary>
         /// Computes the absolute value of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the magnitude of a complex number. The units are the same as the argument.")]
         public static bool Abs(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for abs().";
                 return false;
             }
             result = new Quantity<Complex>(Complex.Abs(args[0].Scalar), args[0].Unit);
+            return true;
+        }
+
+        /// <summary>
+        /// Computes the argument.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the argument (polar angle) of a complex number. The units are in radians.")]
+        public static bool Arg(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
+        {
+            if (args.Count != 1)
+            {
+                result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for arg().";
+                return false;
+            }
+            result = new Quantity<Complex>(Math.Atan2(args[0].Scalar.Imaginary, args[0].Scalar.Real), Unit.UnitRadian);
             return true;
         }
 
@@ -122,12 +125,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the sine of a complex number.")]
         public static bool Sin(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for sin().";
                 return false;
             }
             var arg = args[0];
@@ -135,6 +140,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot 
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected an argument without unit or in radian.";
                 return false;
             }
             result = new Quantity<Complex>(Complex.Sin(args[0].Scalar), Unit.UnitNone);
@@ -148,12 +154,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the cosine of a complex number.")]
         public static bool Cos(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for cos().";
                 return false;
             }
             var arg = args[0];
@@ -161,6 +169,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot 
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected an argument without unit or in radian.";
                 return false;
             }
             result = new Quantity<Complex>(Complex.Cos(args[0].Scalar), Unit.UnitNone);
@@ -174,12 +183,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the tangent of a complex number.")]
         public static bool Tan(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for tan().";
                 return false;
             }
             var arg = args[0];
@@ -200,12 +211,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the hyperbolic sine of a complex number.")]
         public static bool Sinh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for sinh().";
                 return false;
             }
             var arg = args[0];
@@ -226,12 +239,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the hyperbolic cosine of a complex number.")]
         public static bool Cosh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for cosh().";
                 return false;
             }
             var arg = args[0];
@@ -252,12 +267,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the hyperbolic tangent of a complex number.")]
         public static bool Tanh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for tanh().";
                 return false;
             }
             var arg = args[0];
@@ -278,12 +295,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the exponent of a complex number.")]
         public static bool Exp(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for exp().";
                 return false;
             }
             var arg = args[0];
@@ -304,12 +323,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the natural logarithm of a complex number.")]
         public static bool Ln(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for ln().";
                 return false;
             }
             var arg = args[0];
@@ -330,12 +351,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the base-10 logarithm of a complex number.")]
         public static bool Log10(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for log10().";
                 return false;
             }
             var arg = args[0];
@@ -356,12 +379,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the base-2 logarithm of a complex number.")]
         public static bool Log2(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for log2().";
                 return false;
             }
             var arg = args[0];
@@ -382,12 +407,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [FunctionDescription("Gets the sqrt of a complex number.")]
         public static bool Sqrt(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
+                workspace.DiagnosticMessage = "Expected single argument for sqrt().";
                 return false;
             }
             var arg = args[0];

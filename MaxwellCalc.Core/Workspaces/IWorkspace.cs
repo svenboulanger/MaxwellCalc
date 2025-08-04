@@ -37,6 +37,11 @@ namespace MaxwellCalc.Workspaces
         public IEnumerable<UserFunction> UserFunctions { get; }
 
         /// <summary>
+        /// Gets the built-in functions registered to the workspace.
+        /// </summary>
+        public IEnumerable<BuiltInFunction> BuiltInFunctions { get; }
+
+        /// <summary>
         /// Event that is called when a variable changes.
         /// </summary>
         public event EventHandler<VariableChangedEvent>? VariableChanged;
@@ -93,7 +98,7 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Tries to remove an output unit.
         /// </summary>
-        /// <param name="outputUnit">The output units.</param>
+        /// <param name="outputUnits">The output units.</param>
         /// <param name="baseUnits">The base units.</param>
         /// <returns>Returns <c>true</c> if the unit was removed; otherwise, <c>false</c>.</returns>
         public bool TryRemoveOutputUnit(Unit outputUnits, Unit baseUnits);
@@ -106,6 +111,14 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterUserFunction(UserFunction userFunction);
 
         /// <summary>
+        /// Tries to remove a user function with the given name and number of arguments.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="argumentCount">The argument count.</param>
+        /// <returns>Returns <c>true</c> if the user function was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveUserFunction(string name, int argumentCount);
+
+        /// <summary>
         /// Tries to get a registered user function information.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -113,14 +126,6 @@ namespace MaxwellCalc.Workspaces
         /// <param name="function">The function.</param>
         /// <returns>Returns the user function.</returns>
         public bool TryGetUserFunction(string name, int arguments, out UserFunction function);
-
-        /// <summary>
-        /// Tries to remove a user function with the given name and number of arguments.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="argumentCount">The argument count.</param>
-        /// <returns>Returns <c>true</c> if the user function was removed; otherwise, <c>false</c>.</returns>
-        public bool TryRemoveUserFunction(string name, int argumentCount);
 
         /// <summary>
         /// Tries to set a variable on the workspace.
@@ -205,8 +210,9 @@ namespace MaxwellCalc.Workspaces
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="function">The function.</param>
+        /// <param name="meta">The metadata for the function.</param>
         /// <returns>Returns <c>true</c> if the function was registered; otherwise, <c>false</c>.</returns>
-        public bool TryRegisterBuiltInFunction(string name, FunctionDelegate function);
+        public bool TryRegisterBuiltInFunction(string name, FunctionDelegate function, BuiltInFunction meta);
 
         /// <summary>
         /// Tries to evaluate a function for the given arguments.
