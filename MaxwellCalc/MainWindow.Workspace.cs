@@ -10,6 +10,7 @@ using System.Text.Json;
 
 namespace MaxwellCalc
 {
+    /*
     public partial class MainWindow
     {
         private void ResetWorkspace(object? sender, RoutedEventArgs args)
@@ -46,4 +47,5 @@ namespace MaxwellCalc
         }
 
     }
+    */
 }

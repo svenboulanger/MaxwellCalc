@@ -138,24 +138,24 @@ namespace MaxwellCalc.ViewModels
                 LoadWorkspace(defaultWorkspace.AbsolutePath);
             else
             {
-                switch (Workspace)
-                {
-                    case IWorkspace<double> dws:
-                        UnitHelper.RegisterCommonUnits(dws);
-                        UnitHelper.RegisterCommonElectronicsUnits(dws);
-                        DoubleMathHelper.RegisterFunctions(dws);
-                        DoubleMathHelper.RegisterCommonConstants(dws);
-                        DoubleMathHelper.RegisterCommonElectronicsConstants(dws);
-                        break;
-
-                    case IWorkspace<Complex> cws:
-                        UnitHelper.RegisterCommonUnits(cws);
-                        UnitHelper.RegisterCommonElectronicsUnits(cws);
-                        ComplexMathHelper.RegisterFunctions(cws);
-                        ComplexMathHelper.RegisterCommonConstants(cws);
-                        ComplexMathHelper.RegisterCommonElectronicsConstants(cws);
-                        break;
-                }
+                // switch (Workspace)
+                // {
+                //     case IWorkspace<double> dws:
+                //         UnitHelper.RegisterCommonUnits(dws);
+                //         UnitHelper.RegisterCommonElectronicsUnits(dws);
+                //         DoubleMathHelper.RegisterFunctions(dws);
+                //         DoubleMathHelper.RegisterCommonConstants(dws);
+                //         DoubleMathHelper.RegisterCommonElectronicsConstants(dws);
+                //         break;
+                // 
+                //     case IWorkspace<Complex> cws:
+                //         UnitHelper.RegisterCommonUnits(cws);
+                //         UnitHelper.RegisterCommonElectronicsUnits(cws);
+                //         ComplexMathHelper.RegisterFunctions(cws);
+                //         ComplexMathHelper.RegisterCommonConstants(cws);
+                //         ComplexMathHelper.RegisterCommonElectronicsConstants(cws);
+                //         break;
+                // }
             }
         }
 
@@ -187,10 +187,10 @@ namespace MaxwellCalc.ViewModels
             WorkspaceFilename = filename;
 
             // Register built-in functions
-            if (Workspace is IWorkspace<double> dws)
-                DoubleMathHelper.RegisterFunctions(dws);
-            else if (Workspace is IWorkspace<Complex> cws)
-                ComplexMathHelper.RegisterFunctions(cws);
+            // if (Workspace is IWorkspace<double> dws)
+            //     DoubleMathHelper.RegisterFunctions(dws);
+            // else if (Workspace is IWorkspace<Complex> cws)
+            //     ComplexMathHelper.RegisterFunctions(cws);
 
             // Make sure the rest is invalidated
             OnPropertyChanged(nameof(Workspace));

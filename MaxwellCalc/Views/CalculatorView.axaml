@@ -15,9 +15,15 @@
 				 Margin="5"
 				 Padding="1"
 				 Watermark="Your expression ..."
-				 Text="{Binding Expression}">
+				 CaretIndex="{Binding CaretIndex}"
+				 Text="{Binding Expression}"
+				 Focusable="True"
+				 Loaded="InputTextBoxLoaded"
+				 Name="InputExpressionTextBox">
 			<TextBox.KeyBindings>
 				<KeyBinding Command="{Binding EvaluateCommand}" Gesture="Enter" />
+				<KeyBinding Command="{Binding TrackHistoryUpCommand}" Gesture="Up" />
+				<KeyBinding Command="{Binding TrackHistoryDownCommand}" Gesture="Down" />
 			</TextBox.KeyBindings>
 		</TextBox>
 		<ScrollViewer>

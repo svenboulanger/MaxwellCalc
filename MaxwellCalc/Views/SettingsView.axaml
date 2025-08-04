@@ -2,7 +2,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:material="using:Material.Styles.Controls"
+			 x:DataType="vm:SettingsViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="MaxwellCalc.Views.SettingsView">
-  Welcome to Avalonia!
+	<Design.DataContext>
+		<vm:SettingsViewModel />
+	</Design.DataContext>
+	<StackPanel>
+		<material:Card Margin="10">
+			<Grid ColumnDefinitions="3*, *">
+				<TextBlock Text="Theme"
+						   Margin="10"
+						   Grid.Column="0"
+						   VerticalAlignment="Center"/>
+				<ComboBox Grid.Column="1"
+						  SelectedIndex="{Binding CurrentTheme}"
+						  VerticalAlignment="Center">
+					<TextBlock>Use default</TextBlock>
+					<TextBlock>Light</TextBlock>
+					<TextBlock>Dark</TextBlock>
+				</ComboBox>
+			</Grid>
+		</material:Card>
+	</StackPanel>
 </UserControl>
