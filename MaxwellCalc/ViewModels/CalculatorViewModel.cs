@@ -28,6 +28,12 @@ namespace MaxwellCalc.ViewModels
         [ObservableProperty]
         private int _caretIndex;
 
+        [ObservableProperty]
+        private Avalonia.Vector _scrollOffset;
+
+        [ObservableProperty]
+        private Avalonia.Size _scrollExtent;
+
         /// <summary>
         /// Creates a new <see cref="CalculatorViewModel"/>.
         /// </summary>
@@ -67,27 +73,45 @@ namespace MaxwellCalc.ViewModels
         [RelayCommand]
         private void Evaluate()
         {
-            if (Workspace is null)
-                return;
+            // Deal with some commands
+            switch (Expression)
+            {
+                case "":
+                    // Don't do anything
+                    break;
 
-            // Use the current expression to evaluate
-            var lexer = new Lexer(Expression ?? string.Empty);
-            var node = Parser.Parse(lexer, Workspace);
-            if (Workspace.TryResolveAndFormat(node, out var result))
-            {
-                Results.Add(new ResultViewModel()
-                {
-                    Expression = Expression,
-                    Quantity = result
-                });
-            }
-            else
-            {
-                Results.Add(new ResultViewModel()
-                {
-                    Expression = Expression,
-                    ErrorMessage = Workspace.DiagnosticMessage
-                });
+                case "cls":
+                case "clc":
+                case "clear":
+                    // Clear all results
+                    Results.Clear();
+                    break;
+
+                default:
+                    if (Workspace is null)
+                        return;
+
+                    // Use the current expression to evaluate
+                    var lexer = new Lexer(Expression ?? string.Empty);
+                    var node = Parser.Parse(lexer, Workspace);
+                    if (node is not null && Workspace.TryResolveAndFormat(node, out var result))
+                    {
+                        Results.Add(new ResultViewModel()
+                        {
+                            Expression = Expression,
+                            Quantity = result
+                        });
+                    }
+                    else
+                    {
+                        Results.Add(new ResultViewModel()
+                        {
+                            Expression = Expression,
+                            ErrorMessage = Workspace.DiagnosticMessage
+                        });
+                    }
+
+                    break;
             }
 
             // Reset

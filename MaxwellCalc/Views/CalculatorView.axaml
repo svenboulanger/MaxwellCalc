@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
 			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:behaviors="clr-namespace:MaxwellCalc.Behaviors"
 			 x:DataType="vm:CalculatorViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="MaxwellCalc.Views.CalculatorView">
@@ -26,7 +27,7 @@
 				<KeyBinding Command="{Binding TrackHistoryDownCommand}" Gesture="Down" />
 			</TextBox.KeyBindings>
 		</TextBox>
-		<ScrollViewer>
+		<ScrollViewer behaviors:ScrollViewerBehavior.AutoScrollToEnd="True">
 			<ItemsControl ItemsSource="{Binding Results}" />
 		</ScrollViewer>
 	</DockPanel>

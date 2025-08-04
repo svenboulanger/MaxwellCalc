@@ -20,7 +20,7 @@ namespace MaxwellCalc.Parsers
 
         private static INode? ParseMultiplication(Lexer lexer, out string? error)
         {
-            int start = lexer.Column;
+            int start = lexer.Index;
             var result = ParseUnary(lexer, out error);
             if (result is null)
                 return null;
@@ -68,7 +68,7 @@ namespace MaxwellCalc.Parsers
         {
             if (lexer.Type == TokenTypes.Plus)
             {
-                int start = lexer.Column;
+                int start = lexer.Index;
                 lexer.Next();
 
                 var b = ParseUnary(lexer, out error);
@@ -78,7 +78,7 @@ namespace MaxwellCalc.Parsers
             }
             if (lexer.Type == TokenTypes.Minus)
             {
-                int start = lexer.Column;
+                int start = lexer.Index;
                 lexer.Next();
 
                 var b = ParseUnary(lexer, out error);
@@ -91,7 +91,7 @@ namespace MaxwellCalc.Parsers
 
         private static INode? ParseExponentiation(Lexer lexer, out string? error)
         {
-            int start = lexer.Column;
+            int start = lexer.Index;
             var result = ParseElementary(lexer, out error);
             if (result is null)
                 return null;
@@ -128,7 +128,7 @@ namespace MaxwellCalc.Parsers
             if (lexer.Type == TokenTypes.Scalar)
             {
                 // Parse a number
-                int start = lexer.Column;
+                int start = lexer.Index;
                 INode result = new ScalarNode(lexer.Content);
                 lexer.Next();
 

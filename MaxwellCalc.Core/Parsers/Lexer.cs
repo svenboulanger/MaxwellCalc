@@ -13,12 +13,12 @@ namespace MaxwellCalc.Parsers
         /// <summary>
         /// Gets the content of the current token.
         /// </summary>
-        public ReadOnlyMemory<char> Content => _input.AsMemory(Column, _index - Column);
+        public ReadOnlyMemory<char> Content => _input.AsMemory(Index, _index - Index);
 
         /// <summary>
         /// Gets the start of the current token.
         /// </summary>
-        public int Column { get; private set; }
+        public int Index { get; private set; }
 
         /// <summary>
         /// Gets the curren type.
@@ -101,7 +101,7 @@ namespace MaxwellCalc.Parsers
             }
 
             // Deal with the actual content
-            Column = _index;
+            Index = _index;
             switch (Char)
             {
                 case '\0':
@@ -272,6 +272,6 @@ namespace MaxwellCalc.Parsers
         /// </summary>
         /// <param name="from">The starting index.</param>
         /// <returns>Returns the tracked content.</returns>
-        public ReadOnlyMemory<char> Track(int from) => _input.AsMemory(from, Column - from);
+        public ReadOnlyMemory<char> Track(int from) => _input.AsMemory(from, Index - from);
     }
 }
