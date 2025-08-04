@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:my="using:MaxwellCalc.Views"
+			 x:DataType="vm:UserFunctionsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="MaxwellCalc.Views.UserFunctionsView">
+    <Design.DataContext>
+	    <vm:UserFunctionsViewModel />
+    </Design.DataContext>
+	<DataGrid IsReadOnly="True"
+			  GridLinesVisibility="All"
+			  CanUserResizeColumns="True"
+			  CanUserSortColumns="True"
+			  Margin="10"
+			  SelectedItem="{Binding SelectedItem}"
+			  ItemsSource="{Binding Functions}">
+		<DataGrid.Columns>
+			<DataGridTextColumn Header="Function"
+								Width="*"
+								Binding="{Binding Name}" />
+			<DataGridTextColumn Header="Parameters"
+								Width="*"
+								Binding="{Binding Arguments, Converter={x:Static my:ConverterHelpers.CommaJoinedConverter}}" />
+			<DataGridTextColumn Width="2*"
+								Header="Value"
+								Binding="{Binding Value}" />
+		</DataGrid.Columns>
+	</DataGrid>
+</UserControl>

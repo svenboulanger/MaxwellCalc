@@ -28,6 +28,9 @@
     <Compile Update="Controls\FormattedQuantity.axaml.cs">
       <DependentUpon>FormattedQuantity.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\UserFunctionsView.axaml.cs">
+      <DependentUpon>UserFunctionsView.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\ResultView.axaml.cs">
       <DependentUpon>ResultView.axaml</DependentUpon>
     </Compile>

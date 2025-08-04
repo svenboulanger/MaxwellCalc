@@ -21,9 +21,11 @@ namespace MaxwellCalc
         public override void OnFrameworkInitializationCompleted()
         {
             var services = new ServiceCollection();
-            services.AddSingleton(sp => new CalculatorViewModel(sp));
-            services.AddSingleton(sp => new VariablesViewModel(sp));
-            services.AddSingleton(sp => new FunctionsViewModel(sp));
+            services.AddSingleton<CalculatorViewModel>();
+            services.AddSingleton<VariablesViewModel>();
+            services.AddSingleton<UserFunctionsViewModel>();
+            services.AddSingleton<BuiltInFunctionsViewModel>();
+            services.AddSingleton<FunctionsViewModel>();
             services.AddSingleton(GetSettingsViewModel());
             services.AddSingleton(BuildDefaultWorkspace());
 
@@ -40,7 +42,7 @@ namespace MaxwellCalc
             base.OnFrameworkInitializationCompleted();
         }
 
-        private IWorkspace BuildDefaultWorkspace()
+        private static IWorkspace BuildDefaultWorkspace()
         {
             var workspace = new Workspace<double>(new DoubleDomain());
             DoubleMathHelper.RegisterCommonConstants(workspace);

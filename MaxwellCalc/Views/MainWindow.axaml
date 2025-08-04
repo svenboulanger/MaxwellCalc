@@ -19,44 +19,42 @@
 			<Setter Property="UnitForeground" Value="{DynamicResource MaterialSecondaryLightBrush}" />
 		</Style>
 	</Window.Styles>
-	<DockPanel>
-		<SplitView IsPaneOpen="{Binding IsPaneOpen}"
-				   OpenPaneLength="200"
-				   CompactPaneLength="40"
-				   DisplayMode="CompactInline">
-			<SplitView.Pane>
-				<StackPanel>
-					<StackPanel Orientation="Horizontal">
-						<Button Classes="Flat"
-								Padding="8 5 5 5"
-								Margin="0"
-								Command="{Binding TogglePaneCommand}">
-							<PathIcon Data="{StaticResource DonutIcon}"
-									  Width="26"
-									  Height="26"
-									  Margin="0"
-									  Padding="0"/>
-						</Button>
-						<TextBlock FontSize="20"
-								   VerticalAlignment="Center"
-								   Text="" />
-					</StackPanel>
-					<ListBox ItemsSource="{Binding Panes}"
-							 SelectedItem="{Binding SelectedListItem}"
-							 SelectedIndex="0"
-							 Margin="0"
-							 Padding="0">
-						<ListBox.Styles>
-							<Style Selector="ListBoxItem">
-								<Setter Property="Padding" Value="8 5 5 5" />
-							</Style>
-						</ListBox.Styles>
-					</ListBox>
+	<SplitView IsPaneOpen="{Binding IsPaneOpen}"
+				OpenPaneLength="200"
+				CompactPaneLength="40"
+				DisplayMode="CompactInline">
+		<SplitView.Pane>
+			<StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<Button Classes="Flat"
+							Padding="8 5 5 5"
+							Margin="0"
+							Command="{Binding TogglePaneCommand}">
+						<PathIcon Data="{StaticResource DonutIcon}"
+									Width="26"
+									Height="26"
+									Margin="0"
+									Padding="0"/>
+					</Button>
+					<TextBlock FontSize="20"
+								VerticalAlignment="Center"
+								Text="" />
 				</StackPanel>
-			</SplitView.Pane>
-			<SplitView.Content>
-				<TransitioningContentControl Content="{Binding CurrentPage}" />
-			</SplitView.Content>
-		</SplitView>
-	</DockPanel>
+				<ListBox ItemsSource="{Binding Panes}"
+							SelectedItem="{Binding SelectedListItem}"
+							SelectedIndex="0"
+							Margin="0"
+							Padding="0">
+					<ListBox.Styles>
+						<Style Selector="ListBoxItem">
+							<Setter Property="Padding" Value="8 5 5 5" />
+						</Style>
+					</ListBox.Styles>
+				</ListBox>
+			</StackPanel>
+		</SplitView.Pane>
+		<SplitView.Content>
+			<TransitioningContentControl Content="{Binding CurrentPage}" />
+		</SplitView.Content>
+	</SplitView>
 </Window>
