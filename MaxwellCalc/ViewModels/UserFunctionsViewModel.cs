@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -23,6 +24,12 @@ namespace MaxwellCalc.ViewModels
         [ObservableProperty]
         private ObservableCollection<UserFunctionViewModel> _functions = [];
 
+        [ObservableProperty]
+        private ObservableCollection<UserFunctionViewModel> _filteredFunctions = [];
+
+        [ObservableProperty]
+        private string _filter = string.Empty;
+
         /// <summary>
         /// Creates a new <see cref="UserFunctionsViewModel"/>.
         /// </summary>
@@ -31,7 +38,11 @@ namespace MaxwellCalc.ViewModels
             if (Design.IsDesignMode)
             {
                 for (int i = 0; i < 5; i++)
-                    _functions.Add(new() { Name = $"Test", Arguments = ["a", "b"], Value = "a + b" });
+                {
+                    var model = new UserFunctionViewModel() { Name = $"Test", Arguments = ["a", "b"], Value = "a + b" };
+                    Functions.Add(model);
+                    FilteredFunctions.Add(model);
+                }
             }
         }
 
@@ -45,46 +56,37 @@ namespace MaxwellCalc.ViewModels
 
             // Add all the functions
             foreach (var userFunction in _workspace.UserFunctions)
-                Functions.Add(new() { Name = userFunction.Name, Arguments = [ .. userFunction.Parameters ], Value = userFunction.Body });
+            {
+                var model = new UserFunctionViewModel() { Name = userFunction.Name, Arguments = [.. userFunction.Parameters], Value = userFunction.Body };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+            }
 
             _workspace.FunctionChanged += OnWorkspaceFunctionChanged;
-            Functions.CollectionChanged += FunctionsChanged;
         }
 
-        private void FunctionsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private bool MatchesFilter(UserFunctionViewModel model)
+            => model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false;
+
+        [RelayCommand]
+        private void ApplyFilter()
         {
-            if (Workspace is null)
-                return; // No need to synchronize
-
-            // Get the old and new values by name
-            HashSet<(string, IEnumerable<string>?)> toRemove = [];
-            Dictionary<(string, IEnumerable<string>?), string> toSet = [];
-            if (e.OldItems is not null)
-            {
-                foreach (var item in e.OldItems.OfType<UserFunctionViewModel>())
-                {
-                    if (item.Name is null)
-                        continue;
-                    toRemove.Add((item.Name, item.Arguments));
-                }
-            }
-            if (e.NewItems is not null)
-            {
-                foreach (var item in e.NewItems.OfType<UserFunctionViewModel>())
-                {
-                    if (item.Name is null)
-                        continue;
-                    toRemove.Remove((item.Name, item.Arguments));
-                    toSet.Add((item.Name, item.Arguments), item.Value ?? string.Empty);
-                }
-            }
-
-            // Now update
-            foreach (var key in toRemove)
-                Workspace.TryRemoveUserFunction(key.Item1, key.Item2?.Count() ?? 0);
-            foreach (var pair in toSet)
-                Workspace.TryRegisterUserFunction(new UserFunction(pair.Key.Item1, pair.Key.Item2?.ToArray() ?? [], pair.Value));
+            FilteredFunctions.Clear();
+            foreach (var item in Functions.Where(MatchesFilter))
+                FilteredFunctions.Add(item);
         }
+
+        [RelayCommand]
+        private void RemoveItem(UserFunctionViewModel model)
+        {
+            Functions.Remove(model);
+            FilteredFunctions.Remove(model);
+
+            if (Workspace is not null && model.Name is not null && model.Arguments is not null)
+                Workspace.TryRemoveUserFunction(model.Name, model.Arguments.Count);
+        }
+
+        partial void OnFilterChanged(string? oldValue, string newValue) => ApplyFilter();
 
         partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
         {
@@ -102,12 +104,20 @@ namespace MaxwellCalc.ViewModels
 
             // Rebuild our internal list of functions
             Functions.Clear();
+            FilteredFunctions.Clear();
             foreach (var userFunction in newValue.UserFunctions)
-                Functions.Add(new() { Name = userFunction.Name, Arguments = [.. userFunction.Parameters], Value = userFunction.Body });
+            {
+                var model = new UserFunctionViewModel() { Name = userFunction.Name, Arguments = [.. userFunction.Parameters], Value = userFunction.Body };
+                Functions.Add(model);
+                if (MatchesFilter(model))
+                    FilteredFunctions.Add(model);
+            }
 
             // Register for the new workspace
             if (newValue is not null)
                 newValue.FunctionChanged += OnWorkspaceFunctionChanged;
+
+            ApplyFilter();
         }
 
         private void OnWorkspaceFunctionChanged(object? sender, FunctionChangedEvent e)
@@ -143,6 +153,8 @@ namespace MaxwellCalc.ViewModels
                 if (model is not null)
                     Functions.Remove(model);
             }
+
+            ApplyFilter();
         }
     }
 }

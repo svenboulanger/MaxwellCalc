@@ -1,9 +1,11 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -20,6 +22,12 @@ namespace MaxwellCalc.ViewModels
 
         [ObservableProperty]
         private ObservableCollection<BuiltInFunctionViewModel> _functions = [];
+
+        [ObservableProperty]
+        private ObservableCollection<BuiltInFunctionViewModel> _filteredFunctions = [];
+
+        [ObservableProperty]
+        private string _filter = string.Empty;
 
         /// <summary>
         /// Creates a new <see cref="BuiltInFunctionViewModel"/>.
@@ -76,13 +84,40 @@ namespace MaxwellCalc.ViewModels
 
             // Add all the built-in functions
             foreach (var builtInFunction in _workspace.BuiltInFunctions)
-                Functions.Add(new()
+            {
+                var model = new BuiltInFunctionViewModel()
                 {
                     Name = builtInFunction.Name,
                     MinArgCount = builtInFunction.MinimumArgumentCount,
                     MaxArgCount = builtInFunction.MaximumArgumentCount,
                     Description = builtInFunction.Description
-                });
+                };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+            }
+        }
+
+        private bool MatchesFilter(BuiltInFunctionViewModel model)
+            => (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (model.Description?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
+
+        [RelayCommand]
+        private void ApplyFilter()
+        {
+            FilteredFunctions.Clear();
+            foreach (var item in Functions.Where(MatchesFilter))
+                FilteredFunctions.Add(item);
+        }
+
+        [RelayCommand]
+        private void RemoveItem(BuiltInFunctionViewModel model)
+        {
+            Functions.Remove(model);
+        }
+
+        partial void OnFilterChanged(string? oldValue, string newValue)
+        {
+            ApplyFilter();
         }
 
         partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
@@ -101,6 +136,7 @@ namespace MaxwellCalc.ViewModels
                         Description = builtInFunction.Description
                     });
             }
+            ApplyFilter();
         }
     }
 }

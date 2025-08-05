@@ -5,29 +5,53 @@
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
 			 xmlns:controls="using:MaxwellCalc.Controls"
 			 xmlns:my="using:MaxwellCalc.Views"
+			 xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 x:DataType="vm:UserFunctionsViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="MaxwellCalc.Views.UserFunctionsView">
     <Design.DataContext>
 	    <vm:UserFunctionsViewModel />
     </Design.DataContext>
-	<DataGrid IsReadOnly="True"
+	<DockPanel>
+		<material:Card DockPanel.Dock="Top"
+					   Margin="5"
+					   Padding="5">
+			<TextBox Watermark="Search"
+					 Height="20"
+					 Text="{Binding Filter}" />
+		</material:Card>
+		<DataGrid IsReadOnly="True"
 			  GridLinesVisibility="All"
 			  CanUserResizeColumns="True"
 			  CanUserSortColumns="True"
 			  Margin="10"
 			  SelectedItem="{Binding SelectedItem}"
-			  ItemsSource="{Binding Functions}">
-		<DataGrid.Columns>
-			<DataGridTextColumn Header="Function"
-								Width="*"
-								Binding="{Binding Name}" />
-			<DataGridTextColumn Header="Parameters"
-								Width="*"
-								Binding="{Binding Arguments, Converter={x:Static my:ConverterHelpers.CommaJoinedConverter}}" />
-			<DataGridTextColumn Width="2*"
-								Header="Value"
-								Binding="{Binding Value}" />
-		</DataGrid.Columns>
-	</DataGrid>
+			  ItemsSource="{Binding FilteredFunctions}">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Function"
+									Width="*"
+									Binding="{Binding Name}" />
+				<DataGridTextColumn Header="Parameters"
+									Width="*"
+									Binding="{Binding Arguments, Converter={x:Static my:ConverterHelpers.CommaJoinedConverter}}" />
+				<DataGridTextColumn Width="2*"
+									Header="Value"
+									Binding="{Binding Value}" />
+				<DataGridTemplateColumn Header="">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
+									VerticalAlignment="Center"
+									Padding="3"
+									Margin="0"
+									Classes="Outline"
+									Command="{Binding $parent[DataGrid].DataContext.RemoveItemCommand}"
+									CommandParameter="{Binding}"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+	</DockPanel>
 </UserControl>

@@ -7,6 +7,7 @@
 		xmlns:views="using:MaxwellCalc.Views"
 		xmlns:vm="using:MaxwellCalc.ViewModels"
 		xmlns:material="using:Material.Styles.Controls"
+		xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MaxwellCalc.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
@@ -30,7 +31,7 @@
 							Padding="8 5 5 5"
 							Margin="0"
 							Command="{Binding TogglePaneCommand}">
-						<PathIcon Data="{StaticResource DonutIcon}"
+						<materialIcons:MaterialIcon Kind="Menu"
 									Width="26"
 									Height="26"
 									Margin="0"

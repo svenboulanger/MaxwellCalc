@@ -3,6 +3,7 @@
              x:Class="MaxwellCalc.App"
 			 xmlns:local="using:MaxwellCalc"
 			 xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
+			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              RequestedThemeVariant="Default">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -12,6 +13,7 @@
 	
 	<Application.Styles>
 		<themes:MaterialTheme PrimaryColor="Purple" SecondaryColor="Indigo" />
+		<materialIcons:MaterialIconStyles />
 		<StyleInclude Source="/Controls/ResultBox.axaml"/>
 		<StyleInclude Source="/Controls/UnitItem.axaml" />
 		<StyleInclude Source="/Controls/FormattedQuantity.axaml" />

@@ -14,9 +14,15 @@ namespace MaxwellCalc.ViewModels
         [ObservableProperty]
         private string? _name;
 
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
         [ObservableProperty]
         private ObservableCollection<string>? _arguments;
 
+        /// <summary>
+        /// Gets or sets the value.
+        /// </summary>
         [ObservableProperty]
         private string? _value;
     }

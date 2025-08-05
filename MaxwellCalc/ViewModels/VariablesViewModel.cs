@@ -1,10 +1,10 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -21,6 +21,12 @@ namespace MaxwellCalc.ViewModels
         [ObservableProperty]
         ObservableCollection<VariableViewModel> _variables = [];
 
+        [ObservableProperty]
+        ObservableCollection<VariableViewModel> _filteredVariables = [];
+
+        [ObservableProperty]
+        private string _filter = string.Empty;
+
         /// <summary>
         /// Creates a new <see cref="VariablesViewModel"/>.
         /// </summary>
@@ -29,16 +35,19 @@ namespace MaxwellCalc.ViewModels
             if (Design.IsDesignMode)
             {
                 // Make up some variables to show what it looks like
-                _variables = [
-                    new VariableViewModel() {
-                        Name = "Sven",
-                        Value = new Quantity<string>("179", new Unit(("cm", 1)))
-                    },
-                    new VariableViewModel() {
-                        Name = "Elke",
-                        Value = new Quantity<string>("150", new Unit(("cm", 1)))
-                    }
-                ];
+                var model = new VariableViewModel() {
+                    Name = "Sven",
+                    Value = new Quantity<string>("179", new Unit(("cm", 1)))
+                };
+                Variables.Add(model);
+                FilteredVariables.Add(model);
+
+                model = new VariableViewModel() {
+                    Name = "Elke",
+                    Value = new Quantity<string>("150", new Unit(("cm", 1)))
+                };
+                Variables.Add(model);
+                FilteredVariables.Add(model);
             }
         }
 
@@ -52,45 +61,34 @@ namespace MaxwellCalc.ViewModels
 
             // Add all the variables
             foreach (var variable in _workspace.Variables)
-                Variables.Add(new() { Name = variable.Name, Value = variable.Value });
+            {
+                var model = new VariableViewModel() { Name = variable.Name, Value = variable.Value };
+                Variables.Add(model);
+                FilteredVariables.Add(model);
+            }
 
             _workspace.VariableChanged += OnWorkspaceVariableChanged;
-            Variables.CollectionChanged += VariablesChanged;
         }
 
-        private void VariablesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private bool MatchesFilter(VariableViewModel model)
+            => model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false;
+
+        private void ApplyFilter()
         {
-            if (Workspace is null)
-                return; // No need to synchronize
+            FilteredVariables.Clear();
+            foreach (var model in Variables.Where(MatchesFilter))
+                FilteredVariables.Add(model);
+        }
 
-            // Get the old and new values by the name
-            HashSet<string> toRemove = [];
-            Dictionary<string, Quantity<string>> toSet = [];
-            if (e.OldItems is not null)
-            {
-                foreach (var item in e.OldItems.OfType<VariableViewModel>())
-                {
-                    if (item.Name is null)
-                        continue;
-                    toRemove.Add(item.Name);
-                }
-            }
-            if (e.NewItems is not null)
-            {
-                foreach (var item in e.NewItems.OfType<VariableViewModel>())
-                {
-                    if (item.Name is null)
-                        continue;
-                    toRemove.Remove(item.Name);
-                    toSet.Add(item.Name, item.Value);
-                }
-            }
+        partial void OnFilterChanged(string value) => ApplyFilter();
 
-            // Now we need to update the workspace to reflect these changes
-            foreach (string name in toRemove)
-                Workspace.TryRemoveVariable(name);
-            foreach (var pair in toSet)
-                Workspace.TrySetVariable(new(pair.Key, pair.Value));
+        [RelayCommand]
+        private void RemoveItem(VariableViewModel model)
+        {
+            Variables.Remove(model);
+            FilteredVariables.Remove(model);
+            if (Workspace is not null && model.Name is not null)
+                Workspace.TryRemoveVariable(model.Name);
         }
 
         partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
@@ -110,8 +108,14 @@ namespace MaxwellCalc.ViewModels
 
             // Rebuild our internal list of variables
             Variables.Clear();
+            FilteredVariables.Clear();
             foreach (var variable in newValue.Variables)
-                Variables.Add(new() { Name = variable.Name, Value = variable.Value });
+            {
+                var model = new VariableViewModel() { Name = variable.Name, Value = variable.Value };
+                Variables.Add(model);
+                if (MatchesFilter(model))
+                    FilteredVariables.Add(model);
+            }
 
             // Register for the new workspace
             if (newValue is not null)
@@ -145,7 +149,10 @@ namespace MaxwellCalc.ViewModels
             {
                 // This is a removed variable
                 if (model is not null)
+                {
                     Variables.Remove(model);
+                    FilteredVariables.Remove(model);
+                }
             }
         }
     }

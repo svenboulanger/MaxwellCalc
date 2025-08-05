@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Material.Icons;
+using Material.Icons.Avalonia;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
@@ -54,25 +56,25 @@ namespace MaxwellCalc.ViewModels
                 _panes.Add(new PaneMenuItemViewModel()
                 {
                     Text = "Calculator",
-                    IconName = "CalculatorIcon",
+                    Icon = MaterialIconKind.Calculator,
                     ViewModel = new CalculatorViewModel()
                 });
                 _panes.Add(new PaneMenuItemViewModel()
                 {
                     Text = "Variables",
-                    IconName = "VariablesIcon",
+                    Icon = MaterialIconKind.Alphabetical,
                     ViewModel = new VariablesViewModel()
                 });
                 _panes.Add(new PaneMenuItemViewModel()
                 {
                     Text = "Functions",
-                    IconName = "FormulaIcon",
+                    Icon = MaterialIconKind.FunctionVariant,
                     ViewModel = new FunctionsViewModel()
                 });
                 _panes.Add(new PaneMenuItemViewModel()
                 {
                     Text = "Settings",
-                    IconName = "SettingsIcon",
+                    Icon = MaterialIconKind.Cog,
                     ViewModel = new SettingsViewModel()
                 });
             }
@@ -88,25 +90,25 @@ namespace MaxwellCalc.ViewModels
             _panes.Add(new PaneMenuItemViewModel()
             {
                 Text = "Calculator",
-                IconName = "CalculatorIcon",
+                Icon = MaterialIconKind.Calculator,
                 ViewModel = sp.GetRequiredService<CalculatorViewModel>()
             });
             _panes.Add(new PaneMenuItemViewModel()
             {
                 Text = "Variables",
-                IconName = "VariablesIcon",
+                Icon = MaterialIconKind.Abc,
                 ViewModel = sp.GetRequiredService<VariablesViewModel>()
             });
             _panes.Add(new PaneMenuItemViewModel()
             {
                 Text = "Functions",
-                IconName = "FormulaIcon",
+                Icon = MaterialIconKind.FunctionVariant,
                 ViewModel = sp.GetRequiredService<FunctionsViewModel>()
             });
             _panes.Add(new PaneMenuItemViewModel()
             {
                 Text = "Settings",
-                IconName = "SettingsIcon",
+                Icon = MaterialIconKind.Cog,
                 ViewModel = sp.GetRequiredService<SettingsViewModel>()
             });
 
