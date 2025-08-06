@@ -36,41 +36,56 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                _functions.Add(new BuiltInFunctionViewModel
+                var model = new BuiltInFunctionViewModel
                 {
                     Name = "sin",
                     MinArgCount = 1,
                     MaxArgCount = 1,
                     Description = "Calculates the sine of a real number"
-                });
-                _functions.Add(new BuiltInFunctionViewModel
+                };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+
+                model = new BuiltInFunctionViewModel
                 {
                     Name = "cos",
                     MinArgCount = 1,
                     MaxArgCount = 1,
                     Description = "Calculates the cosine of a real number"
-                });
-                _functions.Add(new BuiltInFunctionViewModel
+                };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+
+                model = new BuiltInFunctionViewModel
                 {
                     Name = "tan",
                     MinArgCount = 1,
                     MaxArgCount = 1,
                     Description = "Calculates the tangent of a real number"
-                });
-                _functions.Add(new BuiltInFunctionViewModel
+                };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+
+                model = new BuiltInFunctionViewModel
                 {
                     Name = "min",
                     MinArgCount = 1,
                     MaxArgCount = int.MaxValue,
                     Description = "Calculates the min of a real number"
-                });
-                _functions.Add(new BuiltInFunctionViewModel
+                };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+
+                model = new BuiltInFunctionViewModel
                 {
                     Name = "round",
                     MinArgCount = 1,
                     MaxArgCount = 2,
                     Description = "Rounds a number to some precision. If the precision is not given, then it will round to 0 digits after the comma."
-                });
+                };
+                Functions.Add(model);
+                FilteredFunctions.Add(model);
+
             }
         }
 
@@ -83,7 +98,7 @@ namespace MaxwellCalc.ViewModels
             _workspace = sp.GetRequiredService<IWorkspace>();
 
             // Add all the built-in functions
-            foreach (var builtInFunction in _workspace.BuiltInFunctions)
+            foreach (var builtInFunction in _workspace.BuiltInFunctions.OrderBy(bi => bi.Name))
             {
                 var model = new BuiltInFunctionViewModel()
                 {

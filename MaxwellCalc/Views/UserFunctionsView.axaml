@@ -21,37 +21,62 @@
 					 Height="20"
 					 Text="{Binding Filter}" />
 		</material:Card>
-		<DataGrid IsReadOnly="True"
-			  GridLinesVisibility="All"
-			  CanUserResizeColumns="True"
-			  CanUserSortColumns="True"
-			  Margin="10"
-			  SelectedItem="{Binding SelectedItem}"
-			  ItemsSource="{Binding FilteredFunctions}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="Function"
-									Width="*"
-									Binding="{Binding Name}" />
-				<DataGridTextColumn Header="Parameters"
-									Width="*"
-									Binding="{Binding Arguments, Converter={x:Static my:ConverterHelpers.CommaJoinedConverter}}" />
-				<DataGridTextColumn Width="2*"
-									Header="Value"
-									Binding="{Binding Value}" />
-				<DataGridTemplateColumn Header="">
-					<DataGridTemplateColumn.CellTemplate>
-						<DataTemplate>
-							<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
-									VerticalAlignment="Center"
-									Padding="3"
-									Margin="0"
-									Classes="Outline"
-									Command="{Binding $parent[DataGrid].DataContext.RemoveItemCommand}"
-									CommandParameter="{Binding}"/>
-						</DataTemplate>
-					</DataGridTemplateColumn.CellTemplate>
-				</DataGridTemplateColumn>
-			</DataGrid.Columns>
-		</DataGrid>
+		<material:Card Margin="5">
+			<DockPanel>
+				<Border BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
+						Margin="0,0,0,5"
+						DockPanel.Dock="Top">
+					<Grid ColumnDefinitions="100, 100, *, Auto">
+						<TextBlock Text="Name"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="0"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Arguments"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="1"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Value"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="2"
+								   VerticalAlignment="Center" />
+					</Grid>
+				</Border>
+				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl ItemsSource="{Binding FilteredFunctions}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<Grid ColumnDefinitions="100, 100, *, Auto">
+									<SelectableTextBlock Text="{Binding Name}"
+														 FontWeight="Bold"
+														 Margin="5"
+														 VerticalAlignment="Center"
+														 Grid.Column="0"/>
+									<SelectableTextBlock Text="{Binding Arguments, Converter={x:Static my:ConverterHelpers.CommaJoinedConverter}}"
+														 Margin="5"
+														 VerticalAlignment="Center"
+														 Grid.Column="1" />
+									<SelectableTextBlock Text="{Binding Value}"
+														 Margin="5"
+														 VerticalAlignment="Center"
+														 Grid.Column="2"/>
+									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
+											Grid.Column="3"
+											VerticalAlignment="Center"
+											Padding="3"
+											Margin="5"
+											Classes="Outline"
+											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
+											CommandParameter="{Binding}"/>
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</DockPanel>
+		</material:Card>
 	</DockPanel>
 </UserControl>

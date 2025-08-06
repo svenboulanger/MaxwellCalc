@@ -27,6 +27,14 @@ namespace MaxwellCalc.Controls
         /// </summary>
         public string Text => _output?.Text ?? string.Empty;
 
+        public CopyableQuantity()
+        {
+            if (Design.IsDesignMode)
+            {
+                Value = new Quantity<string>("Hello", Unit.UnitMeter);
+            }
+        }
+
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
@@ -38,7 +46,7 @@ namespace MaxwellCalc.Controls
 
             if (clipboard is not null && _output is not null && btnCopyOutput is not null)
                 btnCopyOutput.Click += (sender, args) => clipboard.SetTextAsync(_output?.Text);
-            else if (btnCopyOutput is not null)
+            else if (btnCopyOutput is not null && !Design.IsDesignMode)
                 btnCopyOutput.IsVisible = false; // Hide as we cannot copy to clibboard anyway
         }
 

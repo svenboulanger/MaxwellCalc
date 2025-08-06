@@ -3,7 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:my="using:MaxwellCalc.Views"
 			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 x:DataType="vm:VariablesViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -11,39 +13,61 @@
 	<Design.DataContext>
 		<vm:VariablesViewModel />
 	</Design.DataContext>
-	<DataGrid IsReadOnly="True"
-			  GridLinesVisibility="All"
-			  CanUserResizeColumns="True"
-			  CanUserSortColumns="True"
-			  Margin="10"
-			  SelectedItem="{Binding SelectedItem}"
-			  ItemsSource="{Binding FilteredVariables}">
-		<DataGrid.Columns>
-			<DataGridTextColumn Header="Parameter"
-								Width="*"
-								Binding="{Binding Name}" />
-			<DataGridTemplateColumn Width="2*"
-									Header="Value">
-				<DataGridTemplateColumn.CellTemplate>
-					<DataTemplate>
-						<controls:CopyableQuantity Value="{Binding Value}"
-												   VerticalAlignment="Center" />
-					</DataTemplate>
-				</DataGridTemplateColumn.CellTemplate>
-			</DataGridTemplateColumn>
-			<DataGridTemplateColumn Header="">
-				<DataGridTemplateColumn.CellTemplate>
-					<DataTemplate>
-						<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
-								VerticalAlignment="Center"
-								Padding="3"
-								Margin="0"
-								Classes="Outline"
-								Command="{Binding $parent[DataGrid].DataContext.RemoveItemCommand}"
-								CommandParameter="{Binding}"/>
-					</DataTemplate>
-				</DataGridTemplateColumn.CellTemplate>
-			</DataGridTemplateColumn>
-		</DataGrid.Columns>
-	</DataGrid>
+	<DockPanel>
+		<material:Card DockPanel.Dock="Top"
+					   Margin="5"
+					   Padding="5">
+			<TextBox Watermark="Search"
+					 Height="20"
+					 Text="{Binding Filter}" />
+		</material:Card>
+		<material:Card Margin="5">
+			<DockPanel>
+				<Border BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
+						Margin="0,0,0,5"
+						DockPanel.Dock="Top">
+					<Grid ColumnDefinitions="150, *, Auto">
+						<TextBlock Text="Parameter"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="0"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Value"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="1"
+								   VerticalAlignment="Center" />
+					</Grid>
+				</Border>
+				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl ItemsSource="{Binding FilteredVariables}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<Grid ColumnDefinitions="150, *, Auto">
+									<SelectableTextBlock Text="{Binding Name}"
+														 FontWeight="Bold"
+														 Margin="5"
+														 VerticalAlignment="Center"
+														 Grid.Column="0"/>
+									<controls:CopyableQuantity Value="{Binding Value}"
+															   Margin="5"
+															   Grid.Column="1"
+															   VerticalAlignment="Center"/>
+									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
+											Grid.Column="2"
+											VerticalAlignment="Center"
+											Padding="3"
+											Margin="5"
+											Classes="Outline"
+											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
+											CommandParameter="{Binding}"/>
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</DockPanel>
+		</material:Card>
+	</DockPanel>
 </UserControl>

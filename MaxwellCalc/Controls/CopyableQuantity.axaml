@@ -19,11 +19,8 @@
 							Padding="5"
 							Margin="1"
 							Background="Transparent"
-							Name="CopyOutputButton">
-						<materialIcons:MaterialIcon Kind="Copyleft"
-													Width="{TemplateBinding FontSize}"
-													Height="{TemplateBinding FontSize}" />
-					</Button>
+							Content="{materialIcons:MaterialIconExt Kind=ContentCopy}"
+							Name="CopyOutputButton" />
 				</StackPanel>
 			</ControlTemplate>
 		</Setter>

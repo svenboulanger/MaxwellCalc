@@ -19,33 +19,60 @@
 	</UserControl.Styles>
 	<DockPanel>
 		<material:Card DockPanel.Dock="Top"
-			   Margin="5"
-			   Padding="5">
+					   Margin="5"
+					   Padding="5">
 			<TextBox Watermark="Search"
 					 Height="20"
 					 Text="{Binding Filter}" />
 		</material:Card>
-		<DataGrid IsReadOnly="True"
-			  GridLinesVisibility="All"
-			  CanUserResizeColumns="True"
-			  CanUserSortColumns="True"
-			  Margin="10"
-			  SelectedItem="{Binding SelectedItem}"
-			  ItemsSource="{Binding FilteredFunctions}">
-			<DataGrid.Styles>
-
-			</DataGrid.Styles>
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="Function"
-									Width="2*"
-									Binding="{Binding Name}" />
-				<DataGridTextColumn Header="Args"
-									Width="*"
-									Binding="{Binding ArgCountDescription}" />
-				<DataGridTextColumn Width="5*"
-									Header="Description"
-									Binding="{Binding Description}" />
-			</DataGrid.Columns>
-		</DataGrid>
+		<material:Card Margin="5">
+			<DockPanel>
+				<Border BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
+						Margin="0,0,0,5"
+						DockPanel.Dock="Top">
+					<Grid ColumnDefinitions="100, 100, *">
+						<TextBlock Text="Name"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="0"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Arguments"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="1"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Description"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="2"
+								   VerticalAlignment="Center" />
+					</Grid>
+				</Border>
+				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl ItemsSource="{Binding FilteredFunctions}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="vm:BuiltInFunctionViewModel">
+								<Grid ColumnDefinitions="100, 100, *">
+									<TextBlock Text="{Binding Name}"
+											   FontWeight="Bold"
+											   Width="100"
+											   Padding="5"
+											   Grid.Column="0" />
+									<TextBlock Text="{Binding ArgCountDescription}"
+											   Width="100"
+											   Padding="5"
+											   Grid.Column="1" />
+									<TextBlock Text="{Binding Description}"
+											   TextWrapping="Wrap"
+											   Padding="5"
+											   Grid.Column="2" />
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</DockPanel>
+		</material:Card>
 	</DockPanel>
 </UserControl>

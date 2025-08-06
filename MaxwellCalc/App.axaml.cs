@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using MaxwellCalc.Core.Workspaces.SpecialFunctions;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.ViewModels;
@@ -49,6 +50,7 @@ namespace MaxwellCalc
             DoubleMathHelper.RegisterCommonElectronicsConstants(workspace);
             // DoubleMathHelper.RegisterFunctions(workspace);
             workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
+            workspace.RegisterConstants(typeof(Constants));
             UnitHelper.RegisterCommonUnits(workspace);
             UnitHelper.RegisterCommonElectronicsUnits(workspace);
             return workspace;

@@ -35,9 +35,9 @@ namespace MaxwellCalc.Behaviors
         {
             if (sender is not ScrollViewer scrollViewer)
                 return;
-
+            
             scrollViewer.AttachedToVisualTree -= ScrollViewerOnAttachedToVisualTree;
-
+            
             if (scrollViewer.Content is ItemsControl itemsControl &&
                 itemsControl.Items is INotifyCollectionChanged notifyCollection)
             {
