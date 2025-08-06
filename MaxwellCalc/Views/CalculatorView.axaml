@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
 			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 xmlns:behaviors="clr-namespace:MaxwellCalc.Behaviors"
 			 x:DataType="vm:CalculatorViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -12,21 +14,33 @@
 		<vm:CalculatorViewModel />
 	</Design.DataContext>
 	<DockPanel>
-		<TextBox DockPanel.Dock="Bottom"
-				 Margin="5"
-				 Padding="1"
-				 Watermark="Your expression ..."
-				 CaretIndex="{Binding CaretIndex}"
-				 Text="{Binding Expression}"
-				 Focusable="True"
-				 Loaded="InputTextBoxLoaded"
-				 Name="InputExpressionTextBox">
-			<TextBox.KeyBindings>
-				<KeyBinding Command="{Binding EvaluateCommand}" Gesture="Enter" />
-				<KeyBinding Command="{Binding TrackHistoryUpCommand}" Gesture="Up" />
-				<KeyBinding Command="{Binding TrackHistoryDownCommand}" Gesture="Down" />
-			</TextBox.KeyBindings>
-		</TextBox>
+		<material:Card DockPanel.Dock="Bottom"
+					   Margin="5">
+			<Grid ColumnDefinitions="*, Auto">
+				<TextBox Margin="5 0"
+						 Padding="0"
+						 Watermark="Your expression ..."
+						 CaretIndex="{Binding CaretIndex}"
+						 Text="{Binding Expression}"
+						 Focusable="True"
+						 Loaded="InputTextBoxLoaded"
+						 Grid.Column="0"
+						 FontSize="20"
+						 VerticalAlignment="Center"
+						 Name="InputExpressionTextBox">
+					<TextBox.KeyBindings>
+						<KeyBinding Command="{Binding EvaluateCommand}" Gesture="Enter" />
+						<KeyBinding Command="{Binding TrackHistoryUpCommand}" Gesture="Up" />
+						<KeyBinding Command="{Binding TrackHistoryDownCommand}" Gesture="Down" />
+					</TextBox.KeyBindings>
+				</TextBox>
+				<Button Grid.Column="1"
+						Margin="5"
+						VerticalAlignment="Center"
+						Command="{Binding EvaluateCommand}"
+						Content="{materialIcons:MaterialIconExt Kind=KeyboardReturn}" />
+			</Grid>
+		</material:Card>
 		<ScrollViewer behaviors:ScrollViewerBehavior.AutoScrollToEnd="True">
 			<ItemsControl ItemsSource="{Binding Results}" />
 		</ScrollViewer>

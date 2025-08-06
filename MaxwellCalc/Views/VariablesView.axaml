@@ -2,72 +2,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:loc="using:MaxwellCalc.Controls"
+			 xmlns:views="using:MaxwellCalc.Views"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
-			 xmlns:my="using:MaxwellCalc.Views"
-			 xmlns:controls="using:MaxwellCalc.Controls"
-			 xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
-			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+			 xmlns:material="using:Material.Styles.Controls"
 			 x:DataType="vm:VariablesViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="MaxwellCalc.Views.VariablesView">
 	<Design.DataContext>
 		<vm:VariablesViewModel />
 	</Design.DataContext>
-	<DockPanel>
-		<material:Card DockPanel.Dock="Top"
-					   Margin="5"
-					   Padding="5">
-			<TextBox Watermark="Search"
-					 Height="20"
-					 Text="{Binding Filter}" />
-		</material:Card>
-		<material:Card Margin="5">
-			<DockPanel>
-				<Border BorderThickness="0,0,0,1"
-						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
-						Margin="0,0,0,5"
-						DockPanel.Dock="Top">
-					<Grid ColumnDefinitions="150, *, Auto">
-						<TextBlock Text="Parameter"
-								   FontWeight="Bold"
-								   Margin="5"
-								   Grid.Column="0"
-								   VerticalAlignment="Center" />
-						<TextBlock Text="Value"
-								   FontWeight="Bold"
-								   Margin="5"
-								   Grid.Column="1"
-								   VerticalAlignment="Center" />
-					</Grid>
-				</Border>
-				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredVariables}">
-						<ItemsControl.ItemTemplate>
-							<DataTemplate>
-								<Grid ColumnDefinitions="150, *, Auto">
-									<SelectableTextBlock Text="{Binding Name}"
-														 FontWeight="Bold"
-														 Margin="5"
-														 VerticalAlignment="Center"
-														 Grid.Column="0"/>
-									<controls:CopyableQuantity Value="{Binding Value}"
-															   Margin="5"
-															   Grid.Column="1"
-															   VerticalAlignment="Center"/>
-									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
-											Grid.Column="2"
-											VerticalAlignment="Center"
-											Padding="3"
-											Margin="5"
-											Classes="Outline"
-											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
-											CommandParameter="{Binding}"/>
-								</Grid>
-							</DataTemplate>
-						</ItemsControl.ItemTemplate>
-					</ItemsControl>
-				</ScrollViewer>
-			</DockPanel>
-		</material:Card>
-	</DockPanel>
+	<SplitView IsPaneOpen="True"
+			   OpenPaneLength="130"
+			   CompactPaneLength="40"
+			   DisplayMode="CompactInline">
+		<SplitView.Pane>
+			<ListBox SelectedIndex="{Binding SelectedListItem}"
+					 Margin="5"
+					 Padding="0">
+				<ListBoxItem>User variables</ListBoxItem>
+				<ListBoxItem>Constants</ListBoxItem>
+			</ListBox>
+		</SplitView.Pane>
+		<SplitView.Content>
+			<TransitioningContentControl Content="{Binding CurrentPage}" />
+		</SplitView.Content>
+	</SplitView>
 </UserControl>

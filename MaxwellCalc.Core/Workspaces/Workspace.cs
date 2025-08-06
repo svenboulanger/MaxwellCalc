@@ -44,6 +44,9 @@ namespace MaxwellCalc.Workspaces
         public IVariableScope<T> Scope => _scopes.Peek();
 
         /// <inheritdoc />
+        public IVariableScope<T> ConstantsScope => _constantScope;
+
+        /// <inheritdoc />
         public IEnumerable<Variable> Variables
         {
             get
@@ -51,10 +54,10 @@ namespace MaxwellCalc.Workspaces
                 var scope = _scopes.Peek();
                 foreach (var p in scope.Variables)
                 {
-                    if (!scope.TryGetVariable(p, out var value) ||
+                    if (!scope.TryGetVariable(p, out var value, out string? description) ||
                         !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
                         continue;
-                    yield return new(p, formatted);
+                    yield return new(p, formatted, description);
                 }
             }
         }
@@ -66,10 +69,10 @@ namespace MaxwellCalc.Workspaces
             {
                 foreach (var p in _constantScope.Variables)
                 {
-                    if (!_constantScope.TryGetVariable(p, out var value) ||
+                    if (!_constantScope.TryGetVariable(p, out var value, out string? description) ||
                         !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
                         continue;
-                    yield return new(p, formatted);
+                    yield return new(p, formatted, description);
                 }
             }
         }
@@ -490,10 +493,47 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TrySetConstant(Variable variable)
+        public bool TryGetVariable(string name, out Quantity<string> value, out string? description)
+        {
+            var scope = _scopes.Peek();
+            if (!scope.TryGetVariable(name, out var typedValue, out description) ||
+                !Resolver.TryFormat(typedValue, "g", CultureInfo.InvariantCulture, out value))
+            {
+                value = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryGetConstant(string name, out Quantity<string> value)
+        {
+            if (!_constantScope.TryGetVariable(name, out var typedValue) ||
+                !Resolver.TryFormat(typedValue, "g", CultureInfo.InvariantCulture, out value))
+            {
+                value = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryGetConstant(string name, out Quantity<string> value, out string? description)
+        {
+            if (!_constantScope.TryGetVariable(name, out var typedValue, out description) ||
+                !Resolver.TryFormat(typedValue, "g", CultureInfo.InvariantCulture, out value))
+            {
+                value = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TrySetConstant(Variable variable, string? description = null)
         {
             if (!Resolver.TryScalar(variable.Value.Scalar, this, out var scalarQuantity) ||
-                !_constantScope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit)))
+                !_constantScope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit), description))
                 return false;
             return true;
         }

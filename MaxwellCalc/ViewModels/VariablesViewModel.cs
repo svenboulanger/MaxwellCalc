@@ -1,159 +1,81 @@
-﻿using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using MaxwellCalc.Units;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+using System.ComponentModel;
 
 namespace MaxwellCalc.ViewModels
 {
     public partial class VariablesViewModel : ViewModelBase
     {
-        [ObservableProperty]
-        private IWorkspace? _workspace;
+        private readonly UserVariablesViewModel _userVariables;
+        private readonly ConstantsViewModel _constantVariables;
 
         [ObservableProperty]
-        private VariableViewModel? _selectedItem;
+        public IWorkspace? _workspace;
 
         [ObservableProperty]
-        ObservableCollection<VariableViewModel> _variables = [];
+        private int _selectedListItem;
 
         [ObservableProperty]
-        ObservableCollection<VariableViewModel> _filteredVariables = [];
-
-        [ObservableProperty]
-        private string _filter = string.Empty;
+        private ViewModelBase _currentPage;
 
         /// <summary>
-        /// Creates a new <see cref="VariablesViewModel"/>.
+        /// Creates a new <see cref="FunctionsViewModel"/>.
         /// </summary>
         public VariablesViewModel()
         {
-            if (Design.IsDesignMode)
-            {
-                // Make up some variables to show what it looks like
-                var model = new VariableViewModel() {
-                    Name = "Sven",
-                    Value = new Quantity<string>("179", new Unit(("cm", 1)))
-                };
-                Variables.Add(model);
-                FilteredVariables.Add(model);
+            _userVariables = new UserVariablesViewModel();
+            _constantVariables = new ConstantsViewModel();
+            _currentPage = _userVariables;
 
-                model = new VariableViewModel() {
-                    Name = "Elke",
-                    Value = new Quantity<string>("150", new Unit(("cm", 1)))
-                };
-                Variables.Add(model);
-                FilteredVariables.Add(model);
-            }
+            _userVariables.PropertyChanged += UserVariablesPropertyChanged;
+            _constantVariables.PropertyChanging += ConstantsPropertyChanged;
         }
 
         /// <summary>
-        /// Creates a new <see cref="VariablesViewModel"/>.
+        /// Creates a new <see cref="FunctionsViewModel"/>.
         /// </summary>
-        /// <param name="sp">The service provider.</param>
+        /// <param name="sp"></param>
         public VariablesViewModel(IServiceProvider sp)
         {
-            _workspace = sp.GetRequiredService<IWorkspace>();
+            _userVariables = sp.GetRequiredService<UserVariablesViewModel>();
+            _constantVariables = sp.GetRequiredService<ConstantsViewModel>();
+            _currentPage = _userVariables;
 
-            // Add all the variables
-            foreach (var variable in _workspace.Variables)
+            _userVariables.PropertyChanged += UserVariablesPropertyChanged;
+            _constantVariables.PropertyChanging += ConstantsPropertyChanged;
+        }
+
+        partial void OnSelectedListItemChanged(int value)
+        {
+            switch (value)
             {
-                var model = new VariableViewModel() { Name = variable.Name, Value = variable.Value };
-                Variables.Add(model);
-                FilteredVariables.Add(model);
+                case 0: CurrentPage = _userVariables; break;
+                case 1: CurrentPage = _constantVariables; break;
             }
-
-            _workspace.VariableChanged += OnWorkspaceVariableChanged;
-        }
-
-        private bool MatchesFilter(VariableViewModel model)
-            => model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false;
-
-        private void ApplyFilter()
-        {
-            FilteredVariables.Clear();
-            foreach (var model in Variables.Where(MatchesFilter))
-                FilteredVariables.Add(model);
-        }
-
-        partial void OnFilterChanged(string value) => ApplyFilter();
-
-        [RelayCommand]
-        private void RemoveItem(VariableViewModel model)
-        {
-            Variables.Remove(model);
-            FilteredVariables.Remove(model);
-            if (Workspace is not null && model.Name is not null)
-                Workspace.TryRemoveVariable(model.Name);
         }
 
         partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
         {
-            // Unregister from the last workspace
-            if (oldValue is not null)
-                oldValue.VariableChanged -= OnWorkspaceVariableChanged;
-            if (newValue is null)
-                return; // No need to do anything
-
-            // Let's try to bring all our variables to the new workspace
-            foreach (var variableModel in Variables)
-            {
-                string name = variableModel.Name ?? string.Empty;
-                newValue.TrySetVariable(new Variable(name, variableModel.Value));
-            }
-
-            // Rebuild our internal list of variables
-            Variables.Clear();
-            FilteredVariables.Clear();
-            foreach (var variable in newValue.Variables)
-            {
-                var model = new VariableViewModel() { Name = variable.Name, Value = variable.Value };
-                Variables.Add(model);
-                if (MatchesFilter(model))
-                    FilteredVariables.Add(model);
-            }
-
-            // Register for the new workspace
-            if (newValue is not null)
-                newValue.VariableChanged += OnWorkspaceVariableChanged;
+            if (ReferenceEquals(oldValue, newValue))
+                return;
+            _userVariables.Workspace = newValue;
+            _userVariables.Workspace = newValue;
         }
 
-        private void OnWorkspaceVariableChanged(object? sender, VariableChangedEvent args)
+        private void ConstantsPropertyChanged(object? sender, PropertyChangingEventArgs e)
         {
-            // Let's update our own list with this
-            // First let's find the model that reflects this variable
-            if (args.Name is null || Workspace is null)
+            if (e.PropertyName != nameof(Workspace))
                 return;
-            
-            // Check if we have a model for it
-            var model = Variables.FirstOrDefault(item => item?.Name?.Equals(args.Name) ?? false);
+            Workspace = _constantVariables.Workspace;
+        }
 
-            if (Workspace.TryGetVariable(args.Name, out var value))
-            {
-                if (model is not null)
-                {
-                    // This is an existing variable update
-                    model.Value = value;
-                }
-                else
-                {
-                    // This is an unknown variable for now
-                    Variables.Add(new() { Name = args.Name, Value = value });
-                }
-            }
-            else
-            {
-                // This is a removed variable
-                if (model is not null)
-                {
-                    Variables.Remove(model);
-                    FilteredVariables.Remove(model);
-                }
-            }
+        private void UserVariablesPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(Workspace))
+                return;
+            Workspace = _userVariables.Workspace;
         }
     }
 }

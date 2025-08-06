@@ -49,12 +49,22 @@ namespace MaxwellCalc.Workspaces
         public bool TryGetVariable(string name, out Quantity<T> result);
 
         /// <summary>
+        /// Tries to get a variable value from the workspace, and its description.
+        /// </summary>
+        /// <param name="name">The name of the variable.</param>
+        /// <param name="result">The result.</param>
+        /// <param name="description">The description.</param>
+        /// <returns>Returns <c>true</c> if the variable was found; otherwise, <c>false</c>.</returns>
+        public bool TryGetVariable(string name, out Quantity<T> result, out string? description);
+
+        /// <summary>
         /// Tries to update a variable value from the workspace.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
+        /// <param name="description">An optional description.</param>
         /// <returns>Returns <c>true</c> if the variable was updated; otherwise, <c>false</c>.</returns>
-        public bool TrySetVariable(string name, Quantity<T> value);
+        public bool TrySetVariable(string name, Quantity<T> value, string? description = null);
 
         /// <summary>
         /// Creates a local scope.

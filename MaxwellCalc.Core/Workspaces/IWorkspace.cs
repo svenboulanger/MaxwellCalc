@@ -155,7 +155,7 @@ namespace MaxwellCalc.Workspaces
         /// <remarks>A constant is different from a variable that it can be overwritten by variables, but not removed.</remarks>
         /// <param name="variable">The constant definition as a variable.</param>
         /// <returns>Returns <c>true</c> if the constant was set; otherwise, <c>false</c>.</returns>
-        public bool TrySetConstant(Variable variable);
+        public bool TrySetConstant(Variable variable, string? description = null);
 
         /// <summary>
         /// Tries to remove a variable.
@@ -178,6 +178,24 @@ namespace MaxwellCalc.Workspaces
         /// <param name="value">The value of the variable.</param>
         /// <returns>Returns <c>true</c> if the variable was found; otherwise, <c>false</c>.</returns>
         public bool TryGetVariable(string name, out Quantity<string> value);
+
+        /// <summary>
+        /// Tries to get a variable from the workspace.
+        /// </summary>
+        /// <param name="name">The variable name.</param>
+        /// <param name="value">The value of the variable.</param>
+        /// <param name="description">The description.</param>
+        /// <returns>Returns <c>true</c> if the variable was found; otherwise, <c>false</c>.</returns>
+        public bool TryGetVariable(string name, out Quantity<string> value, out string? description);
+
+        /// <summary>
+        /// Tries to get a constant from the workspace.
+        /// </summary>
+        /// <param name="name">The constant name.</param>
+        /// <param name="value">The constant value.</param>
+        /// <param name="description">The description.</param>
+        /// <returns>Returns <c>true</c> if the variable was found; otherwise, <c>false</c>.</returns>
+        public bool TryGetConstant(string name, out Quantity<string> value, out string? description);
 
         /// <summary>
         /// Resolves a node.
@@ -212,6 +230,11 @@ namespace MaxwellCalc.Workspaces
         /// Gets the resolver.
         /// </summary>
         public IDomain<T> Resolver { get; }
+
+        /// <summary>
+        /// Gets the constants scope in the workspace.
+        /// </summary>
+        public IVariableScope<T> ConstantsScope { get; }
 
         /// <summary>
         /// Gets the variables in the workspace.

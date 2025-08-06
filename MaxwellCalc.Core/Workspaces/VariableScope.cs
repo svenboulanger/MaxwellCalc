@@ -11,7 +11,8 @@ namespace MaxwellCalc.Workspaces
     public class VariableScope<T> : IVariableScope<T>
     {
         private readonly Dictionary<string, Quantity<T>> _variables = [];
-        private readonly VariableScope<T>? _parent;
+        private readonly Dictionary<string, string> _descriptions = [];
+        private readonly IVariableScope<T>? _parent;
 
         /// <inheritdoc />
         public IEnumerable<string> Variables => _variables.Keys;
@@ -22,14 +23,18 @@ namespace MaxwellCalc.Workspaces
         public event EventHandler<VariableChangedEvent>? VariableChanged;
 
         /// <summary>
-        /// Creates a new <see cref="VariableScope"/>.
+        /// Creates a new <see cref="VariableScope{T}"/>.
         /// </summary>
         public VariableScope()
         {
             _parent = null;
         }
 
-        private VariableScope(VariableScope<T> parent)
+        /// <summary>
+        /// Creates a <see cref="VariableScope{T}"/>
+        /// </summary>
+        /// <param name="parent">The parent scope.</param>
+        public VariableScope(IVariableScope<T> parent)
         {
             _parent = parent;
         }
@@ -47,15 +52,32 @@ namespace MaxwellCalc.Workspaces
             if (_variables.TryGetValue(name, out result))
                 return true;
             if (_parent is not null)
-                return ((IVariableScope<T>)_parent).TryGetVariable(name, out result);
+                return _parent.TryGetVariable(name, out result);
             result = default;
             return false;
         }
 
         /// <inheritdoc />
-        bool IVariableScope<T>.TrySetVariable(string name, Quantity<T> value)
+        bool IVariableScope<T>.TryGetVariable(string name, out Quantity<T> result, out string? description)
+        {
+            if (_variables.TryGetValue(name, out result))
+            {
+                _descriptions.TryGetValue(name, out description);
+                return true;
+            }
+            if (_parent is not null)
+                return _parent.TryGetVariable(name, out result, out description);
+            result = default;
+            description = null;
+            return false;
+        }
+
+        /// <inheritdoc />
+        bool IVariableScope<T>.TrySetVariable(string name, Quantity<T> value, string? description)
         {
             _variables[name] = value;
+            if (description is not null)
+                _descriptions[name] = description;
             VariableChanged?.Invoke(this, new VariableChangedEvent(name));
             return true;
         }
@@ -65,6 +87,7 @@ namespace MaxwellCalc.Workspaces
         {
             if (_variables.Remove(name))
             {
+                _descriptions.Remove(name);
                 VariableChanged?.Invoke(this, new VariableChangedEvent(name));
                 return true;
             }

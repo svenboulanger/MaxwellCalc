@@ -85,7 +85,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the magnitude of a complex number. The units are the same as the argument.")]
+        [CalculatorDescription("Gets the magnitude of a complex number. The units are the same as the argument.")]
         public static bool Abs(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -105,7 +105,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the argument (polar angle) of a complex number. The units are in radians.")]
+        [CalculatorDescription("Gets the argument (polar angle) of a complex number. The units are in radians.")]
         public static bool Arg(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -125,7 +125,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the sine of a complex number.")]
+        [CalculatorDescription("Gets the sine of a complex number.")]
         public static bool Sin(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -154,7 +154,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the cosine of a complex number.")]
+        [CalculatorDescription("Gets the cosine of a complex number.")]
         public static bool Cos(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -183,7 +183,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the tangent of a complex number.")]
+        [CalculatorDescription("Gets the tangent of a complex number.")]
         public static bool Tan(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -211,7 +211,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the hyperbolic sine of a complex number.")]
+        [CalculatorDescription("Gets the hyperbolic sine of a complex number.")]
         public static bool Sinh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -239,7 +239,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the hyperbolic cosine of a complex number.")]
+        [CalculatorDescription("Gets the hyperbolic cosine of a complex number.")]
         public static bool Cosh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -267,7 +267,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the hyperbolic tangent of a complex number.")]
+        [CalculatorDescription("Gets the hyperbolic tangent of a complex number.")]
         public static bool Tanh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -295,7 +295,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the exponent of a complex number.")]
+        [CalculatorDescription("Gets the exponent of a complex number.")]
         public static bool Exp(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -323,7 +323,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the natural logarithm of a complex number.")]
+        [CalculatorDescription("Gets the natural logarithm of a complex number.")]
         public static bool Ln(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -351,7 +351,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the base-10 logarithm of a complex number.")]
+        [CalculatorDescription("Gets the base-10 logarithm of a complex number.")]
         public static bool Log10(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -379,7 +379,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the base-2 logarithm of a complex number.")]
+        [CalculatorDescription("Gets the base-2 logarithm of a complex number.")]
         public static bool Log2(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)
@@ -407,7 +407,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Gets the sqrt of a complex number.")]
+        [CalculatorDescription("Gets the sqrt of a complex number.")]
         public static bool Sqrt(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
             if (args.Count != 1)

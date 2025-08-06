@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace MaxwellCalc.Workspaces
 {
@@ -13,7 +14,12 @@ namespace MaxwellCalc.Workspaces
     /// </summary>
     public static class WorkspaceHelper
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Writes a workspace to JSON. Note that built-in functions are not written.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="writer">The writer.</param>
+        /// <param name="options">The options.</param>
         public static void WriteToJson(this IWorkspace workspace, Utf8JsonWriter writer, JsonSerializerOptions? options = null)
         {
             writer.WriteStartObject();
@@ -36,6 +42,12 @@ namespace MaxwellCalc.Workspaces
                 JsonSerializer.Serialize(writer, variable, options);
             writer.WriteEndArray();
 
+            // Write the constants
+            writer.WriteStartArray("constants");
+            foreach (var constant in workspace.Constants)
+                JsonSerializer.Serialize(writer, constant, options);
+            writer.WriteEndArray();
+
             // Write the user functions
             writer.WriteStartArray("user_functions");
             foreach (var userFunction in workspace.UserFunctions)
@@ -45,7 +57,12 @@ namespace MaxwellCalc.Workspaces
             writer.WriteEndObject();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reads a workspace from JSON. Note that built-in functions are not read.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="options">The options.</param>
         public static void ReadFromJson(this IWorkspace workspace, ref Utf8JsonReader reader, JsonSerializerOptions? options = null)
         {
             if (reader.TokenType != JsonTokenType.StartObject ||
@@ -86,6 +103,17 @@ namespace MaxwellCalc.Workspaces
                         foreach (var variable in variables)
                         {
                             if (!workspace.TrySetVariable(variable))
+                                throw new NotSupportedException(workspace.DiagnosticMessage);
+                        }
+                        reader.Read();
+                        break;
+
+                    case "constants":
+                        reader.Read();
+                        var constants = JsonSerializer.Deserialize<IEnumerable<Variable>>(ref reader, options) ?? [];
+                        foreach (var variable in constants)
+                        {
+                            if (!workspace.TrySetConstant(variable))
                                 throw new NotSupportedException(workspace.DiagnosticMessage);
                         }
                         reader.Read();
@@ -160,10 +188,10 @@ namespace MaxwellCalc.Workspaces
                 {
                     switch (attribute)
                     {
-                        case FunctionNameAttribute fna: name = fna.Name; break;
+                        case CalculatorNameAttribute fna: name = fna.Name; break;
                         case MinArgAttribute minA: minArgCount = minA.Minimum; break;
                         case MaxArgAttribute maxA: maxArgCount = maxA.Maximum; break;
-                        case FunctionDescriptionAttribute desc: description = desc.Description; break; 
+                        case CalculatorDescriptionAttribute desc: description = desc.Description; break; 
                     }
                 }
 
@@ -177,6 +205,11 @@ namespace MaxwellCalc.Workspaces
             }
         }
 
+        /// <summary>
+        /// Uses reflection register all static properties and constants on a type that match the signature of the workspace domain.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="type">The type.</param>
         public static void RegisterConstants(this IWorkspace workspace, Type type)
         {
             // First we need to figure out what the domain type is of the workspace
@@ -193,34 +226,46 @@ namespace MaxwellCalc.Workspaces
             var scopeType = typeof(IVariableScope<>).MakeGenericType(domainType);
 
             // Get the property that defines the scope
-            var scopeProperty = workspace.GetType().GetProperty("Scope", BindingFlags.Public | BindingFlags.Instance);
+            var scopeProperty = workspace.GetType().GetProperty("ConstantsScope", BindingFlags.Public | BindingFlags.Instance);
             if (scopeProperty is null || scopeProperty.PropertyType != scopeType)
                 throw new NotImplementedException();
             var scope = scopeProperty.GetValue(workspace);
-            var setVariableMethod = scopeProperty.PropertyType.GetMethod("TrySetVariable", BindingFlags.Public | BindingFlags.Instance);
-            if (setVariableMethod is null)
+            var setConstantMethod = scopeProperty.PropertyType.GetMethod("TrySetVariable", [typeof(string), quantityType, typeof(string)]);
+            if (setConstantMethod is null)
                 throw new NotImplementedException();
 
             foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
             {
+                // Try to find metadata
+                string name = field.Name.ToLower().ToString();
+                string? description = null;
+                foreach (var attribute in field.GetCustomAttributes())
+                {
+                    switch (attribute)
+                    {
+                        case CalculatorNameAttribute fna: name = fna.Name; break;
+                        case CalculatorDescriptionAttribute desc: description = desc.Description; break;
+                    }
+                }
+
                 if (field.IsLiteral)
                 {
                     if (field.FieldType == typeof(string))
-                        workspace.TrySetVariable(new Variable(field.Name, new Quantity<string>((string)field.GetRawConstantValue(), Unit.UnitNone)));
+                        workspace.TrySetConstant(new Variable(name, new Quantity<string>((string)field.GetRawConstantValue(), Unit.UnitNone), description));
                     else if (field.FieldType == domainType)
-                        setVariableMethod.Invoke(scope, [field.Name.ToLower(), Activator.CreateInstance(quantityType, field.GetRawConstantValue(), Unit.UnitNone)]);
+                        setConstantMethod.Invoke(scope, [name, Activator.CreateInstance(quantityType, field.GetRawConstantValue(), Unit.UnitNone), description]);
                 }
                 else
                 {
                     // Deal with static constants or units
                     if (field.FieldType == typeof(string))
-                        workspace.TrySetVariable(new Variable(field.Name, new Quantity<string>((string)field.GetValue(null), Unit.UnitNone)));
+                        workspace.TrySetConstant(new Variable(name, new Quantity<string>((string)field.GetValue(null), Unit.UnitNone), description));
                     else if (field.FieldType == typeof(Quantity<string>))
-                        workspace.TrySetVariable(new Variable(field.Name, (Quantity<string>)field.GetValue(null)));
+                        workspace.TrySetConstant(new Variable(name, (Quantity<string>)field.GetValue(null), description));
                     else if (field.FieldType == domainType)
-                        setVariableMethod.Invoke(scope, [field.Name.ToLower(), Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone)]);
+                        setConstantMethod.Invoke(scope, [name, Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone), description]);
                     else if (field.FieldType == quantityType)
-                        setVariableMethod.Invoke(scope, [field.Name.ToLower(), field.GetValue(null)]);
+                        setConstantMethod.Invoke(scope, [name, field.GetValue(null), description]);
                 }
             }
         }

@@ -23,10 +23,13 @@ namespace MaxwellCalc
         {
             var services = new ServiceCollection();
             services.AddSingleton<CalculatorViewModel>();
-            services.AddSingleton<VariablesViewModel>();
+            services.AddSingleton<UserVariablesViewModel>();
+            services.AddSingleton<FunctionsViewModel>();
             services.AddSingleton<UserFunctionsViewModel>();
             services.AddSingleton<BuiltInFunctionsViewModel>();
-            services.AddSingleton<FunctionsViewModel>();
+            services.AddSingleton<VariablesViewModel>();
+            services.AddSingleton<UserVariablesViewModel>();
+            services.AddSingleton<ConstantsViewModel>();
             services.AddSingleton(GetSettingsViewModel());
             services.AddSingleton(BuildDefaultWorkspace());
 
@@ -46,11 +49,8 @@ namespace MaxwellCalc
         private static IWorkspace BuildDefaultWorkspace()
         {
             var workspace = new Workspace<double>(new DoubleDomain());
-            DoubleMathHelper.RegisterCommonConstants(workspace);
-            DoubleMathHelper.RegisterCommonElectronicsConstants(workspace);
-            // DoubleMathHelper.RegisterFunctions(workspace);
             workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
-            workspace.RegisterConstants(typeof(Constants));
+            workspace.RegisterConstants(typeof(DoubleMathHelper));
             UnitHelper.RegisterCommonUnits(workspace);
             UnitHelper.RegisterCommonElectronicsUnits(workspace);
             return workspace;

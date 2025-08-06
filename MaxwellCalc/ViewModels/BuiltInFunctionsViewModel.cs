@@ -36,56 +36,41 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                var model = new BuiltInFunctionViewModel
+                InsertModel(new()
                 {
                     Name = "sin",
                     MinArgCount = 1,
                     MaxArgCount = 1,
                     Description = "Calculates the sine of a real number"
-                };
-                Functions.Add(model);
-                FilteredFunctions.Add(model);
-
-                model = new BuiltInFunctionViewModel
+                });
+                InsertModel(new()
                 {
                     Name = "cos",
                     MinArgCount = 1,
                     MaxArgCount = 1,
                     Description = "Calculates the cosine of a real number"
-                };
-                Functions.Add(model);
-                FilteredFunctions.Add(model);
-
-                model = new BuiltInFunctionViewModel
+                });
+                InsertModel(new()
                 {
                     Name = "tan",
                     MinArgCount = 1,
                     MaxArgCount = 1,
                     Description = "Calculates the tangent of a real number"
-                };
-                Functions.Add(model);
-                FilteredFunctions.Add(model);
-
-                model = new BuiltInFunctionViewModel
+                });
+                InsertModel(new()
                 {
                     Name = "min",
                     MinArgCount = 1,
                     MaxArgCount = int.MaxValue,
                     Description = "Calculates the min of a real number"
-                };
-                Functions.Add(model);
-                FilteredFunctions.Add(model);
-
-                model = new BuiltInFunctionViewModel
+                });
+                InsertModel(new()
                 {
                     Name = "round",
                     MinArgCount = 1,
                     MaxArgCount = 2,
                     Description = "Rounds a number to some precision. If the precision is not given, then it will round to 0 digits after the comma."
-                };
-                Functions.Add(model);
-                FilteredFunctions.Add(model);
-
+                });
             }
         }
 
@@ -100,21 +85,20 @@ namespace MaxwellCalc.ViewModels
             // Add all the built-in functions
             foreach (var builtInFunction in _workspace.BuiltInFunctions.OrderBy(bi => bi.Name))
             {
-                var model = new BuiltInFunctionViewModel()
+                InsertModel(new()
                 {
                     Name = builtInFunction.Name,
                     MinArgCount = builtInFunction.MinimumArgumentCount,
                     MaxArgCount = builtInFunction.MaximumArgumentCount,
                     Description = builtInFunction.Description
-                };
-                Functions.Add(model);
-                FilteredFunctions.Add(model);
+                });
             }
         }
 
         private bool MatchesFilter(BuiltInFunctionViewModel model)
-            => (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
-               (model.Description?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
+            => string.IsNullOrWhiteSpace(Filter) ||
+            (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (model.Description?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
 
         [RelayCommand]
         private void ApplyFilter()
@@ -125,15 +109,9 @@ namespace MaxwellCalc.ViewModels
         }
 
         [RelayCommand]
-        private void RemoveItem(BuiltInFunctionViewModel model)
-        {
-            Functions.Remove(model);
-        }
+        private void RemoveItem(BuiltInFunctionViewModel model) => Functions.Remove(model);
 
-        partial void OnFilterChanged(string? oldValue, string newValue)
-        {
-            ApplyFilter();
-        }
+        partial void OnFilterChanged(string? oldValue, string newValue) => ApplyFilter();
 
         partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
         {
@@ -143,7 +121,7 @@ namespace MaxwellCalc.ViewModels
             {
                 // Add all the built-in functions
                 foreach (var builtInFunction in newValue.BuiltInFunctions)
-                    Functions.Add(new()
+                    InsertModel(new()
                     {
                         Name = builtInFunction.Name,
                         MinArgCount = builtInFunction.MinimumArgumentCount,
@@ -151,7 +129,29 @@ namespace MaxwellCalc.ViewModels
                         Description = builtInFunction.Description
                     });
             }
-            ApplyFilter();
+        }
+
+        private void InsertModel(BuiltInFunctionViewModel model)
+        {
+            if (model.Name is null)
+                throw new ArgumentNullException(nameof(model.Name));
+
+            // Insert into the main list
+            int index = 0;
+            while (index < Functions.Count &&
+                StringComparer.Ordinal.Compare(model.Name, Functions[index].Name ?? string.Empty) > 0)
+                index++;
+            Functions.Insert(index, model);
+
+            // Insert into the filtered list
+            if (MatchesFilter(model))
+            {
+                index = 0;
+                while (index < FilteredFunctions.Count &&
+                    StringComparer.Ordinal.Compare(model.Name, FilteredFunctions[index].Name) > 0)
+                    index++;
+                FilteredFunctions.Insert(index, model);
+            }
         }
     }
 }

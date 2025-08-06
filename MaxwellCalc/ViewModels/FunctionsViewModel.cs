@@ -1,5 +1,4 @@
-﻿using Avalonia.OpenGL.Surfaces;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;

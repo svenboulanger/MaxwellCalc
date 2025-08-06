@@ -41,6 +41,9 @@
     <Compile Update="Controls\UnitItem.axaml.cs">
       <DependentUpon>UnitItem.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\UserVariablesView.axaml.cs">
+      <DependentUpon>UserVariablesView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 

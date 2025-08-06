@@ -16,75 +16,152 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// The Euler-Mascheroni constant.
         /// </summary>
-        public const double EulerGamma = 0.57721566490153286060651209008240243104215933593;
+        [CalculatorName("gamma"), CalculatorDescription("The Euler–Mascheroni constant.")]
+        public const double EulerGamma = Constants.EulerGamma;
 
         /// <summary>
-        /// Registers common constants.
+        /// PI.
         /// </summary>
-        /// <param name="workspace">The workspace.Variables.</param>
-        public static void RegisterCommonConstants(IWorkspace<double> workspace)
-        {
-            // Pi, as expected
-            workspace.Scope.TrySetVariable("pi", new Quantity<double>(Math.PI, Unit.UnitNone));
-
-            // Euler number
-            workspace.Scope.TrySetVariable("e", new Quantity<double>(Math.E, Unit.UnitNone));
-
-            // Speed of light
-            workspace.Scope.TrySetVariable("c", new Quantity<double>(299792458.0, new Unit((Unit.Meter, 1), (Unit.Second, -1))));
-
-            // Euler constant
-            workspace.Scope.TrySetVariable("euler", new Quantity<double>(Constants.EulerGamma, Unit.UnitNone));
-        }
+        [CalculatorDescription("Pi.")]
+        public const double Pi = Math.PI;
 
         /// <summary>
-        /// Registers constants that are common for electrical applications.
+        /// Euler's constant.
         /// </summary>
-        /// <param name="workspace">The workspace.Variables.</param>
-        public static void RegisterCommonElectronicsConstants(IWorkspace<double> workspace)
-        {
-            // Elementary charge (Coulomb)
-            workspace.Scope.TrySetVariable("q", new Quantity<double>(1.60217663e-19, new Unit((Unit.Ampere, 1), (Unit.Second, 1))));
+        [CalculatorDescription("Euler's constant.")]
+        public const double E = Math.E;
 
-            // Permittivity of vacuum (Farad/meter)
-            workspace.Scope.TrySetVariable("eps0", new Quantity<double>(8.8541878128e-12, new Unit(
+        /// <summary>
+        /// Light speed.
+        /// </summary>
+        [CalculatorName("c"), CalculatorDescription("Light speed.")]
+        public static Quantity<double> LightSpeed = new(299792458.0, new Unit((Unit.Meter, 1), (Unit.Second, -1)));
+
+        /// <summary>
+        /// The elementary charge.
+        /// </summary>
+        [CalculatorName("q"), CalculatorDescription("The elementary charge.")]
+        public static Quantity<double> ElementaryCharge = new(1.60217663e-19, new Unit((Unit.Ampere, 1), (Unit.Second, 1)));
+
+        /// <summary>
+        /// Permittivity of vacuum (Farad/meter).
+        /// </summary>
+        [CalculatorDescription("The permittivity of vacuum.")]
+        public static Quantity<double> Eps0 = new(8.8541878128e-12, new Unit(
                     (Unit.Kilogram, -1),
                     (Unit.Meter, -3),
                     (Unit.Second, 4),
-                    (Unit.Ampere, 2))));
+                    (Unit.Ampere, 2)));
 
-            // Permeability of vacuum (Newton Ampere^-2)
-            workspace.Scope.TrySetVariable("mu0", new Quantity<double>(1.25663706212e-6, new Unit(
+        /// <summary>
+        /// Permeability of vacuum (Newton Ampere^-2)
+        /// </summary>
+        [CalculatorDescription("The permeability of vacuum.")]
+        public static Quantity<double> Mu0 = new(1.25663706212e-6, new Unit(
                 (Unit.Kilogram, 1),
                 (Unit.Meter, 1),
                 (Unit.Second, -2),
-                (Unit.Ampere, -2))));
+                (Unit.Ampere, -2)));
 
-            // Electron-volt (eV)
-            workspace.Scope.TrySetVariable("eV", new Quantity<double>(1.60217663e-19, new Unit(
+        /// <summary>
+        /// An electron-volt.
+        /// </summary>
+        [CalculatorName("eV"), CalculatorDescription("An electronvolt.")]
+        public static Quantity<double> ElectronVolt = new(1.60217663e-19, new Unit(
                 (Unit.Kilogram, 1),
                 (Unit.Meter, 2),
-                (Unit.Second, -2))));
+                (Unit.Second, -2)));
 
-            // Planck constant (J s)
-            workspace.Scope.TrySetVariable("h", new Quantity<double>(6.6260693e-34, new Unit(
-                (Unit.Kilogram, 1),
-                (Unit.Meter, 2),
-                (Unit.Second, -1))));
+        /// <summary>
+        /// Planck's constant.
+        /// </summary>
+        [CalculatorName("h"), CalculatorDescription("Planck's constant.")]
+        public static Quantity<double> Planck = new(6.6260693e-34, new Unit(
+            (Unit.Kilogram, 1),
+            (Unit.Meter, 2),
+            (Unit.Second, -1)));
 
-            // Reduced Planck constant bar (J s)
-            workspace.Scope.TrySetVariable("hbar", new Quantity<double>(6.6260693e-34 / Math.PI, new Unit(
-                (Unit.Kilogram, 1),
-                (Unit.Meter, 2),
-                (Unit.Second, -1))));
+        /// <summary>
+        /// Reduced Planck constant bar (J s)
+        /// </summary>
+        [CalculatorName("hbar"), CalculatorDescription("The reduced Planck's constant.")]
+        public static Quantity<double> PlanckBar = new(6.6260693e-34 / Math.PI, new Unit(
+            (Unit.Kilogram, 1),
+            (Unit.Meter, 2),
+            (Unit.Second, -1)));
 
-            // Boltzmann constant (J/K)
-            workspace.Scope.TrySetVariable("k", new Quantity<double>(1.3806505e-23, new Unit(
-                (Unit.Kilogram, 1),
-                (Unit.Meter, 2),
-                (Unit.Second, -2),
-                (Unit.Kelvin, -1))));
-        }
+        /// <summary>
+        /// Boltzmann constant (J/K).
+        /// </summary>
+        [CalculatorName("k"), CalculatorDescription("Boltzmann's constant.")]
+        public static Quantity<double> Boltzmann = new(1.3806505e-23, new Unit(
+            (Unit.Kilogram, 1),
+            (Unit.Meter, 2),
+            (Unit.Second, -2),
+            (Unit.Kelvin, -1)));
+
+        /// <summary>
+        /// The newtonian constant of gravitation.
+        /// </summary>
+        [CalculatorName("G"), CalculatorDescription("Newtonian constant of gravitation.")]
+        public static Quantity<double> NewtonianGravityConstant = new(6.6743015e-11, new Unit(
+            (Unit.Meter, 3),
+            (Unit.Kilogram, -1),
+            (Unit.Second, -2)));
+
+        /// <summary>
+        /// The mass of an electron.
+        /// </summary>
+        [CalculatorName("me"), CalculatorDescription("The mass of an electron.")]
+        public static Quantity<double> ElectronMass = new(9.109383713928e-31, Unit.UnitKilogram);
+
+        /// <summary>
+        /// The mass of a muon.
+        /// </summary>
+        [CalculatorName("mmu"), CalculatorDescription("The mass of a muon.")]
+        public static Quantity<double> MuonMass = new(1.88353162742e-28, Unit.UnitKilogram);
+
+        /// <summary>
+        /// The mass of a tau particle.
+        /// </summary>
+        [CalculatorName("mtau"), CalculatorDescription("The mass of a tau particle.")]
+        public static Quantity<double> TauMass = new(3.1675421e10-27, Unit.UnitKilogram);
+
+        /// <summary>
+        /// The mass of a proton.
+        /// </summary>
+        [CalculatorName("mp"), CalculatorDescription("The mass of a proton.")]
+        public static Quantity<double> ProtonMass = new(1.6726219259552e10-27, Unit.UnitKilogram);
+
+        /// <summary>
+        /// The mass of a neutron.
+        /// </summary>
+        [CalculatorName("mn"), CalculatorDescription("The mass of a neutron.")]
+        public static Quantity<double> NeutronMass = new(1.6749275005685e10-27, Unit.UnitKilogram);
+
+        /// <summary>
+        /// The g-factor of an electron.
+        /// </summary>
+        [CalculatorName("ge"), CalculatorDescription("The g-factor of an electron.")]
+        public const double ElectronGFactor = 2.0023193043609236;
+
+        /// <summary>
+        /// The g-factor of a muon.
+        /// </summary>
+        [CalculatorName("gm"), CalculatorDescription("The g-factor of a muon.")]
+        public const double MuonGFactor = 2.0023318412382;
+
+        /// <summary>
+        /// The g-factor of a proton.
+        /// </summary>
+        [CalculatorName("gp"), CalculatorDescription("The g-factor of a proton.")]
+        public const double ProtonGFactor = 5.585694689316;
+
+        /// <summary>
+        /// Avogadro's constant.
+        /// </summary>
+        [CalculatorName("NA"), CalculatorDescription("Avogadro's constant.")]
+        public static Quantity<double> AvogadroConstant = new(6.02214076e23, new Unit((Unit.Mole, -1)));
 
         /// <summary>
         /// Computes the absolute value of a quantity.
@@ -93,7 +170,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Takes the absolute value of a number. The result has the same units as the argument.")]
+        [CalculatorDescription("Takes the absolute value of a number. The result has the same units as the argument.")]
         public static bool Abs(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count != 1)
@@ -113,7 +190,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the sine of a real number.")]
+        [CalculatorDescription("Calculates the sine of a real number.")]
         public static bool Sin(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleGivenUnitArgument(Unit.UnitRadian, workspace, nameof(Sin), out result))
@@ -129,7 +206,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the cosine of a real number.")]
+        [CalculatorDescription("Calculates the cosine of a real number.")]
         public static bool Cos(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleGivenUnitArgument(Unit.UnitRadian, workspace, nameof(Cos), out result))
@@ -145,7 +222,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the tangent of a real number.")]
+        [CalculatorDescription("Calculates the tangent of a real number.")]
         public static bool Tan(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleGivenUnitArgument(Unit.UnitRadian, workspace, nameof(Tan), out result))
@@ -161,7 +238,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the hyperbolic sine of a real number.")]
+        [CalculatorDescription("Calculates the hyperbolic sine of a real number.")]
         public static bool Sinh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Sinh), out result))
@@ -177,7 +254,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the hyperbolic cosine of a real number.")]
+        [CalculatorDescription("Calculates the hyperbolic cosine of a real number.")]
         public static bool Cosh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Cosh), out result))
@@ -193,7 +270,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the hyperbolic tangent of a real number.")]
+        [CalculatorDescription("Calculates the hyperbolic tangent of a real number.")]
         public static bool Tanh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Tanh), out result))
@@ -209,7 +286,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the exponential of a real number.")]
+        [CalculatorDescription("Calculates the exponential of a real number.")]
         public static bool Exp(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Exp), out result))
@@ -225,7 +302,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the natural logarithm of a real number.")]
+        [CalculatorDescription("Calculates the natural logarithm of a real number.")]
         public static bool Ln(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Ln), out result))
@@ -241,7 +318,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculate the base-10 logarithm of a real number.")]
+        [CalculatorDescription("Calculate the base-10 logarithm of a real number.")]
         public static bool Log10(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Log10), out result))
@@ -257,7 +334,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the base-2 logarithm of a real number.")]
+        [CalculatorDescription("Calculates the base-2 logarithm of a real number.")]
         public static bool Log2(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Log2), out result))
@@ -273,7 +350,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the square root of a real number.")]
+        [CalculatorDescription("Calculates the square root of a real number.")]
         public static bool Sqrt(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count != 1)
@@ -303,7 +380,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the arcsine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the arcsine of a real number. The result is in radians.")]
         public static bool Asin(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Asin), out result))
@@ -324,7 +401,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the arccosine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the arccosine of a real number. The result is in radians.")]
         public static bool Acos(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Acos), out result))
@@ -346,7 +423,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the arctangent of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the arctangent of a real number. The result is in radians.")]
         public static bool Atan(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Atan), out result))
@@ -362,7 +439,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the hyperbolic arcsine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arcsine of a real number. The result is in radians.")]
         public static bool Asinh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Asinh), out result))
@@ -378,7 +455,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the hyperbolic arccosine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arccosine of a real number. The result is in radians.")]
         public static bool Acosh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Acosh), out result))
@@ -394,7 +471,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the hyperbolic arctangent of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arctangent of a real number. The result is in radians.")]
         public static bool Atanh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Atanh), out result))
@@ -410,7 +487,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units. The result is in radians.")]
+        [CalculatorDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units. The result is in radians.")]
         [MinArg(2), MaxArg(2)]
         public static bool Atan2(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -438,7 +515,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the maximum of a number of arguments. All arguments need to have the same units."), MinArg(1), MaxArg(int.MaxValue)]
+        [CalculatorDescription("Calculates the maximum of a number of arguments. All arguments need to have the same units."), MinArg(1), MaxArg(int.MaxValue)]
         public static bool Max(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count < 1)
@@ -473,7 +550,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the minimum of a number of arguments. All arguments need to have the same units."), MinArg(1), MaxArg(int.MaxValue)]
+        [CalculatorDescription("Calculates the minimum of a number of arguments. All arguments need to have the same units."), MinArg(1), MaxArg(int.MaxValue)]
         public static bool Min(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count < 1)
@@ -508,7 +585,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Rounds a number to some precision. If the second argument for precision is not specified, a precision of 0 digits after the comma is assumed.")]
+        [CalculatorDescription("Rounds a number to some precision. If the second argument for precision is not specified, a precision of 0 digits after the comma is assumed.")]
         [MinArg(1), MaxArg(2)]
         public static bool Round(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -544,7 +621,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the factorial of a number. If the number is real, it is converted to an integer. The argument is expected to have no units.")]
+        [CalculatorDescription("Calculates the factorial of a number. If the number is real, it is converted to an integer. The argument is expected to have no units.")]
         public static bool Factorial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Factorial), out result))
@@ -561,7 +638,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the natural logarithm of the factorial of a number. If the number is real, it is converted to an integer. The argument is expected to have no units.")]
+        [CalculatorDescription("Calculates the natural logarithm of the factorial of a number. If the number is real, it is converted to an integer. The argument is expected to have no units.")]
         public static bool FactorialLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count != 1)
@@ -591,7 +668,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
+        [CalculatorDescription("Calculates the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
         [MinArg(2), MaxArg(2)]
         public static bool Binomial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -622,7 +699,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the natural logarithm of the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
+        [CalculatorDescription("Calculates the natural logarithm of the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
         [MinArg(2), MaxArg(2)]
         public static bool BinomialLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -653,7 +730,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the multinomial of a number of arguments. The first is n, the others are the k's in the denominator. The arguments are expected to have no units.")]
+        [CalculatorDescription("Calculates the multinomial of a number of arguments. The first is n, the others are the k's in the denominator. The arguments are expected to have no units.")]
         public static bool Multinomial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count < 2)
@@ -689,7 +766,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the exponential integral of a number. The argument is expected to not have units.")]
+        [CalculatorDescription("Calculates the exponential integral of a number. The argument is expected to not have units.")]
         public static bool Expi(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (args.Count != 1)
@@ -718,7 +795,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the generalized exponential integral of a number with n=1. The argument is expected to not have units.")]
+        [CalculatorDescription("Calculates the generalized exponential integral of a number with n=1. The argument is expected to not have units.")]
         public static bool Exp1(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Exp1), out result))
@@ -735,7 +812,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the generalized exponential integral of a number, with the second argument representing n. The arguments is expected to not have units.")]
+        [CalculatorDescription("Calculates the generalized exponential integral of a number, with the second argument representing n. The arguments is expected to not have units.")]
         [MinArg(2), MaxArg(2)]
         public static bool Expn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -765,7 +842,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the Gamma function. The argument is expected to not have units.")]
+        [CalculatorDescription("Calculates the Gamma function. The argument is expected to not have units.")]
         public static bool Gamma(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Gamma), out result))
@@ -781,7 +858,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [FunctionDescription("Calculates the natural logarithm of the Gamma function. The argument is expected to not have units.")]
+        [CalculatorDescription("Calculates the natural logarithm of the Gamma function. The argument is expected to not have units.")]
         public static bool GammaLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(GammaLn), out result))

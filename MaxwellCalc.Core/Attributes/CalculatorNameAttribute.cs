@@ -6,7 +6,8 @@ namespace MaxwellCalc.Core.Attributes
     /// An attribute for defining the name of a built-in function.
     /// </summary>
     /// <param name="name">The name.</param>
-    public class FunctionNameAttribute(string name) : Attribute
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public class CalculatorNameAttribute(string name) : Attribute
     {
         /// <summary>
         /// Gets the name.

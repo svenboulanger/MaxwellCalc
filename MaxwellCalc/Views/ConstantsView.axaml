@@ -3,16 +3,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
-			 xmlns:controls="using:MaxwellCalc.Controls"
 			 xmlns:my="using:MaxwellCalc.Views"
+			 xmlns:controls="using:MaxwellCalc.Controls"
 			 xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-			 x:DataType="vm:UserFunctionsViewModel"
+			 x:DataType="vm:ConstantsViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="MaxwellCalc.Views.UserFunctionsView">
-    <Design.DataContext>
-	    <vm:UserFunctionsViewModel />
-    </Design.DataContext>
+             x:Class="MaxwellCalc.Views.ConstantsView">
+	<Design.DataContext>
+		<vm:ConstantsViewModel />
+	</Design.DataContext>
 	<DockPanel>
 		<material:Card DockPanel.Dock="Top"
 					   Margin="5"
@@ -27,42 +27,42 @@
 						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
 						Margin="0,0,0,5"
 						DockPanel.Dock="Top">
-					<Grid ColumnDefinitions="100, 100, *, Auto">
-						<TextBlock Text="Name"
+					<Grid ColumnDefinitions="150, *, *, 50">
+						<TextBlock Text="Parameter"
 								   FontWeight="Bold"
 								   Margin="5"
 								   Grid.Column="0"
 								   VerticalAlignment="Center" />
-						<TextBlock Text="Arguments"
+						<TextBlock Text="Value"
 								   FontWeight="Bold"
 								   Margin="5"
 								   Grid.Column="1"
 								   VerticalAlignment="Center" />
-						<TextBlock Text="Value"
+						<TextBlock Text="Description"
 								   FontWeight="Bold"
 								   Margin="5"
 								   Grid.Column="2"
-								   VerticalAlignment="Center" />
+								   VerticalAlignment="Center"/>
 					</Grid>
 				</Border>
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredFunctions}">
+					<ItemsControl ItemsSource="{Binding FilteredConstants}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Grid ColumnDefinitions="100, 100, *, Auto">
+								<Grid ColumnDefinitions="150, *, *, 50">
 									<SelectableTextBlock Text="{Binding Name}"
 														 FontWeight="Bold"
 														 Margin="5"
 														 VerticalAlignment="Center"
 														 Grid.Column="0"/>
-									<SelectableTextBlock Text="{Binding Arguments, Converter={x:Static my:ConverterHelpers.CommaJoinedConverter}}"
+									<controls:CopyableQuantity Value="{Binding Value}"
+															   Margin="5"
+															   Grid.Column="1"
+															   VerticalAlignment="Center"/>
+									<SelectableTextBlock Text="{Binding Description}"
 														 Margin="5"
 														 VerticalAlignment="Center"
-														 Grid.Column="1" />
-									<SelectableTextBlock Text="{Binding Value}"
-														 Margin="5"
-														 VerticalAlignment="Center"
-														 Grid.Column="2"/>
+														 Grid.Column="2" />
 									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
 											Grid.Column="3"
 											VerticalAlignment="Center"
