@@ -22,6 +22,11 @@ namespace MaxwellCalc.Workspaces
         public IEnumerable<Variable> Variables { get; }
 
         /// <summary>
+        /// Gets the constants defined in the workspace.
+        /// </summary>
+        public IEnumerable<Variable> Constants { get; }
+
+        /// <summary>
         /// Gets the input units defined in the workspace.
         /// </summary>
         public IEnumerable<InputUnit> InputUnits { get; }
@@ -47,9 +52,19 @@ namespace MaxwellCalc.Workspaces
         public event EventHandler<VariableChangedEvent>? VariableChanged;
 
         /// <summary>
+        /// Event that is called when a constant changes.
+        /// </summary>
+        public event EventHandler<VariableChangedEvent>? ConstantChanged;
+
+        /// <summary>
         /// Event that is called when a function changes.
         /// </summary>
         public event EventHandler<FunctionChangedEvent>? FunctionChanged;
+
+        /// <summary>
+        /// Event that is called when a built-in function changes.
+        /// </summary>
+        public event EventHandler<FunctionChangedEvent>? BuiltInFunctionChanged;
 
         /// <summary>
         /// Determines whether a string represents a unit.
@@ -135,11 +150,26 @@ namespace MaxwellCalc.Workspaces
         public bool TrySetVariable(Variable variable);
 
         /// <summary>
+        /// Tries to set a constant on the workspace.
+        /// </summary>
+        /// <remarks>A constant is different from a variable that it can be overwritten by variables, but not removed.</remarks>
+        /// <param name="variable">The constant definition as a variable.</param>
+        /// <returns>Returns <c>true</c> if the constant was set; otherwise, <c>false</c>.</returns>
+        public bool TrySetConstant(Variable variable);
+
+        /// <summary>
         /// Tries to remove a variable.
         /// </summary>
         /// <param name="name">The variable name.</param>
         /// <returns>Returns <c>true</c> if the variable was removed; otherwise, <c>false</c>.</returns>
         public bool TryRemoveVariable(string name);
+
+        /// <summary>
+        /// Tries to remove a constant.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>Returns <c>true</c> if the constant was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveConstant(string name);
 
         /// <summary>
         /// Tries to get a variable from the workspace.
@@ -223,6 +253,13 @@ namespace MaxwellCalc.Workspaces
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IDomain<T> resolver, out Quantity<T> result);
+
+        /// <summary>
+        /// Tries to remove a built-in function.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>Returns <c>true</c> if the function was removed; otherwise, <c>false</c>.</returns>
+        public bool TryRemoveBuiltInFunction(string name);
 
         /// <summary>
         /// Tries to resolve the output units.

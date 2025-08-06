@@ -176,5 +176,53 @@ namespace MaxwellCalc.Workspaces
                 ]);
             }
         }
+
+        public static void RegisterConstants(this IWorkspace workspace, Type type)
+        {
+            // First we need to figure out what the domain type is of the workspace
+            var workspaceType = workspace.GetType().GetInterfaces().FirstOrDefault(type =>
+            {
+                if (!type.IsGenericType)
+                    return false;
+                return type.GetGenericTypeDefinition() == typeof(IWorkspace<>);
+            }) ?? throw new ArgumentException("Workspace does not have a base type.");
+
+            // Get the method to register a new built-in function
+            var domainType = workspaceType.GenericTypeArguments[0];
+            var quantityType = typeof(Quantity<>).MakeGenericType(domainType);
+            var scopeType = typeof(IVariableScope<>).MakeGenericType(domainType);
+
+            // Get the property that defines the scope
+            var scopeProperty = workspace.GetType().GetProperty("Scope", BindingFlags.Public | BindingFlags.Instance);
+            if (scopeProperty is null || scopeProperty.PropertyType != scopeType)
+                throw new NotImplementedException();
+            var scope = scopeProperty.GetValue(workspace);
+            var setVariableMethod = scopeProperty.PropertyType.GetMethod("TrySetVariable", BindingFlags.Public | BindingFlags.Instance);
+            if (setVariableMethod is null)
+                throw new NotImplementedException();
+
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (field.IsLiteral)
+                {
+                    if (field.FieldType == typeof(string))
+                        workspace.TrySetVariable(new Variable(field.Name, new Quantity<string>((string)field.GetRawConstantValue(), Unit.UnitNone)));
+                    else if (field.FieldType == domainType)
+                        setVariableMethod.Invoke(scope, [field.Name.ToLower(), Activator.CreateInstance(quantityType, field.GetRawConstantValue(), Unit.UnitNone)]);
+                }
+                else
+                {
+                    // Deal with static constants or units
+                    if (field.FieldType == typeof(string))
+                        workspace.TrySetVariable(new Variable(field.Name, new Quantity<string>((string)field.GetValue(null), Unit.UnitNone)));
+                    else if (field.FieldType == typeof(Quantity<string>))
+                        workspace.TrySetVariable(new Variable(field.Name, (Quantity<string>)field.GetValue(null)));
+                    else if (field.FieldType == domainType)
+                        setVariableMethod.Invoke(scope, [field.Name.ToLower(), Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone)]);
+                    else if (field.FieldType == quantityType)
+                        setVariableMethod.Invoke(scope, [field.Name.ToLower(), field.GetValue(null)]);
+                }
+            }
+        }
     }
 }

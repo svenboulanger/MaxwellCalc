@@ -1,4 +1,5 @@
 ﻿using MaxwellCalc.Units;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -9,6 +10,11 @@ namespace MaxwellCalc.Workspaces
     /// </summary>
     public interface IVariableScope
     {
+        /// <summary>
+        /// Called when a variable changes value.
+        /// </summary>
+        public event EventHandler<VariableChangedEvent>? VariableChanged;
+
         /// <summary>
         /// Gets the variables defined in the current scope.
         /// </summary>

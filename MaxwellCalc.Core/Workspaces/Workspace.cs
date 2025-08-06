@@ -17,6 +17,7 @@ namespace MaxwellCalc.Workspaces
     {
         private readonly Dictionary<string, Quantity<T>> _inputUnits = [];
         private readonly Dictionary<Unit, Dictionary<Unit, T>> _outputUnits = [];
+        private readonly IVariableScope<T> _constantScope = new VariableScope<T>();
         private readonly Stack<IVariableScope<T>> _scopes = new();
         private readonly Dictionary<string, (IWorkspace<T>.FunctionDelegate Function, BuiltInFunction Meta)> _builtInFunctions = [];
         private readonly Dictionary<(string, int), (string[], string)> _userFunctions = [];
@@ -25,7 +26,13 @@ namespace MaxwellCalc.Workspaces
         public event EventHandler<VariableChangedEvent>? VariableChanged;
 
         /// <inheritdoc />
+        public event EventHandler<VariableChangedEvent>? ConstantChanged;
+
+        /// <inheritdoc />
         public event EventHandler<FunctionChangedEvent>? FunctionChanged;
+
+        /// <inheritdoc />
+        public event EventHandler<FunctionChangedEvent>? BuiltInFunctionChanged;
 
         /// <inheritdoc />
         public IDomain<T> Resolver { get; }
@@ -45,6 +52,21 @@ namespace MaxwellCalc.Workspaces
                 foreach (var p in scope.Variables)
                 {
                     if (!scope.TryGetVariable(p, out var value) ||
+                        !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
+                        continue;
+                    yield return new(p, formatted);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Variable> Constants
+        {
+            get
+            {
+                foreach (var p in _constantScope.Variables)
+                {
+                    if (!_constantScope.TryGetVariable(p, out var value) ||
                         !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
                         continue;
                     yield return new(p, formatted);
@@ -97,8 +119,9 @@ namespace MaxwellCalc.Workspaces
         public Workspace(IDomain<T> resolver)
         {
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
-            var globalScope = new VariableScope<T>();
+            var globalScope = _constantScope.CreateLocal();
             _scopes.Push(globalScope);
+            _constantScope.VariableChanged += (sender, args) => OnConstantChanged(args);
             globalScope.VariableChanged += (sender, args) => OnVariableChanged(args);
         }
 
@@ -115,12 +138,25 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterBuiltInFunction(string name, IWorkspace<T>.FunctionDelegate function, BuiltInFunction meta)
         {
             _builtInFunctions[name] = (function, meta);
+            OnBuiltInFunctionChanged(new FunctionChangedEvent(name, 0));
             return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryRemoveBuiltInFunction(string name)
+        {
+            if (_builtInFunctions.Remove(name))
+            {
+                OnBuiltInFunctionChanged(new FunctionChangedEvent(name, 0));
+                return true;
+            }
+            return false;
         }
 
         /// <inheritdoc />
         public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IDomain<T> resolver, out Quantity<T> result)
         {
+            // First we try to apply a user-defined function
             if (_userFunctions.TryGetValue((name, arguments.Count), out var userFunction))
             {
                 // Push a new scope with the arguments
@@ -137,12 +173,19 @@ namespace MaxwellCalc.Workspaces
                 // Parse the function
                 var lexer = new Lexer(userFunction.Item2);
                 var node = Parser.Parse(lexer, this);
+                if (node is null)
+                {
+                    result = default;
+                    return false;
+                }
                 bool r = node.TryResolve(resolver, this, out result);
 
                 // Pop the scope with the arguments
                 _scopes.Pop();
                 return r;
             }
+
+            // If the user-defined function doesn't exist, try to find a built-in function
             if (_builtInFunctions.TryGetValue(name, out var tuple))
                 return tuple.Function(arguments, this, out result);
             DiagnosticMessage = $"Cannot find function '{name}' with {arguments.Count} argument(s).";
@@ -384,7 +427,7 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterUserFunction(UserFunction userFunction)
         {
             _userFunctions[(userFunction.Name, userFunction.Parameters.Length)] = (userFunction.Parameters, userFunction.Body);
-            OnFunctionChanged(new FunctionChangedEvent(userFunction.Name, userFunction.Parameters.Length));
+            OnUserFunctionChanged(new FunctionChangedEvent(userFunction.Name, userFunction.Parameters.Length));
             return true;
         }
 
@@ -405,7 +448,7 @@ namespace MaxwellCalc.Workspaces
         {
             if (_userFunctions.Remove((name, argumentCount)))
             {
-                OnFunctionChanged(new FunctionChangedEvent(name, argumentCount));
+                OnUserFunctionChanged(new FunctionChangedEvent(name, argumentCount));
                 return true;
             }
             return false;
@@ -430,7 +473,6 @@ namespace MaxwellCalc.Workspaces
             if (!Resolver.TryScalar(variable.Value.Scalar, this, out var scalarQuantity) ||
                 !scope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit)))
                 return false;
-            OnVariableChanged(new VariableChangedEvent(variable.Name));
             return true;
         }
 
@@ -448,6 +490,18 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
+        public bool TrySetConstant(Variable variable)
+        {
+            if (!Resolver.TryScalar(variable.Value.Scalar, this, out var scalarQuantity) ||
+                !_constantScope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit)))
+                return false;
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryRemoveConstant(string name) => _constantScope.RemoveVariable(name);
+
+        /// <inheritdoc />
         public bool TryRemoveVariable(string name)
         {
             var scope = _scopes.Peek();
@@ -457,7 +511,13 @@ namespace MaxwellCalc.Workspaces
         protected void OnVariableChanged(VariableChangedEvent args)
             => VariableChanged?.Invoke(this, args);
 
-        protected void OnFunctionChanged(FunctionChangedEvent args)
+        protected void OnConstantChanged(VariableChangedEvent args)
+            => ConstantChanged?.Invoke(this, args);
+
+        protected void OnUserFunctionChanged(FunctionChangedEvent args)
             => FunctionChanged?.Invoke(this, args);
+
+        protected void OnBuiltInFunctionChanged(FunctionChangedEvent args)
+            => BuiltInFunctionChanged?.Invoke(this, args);
     }
 }
