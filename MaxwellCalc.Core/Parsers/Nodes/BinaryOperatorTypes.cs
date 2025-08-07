@@ -61,9 +61,19 @@
         BitwiseAnd,
 
         /// <summary>
+        /// Logical AND (a && b).
+        /// </summary>
+        LogicalAnd,
+
+        /// <summary>
         /// Bitwise OR (a | b).
         /// </summary>
         BitwiseOr,
+
+        /// <summary>
+        /// Logical OR (a || b).
+        /// </summary>
+        LogicalOr,
 
         /// <summary>
         /// Greater than (a > b).

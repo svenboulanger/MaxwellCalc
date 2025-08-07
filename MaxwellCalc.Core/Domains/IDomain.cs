@@ -179,6 +179,16 @@ namespace MaxwellCalc.Domains
         public bool TryBitwiseOr(Quantity<T> a, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
 
         /// <summary>
+        /// Evaluates the binary logical OR operator.
+        /// </summary>
+        /// <param name="a">The left argument.</param>
+        /// <param name="b">The right argument.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
+        public bool TryLogicalOr(Quantity<T> a, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
+
+        /// <summary>
         /// Evaluates the binary bitwise AND operator.
         /// </summary>
         /// <param name="a">The left argument.</param>
@@ -187,6 +197,16 @@ namespace MaxwellCalc.Domains
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
         public bool TryBitwiseAnd(Quantity<T> a, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
+
+        /// <summary>
+        /// Evaluates the binary logical AND operator.
+        /// </summary>
+        /// <param name="a">The left argument.</param>
+        /// <param name="b">The right argument.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
+        public bool TryLogicalAnd(Quantity<T> a, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
 
         /// <summary>
         /// Evaluates the binary left shift operator.
@@ -267,6 +287,15 @@ namespace MaxwellCalc.Domains
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
         public bool TryNotEquals(Quantity<T> a, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
+
+        /// <summary>
+        /// Evaluates whether a quantity should be treated as "true".
+        /// </summary>
+        /// <param name="a">The left argument.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
+        public bool TryIsTrue(Quantity<T> a, IWorkspace<T>? workspace, out bool result);
 
         /// <summary>
         /// Evaluates the binary assignment operator.

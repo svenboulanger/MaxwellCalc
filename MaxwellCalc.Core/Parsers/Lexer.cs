@@ -133,6 +133,26 @@ namespace MaxwellCalc.Parsers
                     }
                     break;
 
+                case '|':
+                    Type = TokenTypes.BitwiseOr;
+                    Continue();
+                    if (Char == '|')
+                    {
+                        Type = TokenTypes.LogicalOr;
+                        Continue();
+                    }
+                    break;
+
+                case '&':
+                    Type = TokenTypes.BitwiseAnd;
+                    Continue();
+                    if (Char == '&')
+                    {
+                        Type = TokenTypes.LogicalAnd;
+                        Continue();
+                    }
+                    break;
+
                 case '^':
                     Type = TokenTypes.Power;
                     Continue();
@@ -191,6 +211,16 @@ namespace MaxwellCalc.Parsers
                         Type = TokenTypes.NotEqual;
                         Continue();
                     }
+                    break;
+
+                case '?':
+                    Type = TokenTypes.Question;
+                    Continue();
+                    break;
+
+                case ':':
+                    Type = TokenTypes.Colon;
+                    Continue();
                     break;
 
                 case '(':

@@ -100,11 +100,13 @@ namespace MaxwellCalc.Parsers.Nodes
                 BinaryOperatorTypes.Exponent => resolver.TryExp(left, right, workspace, out result),
                 BinaryOperatorTypes.GreaterThan => resolver.TryGreaterThan(left, right, workspace, out result),
                 BinaryOperatorTypes.GreaterThanOrEqual => resolver.TryGreaterThanOrEqual(left, right, workspace, out result),
-                BinaryOperatorTypes.LessThan=> resolver.TryGreaterThan(left, right, workspace, out result),
-                BinaryOperatorTypes.LessThanOrEqual => resolver.TryGreaterThanOrEqual(left, right, workspace, out result),
+                BinaryOperatorTypes.LessThan => resolver.TryLessThan(left, right, workspace, out result),
+                BinaryOperatorTypes.LessThanOrEqual => resolver.TryLessThanOrEqual(left, right, workspace, out result),
                 BinaryOperatorTypes.Equal => resolver.TryEquals(left, right, workspace, out result),
                 BinaryOperatorTypes.NotEqual => resolver.TryNotEquals(left, right, workspace, out result),
                 BinaryOperatorTypes.InUnit => resolver.TryInUnit(left, right, Right.Content, workspace, out result),
+                BinaryOperatorTypes.LogicalAnd => resolver.TryLogicalAnd(left, right, workspace, out result),
+                BinaryOperatorTypes.LogicalOr => resolver.TryLogicalOr(left, right, workspace, out result),
                 _ => throw new NotImplementedException()
             };
         }

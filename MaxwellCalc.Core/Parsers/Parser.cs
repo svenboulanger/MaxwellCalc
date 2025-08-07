@@ -1,4 +1,5 @@
-﻿using MaxwellCalc.Parsers.Nodes;
+﻿using MaxwellCalc.Core.Parsers.Nodes;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Workspaces;
 using System.Collections.Generic;
 
@@ -19,7 +20,13 @@ namespace MaxwellCalc.Parsers
         {
             if (lexer.Type == TokenTypes.EndOfLine)
                 return null;
-            return ParseAssignment(lexer, workspace);
+            var node = ParseAssignment(lexer, workspace);
+            if (lexer.Type != TokenTypes.EndOfLine)
+            {
+                workspace.DiagnosticMessage = $"Unrecognized token at column {lexer.Index + 1}.";
+                return null;
+            }
+            return node;
         }
 
         private static INode? ParseAssignment(Lexer lexer, IWorkspace workspace)
@@ -27,7 +34,7 @@ namespace MaxwellCalc.Parsers
             int start = lexer.Index;
 
             // Left hand side
-            var result = ParseUnitConversion(lexer, workspace);
+            var result = ParseTernary(lexer, workspace);
             if (result is null)
                 return null;
 
@@ -40,6 +47,85 @@ namespace MaxwellCalc.Parsers
                     return null;
 
                 result = new BinaryNode(BinaryOperatorTypes.Assign, result, b, lexer.Track(start));
+            }
+            return result;
+        }
+
+        private static INode? ParseTernary(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Index;
+
+            // Parse the condition
+            var condition = ParseConditionalOr(lexer, workspace);
+            if (condition is null)
+                return null;
+
+            if (lexer.Type == TokenTypes.Question)
+            {
+                lexer.Next();
+
+                // True branch
+                var ifTrue = ParseTernary(lexer, workspace);
+                if (ifTrue is null)
+                    return null;
+
+                if (lexer.Type != TokenTypes.Colon)
+                {
+                    workspace.DiagnosticMessage = $"Expected a colon at column {lexer.Index + 1}.";
+                    return null;
+                }
+                lexer.Next();
+
+                // False branch
+                var ifFalse = ParseTernary(lexer, workspace);
+                if (ifFalse is null)
+                    return null;
+
+                return new TernaryNode(TernaryNodeTypes.Condition, condition, ifTrue, ifFalse, lexer.Track(start));
+            }
+            return condition;
+        }
+
+        private static INode? ParseConditionalOr(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Index;
+
+            // Left argument.
+            var result = ParseConditionalAnd(lexer, workspace);
+            if (result is null)
+                return null;
+
+            while (lexer.Type == TokenTypes.LogicalOr)
+            {
+                lexer.Next();
+
+                // Right argument
+                var b = ParseConditionalAnd(lexer, workspace);
+                if (b is null)
+                    return null;
+                result = new BinaryNode(BinaryOperatorTypes.LogicalOr, result, b, lexer.Track(start));
+            }
+            return result;
+        }
+
+        private static INode? ParseConditionalAnd(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Index;
+
+            // Left argument.
+            var result = ParseUnitConversion(lexer, workspace);
+            if (result is null)
+                return null;
+
+            while (lexer.Type == TokenTypes.LogicalAnd)
+            {
+                lexer.Next();
+
+                // Right argument
+                var b = ParseUnitConversion(lexer, workspace);
+                if (b is null)
+                    return null;
+                result = new BinaryNode(BinaryOperatorTypes.LogicalAnd, result, b, lexer.Track(start));
             }
             return result;
         }
@@ -95,7 +181,7 @@ namespace MaxwellCalc.Parsers
             int start = lexer.Index;
 
             // Left argument
-            var result = ParseArithmeticShift(lexer, workspace);
+            var result = ParseEquality(lexer, workspace);
             if (result is null)
                 return null;
 
@@ -104,11 +190,67 @@ namespace MaxwellCalc.Parsers
                 lexer.Next();
             
                 // Right argument
-                var b = ParseArithmeticShift(lexer, workspace);
+                var b = ParseEquality(lexer, workspace);
                 if (b is null)
                     return null;
 
                 result = new BinaryNode(BinaryOperatorTypes.BitwiseAnd, result, b, lexer.Track(start));
+            }
+            return result;
+        }
+
+        private static INode? ParseEquality(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Index;
+
+            // Left argument.
+            var result = ParseRelational(lexer, workspace);
+            if (result is null)
+                return null;
+
+            while (lexer.Type == TokenTypes.Equal || lexer.Type == TokenTypes.NotEqual)
+            {
+                var type = lexer.Type == TokenTypes.Equal ? BinaryOperatorTypes.Equal : BinaryOperatorTypes.NotEqual;
+                lexer.Next();
+
+                // Right argument
+                var b = ParseRelational(lexer, workspace);
+                if (b is null)
+                    return null;
+                result = new BinaryNode(type, result, b, lexer.Track(start));
+            }
+            return result;
+        }
+
+        private static INode? ParseRelational(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Index;
+
+            // Left argument.
+            var result = ParseArithmeticShift(lexer, workspace);
+            if (result is null)
+                return null;
+
+            while (lexer.Type == TokenTypes.GreaterThan ||
+                lexer.Type == TokenTypes.GreaterThanOrEqual ||
+                lexer.Type == TokenTypes.LessThan ||
+                lexer.Type == TokenTypes.LessThanOrEqual)
+            {
+                var type = lexer.Type switch
+                {
+                    TokenTypes.GreaterThan => BinaryOperatorTypes.GreaterThan,
+                    TokenTypes.GreaterThanOrEqual => BinaryOperatorTypes.GreaterThanOrEqual,
+                    TokenTypes.LessThan => BinaryOperatorTypes.LessThan,
+                    TokenTypes.LessThanOrEqual => BinaryOperatorTypes.LessThanOrEqual,
+                    _ => throw new System.Exception()
+                };
+                lexer.Next();
+
+                // Right argument
+                var b = ParseArithmeticShift(lexer, workspace);
+                if (b is null)
+                    return null;
+                result = new BinaryNode(type, result, b, lexer.Track(start));
             }
             return result;
         }

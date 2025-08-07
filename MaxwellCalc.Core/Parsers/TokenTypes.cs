@@ -3,7 +3,7 @@
     /// <summary>
     /// The token types used for the lexer.
     /// </summary>
-    public enum TokenTypes
+    public enum TokenTypes : int
     {
         /// <summary>
         /// The end of a line.
@@ -56,99 +56,109 @@
         BitwiseAnd = 1 << 9,
 
         /// <summary>
+        /// Logical and.
+        /// </summary>
+        LogicalAnd = 1 << 10,
+
+        /// <summary>
         /// Bitwise or.
         /// </summary>
-        BitwiseOr = 1 << 10,
+        BitwiseOr = 1 << 11,
+
+        /// <summary>
+        /// Logical or.
+        /// </summary>
+        LogicalOr = 1 << 12,
 
         /// <summary>
         /// Arithmetic shift.
         /// </summary>
-        ArithmeticShift = 1 << 11,
+        ArithmeticShift = 1 << 13,
 
         /// <summary>
         /// Integer division.
         /// </summary>
-        IntegerDivision = 1 << 12,
+        IntegerDivision = 1 << 14,
 
         /// <summary>
         /// Exclamation mark.
         /// </summary>
-        Exclamation = 1 << 13,
+        Exclamation = 1 << 15,
 
         /// <summary>
         /// Opening parenthesis.
         /// </summary>
-        OpenParenthesis = 1 << 14,
+        OpenParenthesis = 1 << 16,
         
         /// <summary>
         /// Closing parenthesis.
         /// </summary>
-        CloseParenthesis = 1 << 15,
+        CloseParenthesis = 1 << 17,
         
         /// <summary>
         /// Opening square bracket.
         /// </summary>
-        OpenSquareBracket = 1 << 16,
+        OpenSquareBracket = 1 << 18,
         
         /// <summary>
         /// Closing square bracket.
         /// </summary>
-        CloseSquareBracket = 1 << 17,
+        CloseSquareBracket = 1 << 19,
 
         /// <summary>
         /// An argument separator.
         /// </summary>
-        Separator = 1 << 18,
+        Separator = 1 << 20,
 
         /// <summary>
         /// A greater than.
         /// </summary>
-        GreaterThan = 1 << 19,
+        GreaterThan = 1 << 21,
 
         /// <summary>
         /// A greater than or equal sign.
         /// </summary>
-        GreaterThanOrEqual = 1 << 20,
+        GreaterThanOrEqual = 1 << 22,
 
         /// <summary>
         /// A less than.
         /// </summary>
-        LessThan = 1 << 21,
+        LessThan = 1 << 23,
 
         /// <summary>
         /// A less than or equal sign.
         /// </summary>
-        LessThanOrEqual = 1 << 22,
+        LessThanOrEqual = 1 << 24,
 
         /// <summary>
         /// Equality.
         /// </summary>
-        Equal = 1 << 23,
+        Equal = 1 << 25,
 
         /// <summary>
         /// Inequality.
         /// </summary>
-        NotEqual = 1 << 24,
+        NotEqual = 1 << 26,
 
         /// <summary>
         /// Question mark.
         /// </summary>
-        Question = 1 << 25,
+        Question = 1 << 27,
 
         /// <summary>
         /// Colon.
         /// </summary>
-        Colon = 1 << 26,
+        Colon = 1 << 28,
 
         /// <summary>
         /// Assignment sign.
         /// </summary>
-        Assignment = 1 << 27,
+        Assignment = 1 << 29,
 
         /// <summary>
         /// Quotation.
         /// </summary>
-        Quote = 1 << 28,
+        Quote = 1 << 30,
 
         /// <summary>
         /// An unknown token.

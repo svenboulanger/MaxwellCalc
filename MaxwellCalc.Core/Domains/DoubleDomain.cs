@@ -2,6 +2,7 @@
 using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace MaxwellCalc.Domains
 {
@@ -439,6 +440,42 @@ namespace MaxwellCalc.Domains
         public bool TryFormat(Quantity<double> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
         {
             result = new(value.Scalar.ToString(format, formatProvider) ?? string.Empty, value.Unit);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryIsTrue(Quantity<double> a, IWorkspace<double>? workspace, out bool result)
+        {
+            if (a.Scalar == 0.0)
+                result = false;
+            else
+                result = true;
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryLogicalOr(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
+        {
+            if (!TryIsTrue(a, workspace, out bool left) ||
+                !TryIsTrue(b, workspace, out bool right))
+            {
+                result = Default;
+                return false;
+            }
+            result = new(left || right ? 1.0 : 0.0, Unit.UnitNone);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryLogicalAnd(Quantity<double> a, Quantity<double> b, IWorkspace<double>? workspace, out Quantity<double> result)
+        {
+            if (!TryIsTrue(a, workspace, out bool left) ||
+                !TryIsTrue(b, workspace, out bool right))
+            {
+                result = Default;
+                return false;
+            }
+            result = new(left && right ? 1.0 : 0.0, Unit.UnitNone);
             return true;
         }
     }

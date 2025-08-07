@@ -468,5 +468,41 @@ namespace MaxwellCalc.Domains
             result = new(sb.ToString(), value.Unit);
             return true;
         }
+
+        /// <inheritdoc />
+        public bool TryIsTrue(Quantity<Complex> a, IWorkspace<Complex>? workspace, out bool result)
+        {
+            if (a.Scalar.Real == 0.0 && a.Scalar.Imaginary == 0.0)
+                result = false;
+            else
+                result = true;
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryLogicalOr(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        {
+            if (!TryIsTrue(a, workspace, out bool left) ||
+                !TryIsTrue(b, workspace, out bool right))
+            {
+                result = Default;
+                return false;
+            }
+            result = new(left || right ? 1.0 : 0.0, Unit.UnitNone);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool TryLogicalAnd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        {
+            if (!TryIsTrue(a, workspace, out bool left) ||
+                !TryIsTrue(b, workspace, out bool right))
+            {
+                result = Default;
+                return false;
+            }
+            result = new(left && right ? 1.0 : 0.0, Unit.UnitNone);
+            return true;
+        }
     }
 }
