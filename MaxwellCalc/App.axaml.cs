@@ -8,6 +8,7 @@ using MaxwellCalc.ViewModels;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
+using System.Numerics;
 using System.Text.Json;
 
 namespace MaxwellCalc
@@ -48,9 +49,9 @@ namespace MaxwellCalc
 
         private static IWorkspace BuildDefaultWorkspace()
         {
-            var workspace = new Workspace<double>(new DoubleDomain());
-            workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
-            workspace.RegisterConstants(typeof(DoubleMathHelper));
+            var workspace = new Workspace<Complex>(new ComplexDomain());
+            workspace.RegisterBuiltInMethods(typeof(ComplexMathHelper));
+            workspace.RegisterConstants(typeof(ComplexMathHelper));
             UnitHelper.RegisterCommonUnits(workspace);
             UnitHelper.RegisterCommonElectronicsUnits(workspace);
             return workspace;

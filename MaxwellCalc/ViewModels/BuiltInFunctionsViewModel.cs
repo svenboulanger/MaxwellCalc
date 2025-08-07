@@ -134,12 +134,12 @@ namespace MaxwellCalc.ViewModels
         private void InsertModel(BuiltInFunctionViewModel model)
         {
             if (model.Name is null)
-                throw new ArgumentNullException(nameof(model.Name));
+                return;
 
             // Insert into the main list
             int index = 0;
             while (index < Functions.Count &&
-                StringComparer.Ordinal.Compare(model.Name, Functions[index].Name ?? string.Empty) > 0)
+                StringComparer.OrdinalIgnoreCase.Compare(model.Name, Functions[index].Name ?? string.Empty) > 0)
                 index++;
             Functions.Insert(index, model);
 
@@ -148,7 +148,7 @@ namespace MaxwellCalc.ViewModels
             {
                 index = 0;
                 while (index < FilteredFunctions.Count &&
-                    StringComparer.Ordinal.Compare(model.Name, FilteredFunctions[index].Name) > 0)
+                    StringComparer.OrdinalIgnoreCase.Compare(model.Name, FilteredFunctions[index].Name) > 0)
                     index++;
                 FilteredFunctions.Insert(index, model);
             }

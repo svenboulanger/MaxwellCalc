@@ -256,7 +256,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated correctly; otherwise, <c>false</c>.</returns>
-        public delegate bool FunctionDelegate(IReadOnlyList<Quantity<T>> list, IWorkspace<T> workspace, out Quantity<T> result);
+        public delegate bool FunctionDelegate(IReadOnlyList<Quantity<T>> list, IWorkspace workspace, out Quantity<T> result);
 
         /// <summary>
         /// Tries to register a function under the given name.

@@ -149,12 +149,12 @@ namespace MaxwellCalc.ViewModels
         private void InsertModel(VariableViewModel model)
         {
             if (model.Name is null)
-                throw new ArgumentNullException(nameof(model.Name));
+                return;
 
             // Insert into the main list
             int index = 0;
             while (index < Constants.Count &&
-                StringComparer.Ordinal.Compare(model.Name, Constants[index].Name ?? string.Empty) > 0)
+                StringComparer.OrdinalIgnoreCase.Compare(model.Name, Constants[index].Name ?? string.Empty) > 0)
                 index++;
             Constants.Insert(index, model);
 
@@ -163,7 +163,7 @@ namespace MaxwellCalc.ViewModels
             {
                 index = 0;
                 while (index < FilteredConstants.Count &&
-                    StringComparer.Ordinal.Compare(model.Name, FilteredConstants[index].Name) > 0)
+                    StringComparer.OrdinalIgnoreCase.Compare(model.Name, FilteredConstants[index].Name) > 0)
                     index++;
                 FilteredConstants.Insert(index, model);
             }

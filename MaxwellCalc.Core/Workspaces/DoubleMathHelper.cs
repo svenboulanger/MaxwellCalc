@@ -394,6 +394,7 @@ namespace MaxwellCalc.Workspaces
             result = new Quantity<double>(Math.Asin(args[0].Scalar), Unit.UnitRadian);
             return true;
         }
+
         /// <summary>
         /// Computes the arccosine of a quantity.
         /// </summary>
@@ -668,7 +669,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
+        [CalculatorName("B"), CalculatorDescription("Calculates the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
         [MinArg(2), MaxArg(2)]
         public static bool Binomial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -699,7 +700,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the natural logarithm of the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
+        [CalculatorName("BLn"), CalculatorDescription("Calculates the natural logarithm of the binomial of two numbers. If the numbers are real, they are converted to an integer. The arguments are expected to have no units.")]
         [MinArg(2), MaxArg(2)]
         public static bool BinomialLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -766,25 +767,12 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the exponential integral of a number. The argument is expected to not have units.")]
+        [CalculatorName("Ei"), CalculatorDescription("Calculates the exponential integral of a number. The argument is expected to not have units.")]
         public static bool Expi(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
-            if (args.Count != 1)
-            {
-                // Only one argument allowed
-                result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {nameof(Expi)}().";
+            if (!SingleNonUnitArgument(args, workspace, "Ei", out result))
                 return false;
-            }
-            var arg = args[0];
-            if (arg.Unit != Unit.UnitNone)
-            {
-                // Cannot deal with units
-                result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units for {nameof(Expi)}().";
-                return false;
-            }
-            result = new Quantity<double>(ExponentialIntegralFunctions.ExpI(arg.Scalar), Unit.UnitNone);
+            result = new Quantity<double>(ExponentialIntegralFunctions.ExpI(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -795,13 +783,12 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the generalized exponential integral of a number with n=1. The argument is expected to not have units.")]
+        [CalculatorName("E1"), CalculatorDescription("Calculates the generalized exponential integral of a number with n=1. The argument is expected to not have units.")]
         public static bool Exp1(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Exp1), out result))
+            if (!args.SingleNonUnitArgument(workspace, "E1", out result))
                 return false;
-            int value = (int)args[0].Scalar;
-            result = new Quantity<double>(ExponentialIntegralFunctions.Exp1(value), Unit.UnitNone);
+            result = new Quantity<double>(ExponentialIntegralFunctions.Exp1(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -812,7 +799,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the generalized exponential integral of a number, with the second argument representing n. The arguments is expected to not have units.")]
+        [CalculatorName("En"), CalculatorDescription("Calculates the generalized exponential integral of a number, with the second argument representing n. The arguments is expected to not have units.")]
         [MinArg(2), MaxArg(2)]
         public static bool Expn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -820,14 +807,14 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {nameof(Expn)}().";
+                workspace.DiagnosticMessage = $"Expected a single argument for En().";
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected all arguments to not have units for {nameof(Expn)}().";
+                workspace.DiagnosticMessage = $"Expected all arguments to not have units for En().";
                 return false;
             }
             int n = (int)args[1].Scalar;
@@ -842,10 +829,10 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the Gamma function. The argument is expected to not have units.")]
+        [CalculatorName("Gamma"), CalculatorDescription("Calculates the Gamma function. The argument is expected to not have units.")]
         public static bool Gamma(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Gamma), out result))
+            if (!args.SingleNonUnitArgument(workspace, "Gamma", out result))
                 return false;
             result = new Quantity<double>(GammaFunctions.Gamma(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -858,10 +845,10 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the natural logarithm of the Gamma function. The argument is expected to not have units.")]
+        [CalculatorName("GammaLn"), CalculatorDescription("Calculates the natural logarithm of the Gamma function. The argument is expected to not have units.")]
         public static bool GammaLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(GammaLn), out result))
+            if (!args.SingleNonUnitArgument(workspace, "GammaLn", out result))
                 return false;
             result = new Quantity<double>(GammaFunctions.GammaLn(args[0].Scalar), Unit.UnitNone);
             return true;

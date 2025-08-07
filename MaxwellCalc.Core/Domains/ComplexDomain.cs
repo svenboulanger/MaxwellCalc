@@ -460,8 +460,10 @@ namespace MaxwellCalc.Domains
                         sb.Append(" - ");
                     else
                         sb.Append(" + ");
-                    sb.Append($"{value.Scalar.Imaginary.ToString(format, formatProvider)} i");
+                    sb.Append($"{value.Scalar.Imaginary.ToString(format, formatProvider)}i");
                 }
+                else
+                    sb.Append($"{value.Scalar.Imaginary.ToString(format, formatProvider)}i");
             }
             if (sb.Length == 0)
                 sb.Append(0.0.ToString(format, formatProvider));
