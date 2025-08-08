@@ -447,6 +447,18 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
+        public bool TryGetBuiltInFunction(string name, out BuiltInFunction builtInFunction)
+        {
+            if (_builtInFunctions.TryGetValue(name, out var existing))
+            {
+                builtInFunction = existing.Meta;
+                return true;
+            }
+            builtInFunction = default;
+            return false;
+        }
+
+        /// <inheritdoc />
         public bool TryRemoveUserFunction(string name, int argumentCount)
         {
             if (_userFunctions.Remove((name, argumentCount)))

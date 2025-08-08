@@ -50,7 +50,7 @@
 					</Grid>
 				</Border>
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredFunctions}">
+					<ItemsControl ItemsSource="{Binding FilteredItems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate x:DataType="vm:BuiltInFunctionViewModel">
 								<Grid ColumnDefinitions="100, 100, *">

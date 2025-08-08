@@ -31,6 +31,7 @@ namespace MaxwellCalc
             services.AddSingleton<VariablesViewModel>();
             services.AddSingleton<UserVariablesViewModel>();
             services.AddSingleton<ConstantsViewModel>();
+            services.AddSingleton<SharedModel>();
             services.AddSingleton(GetSettingsViewModel());
             services.AddSingleton(BuildDefaultWorkspace());
 

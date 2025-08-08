@@ -41,7 +41,7 @@
 					</Grid>
 				</Border>
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredVariables}">
+					<ItemsControl ItemsSource="{Binding FilteredItems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
 								<Grid ColumnDefinitions="150, *, Auto">

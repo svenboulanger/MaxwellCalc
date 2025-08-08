@@ -138,9 +138,17 @@ namespace MaxwellCalc.Workspaces
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="arguments">The function arguments.</param>
-        /// <param name="function">The function.</param>
-        /// <returns>Returns the user function.</returns>
+        /// <param name="function">The function information.</param>
+        /// <returns>Returns <c>true</c> if the user function exists; otherwise, <c>false</c>.</returns>
         public bool TryGetUserFunction(string name, int arguments, out UserFunction function);
+
+        /// <summary>
+        /// Tries to get a registered built-in function information.
+        /// </summary>
+        /// <param name="name">The function name.</param>
+        /// <param name="function">The function information.</param>
+        /// <returns>Returns <c>true</c> if the built-in function exists; otherwise, <c>false</c>.</returns>
+        public bool TryGetBuiltInFunction(string name, out BuiltInFunction function);
 
         /// <summary>
         /// Tries to set a variable on the workspace.

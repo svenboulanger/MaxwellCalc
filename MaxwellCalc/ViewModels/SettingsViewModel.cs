@@ -1,6 +1,8 @@
 ﻿using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MaxwellCalc.Workspaces;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Text;
@@ -18,6 +20,11 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         public static string? SettingsFile { get; set; }
 
+        /// <summary>
+        /// Gets the shared model.
+        /// </summary>
+        public SharedModel Shared { get; }
+
         [ObservableProperty]
         private int _currentTheme = 0;
 
@@ -26,7 +33,7 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         public SettingsViewModel()
         {
-
+            Shared = new();
         }
 
         /// <summary>
@@ -35,6 +42,7 @@ namespace MaxwellCalc.ViewModels
         /// <param name="sp">The settings provider.</param>
         public SettingsViewModel(IServiceProvider sp)
         {
+            Shared = sp.GetRequiredService<SharedModel>();
         }
 
         /// <summary>

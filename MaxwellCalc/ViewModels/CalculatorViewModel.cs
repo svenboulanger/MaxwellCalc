@@ -1,10 +1,8 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
@@ -16,8 +14,10 @@ namespace MaxwellCalc.ViewModels
         private int _historyFill = -1;
         private string _tmpLastInput = string.Empty;
 
-        [ObservableProperty]
-        private IWorkspace _workspace;
+        /// <summary>
+        /// Gets the shared model.
+        /// </summary>
+        public SharedModel Shared { get; }
 
         [ObservableProperty]
         ObservableCollection<ResultViewModel> _results = [];
@@ -39,6 +39,7 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         public CalculatorViewModel()
         {
+            Shared = new SharedModel();
             if (Design.IsDesignMode)
             {
                 for (int i = 0; i < 10; i++)
@@ -56,9 +57,6 @@ namespace MaxwellCalc.ViewModels
                     ErrorMessage = "This is an error message."
                 });
             }
-
-            var ws = new Workspace<double>(new DoubleDomain());
-            _workspace = ws;
         }
 
         /// <summary>
@@ -67,7 +65,7 @@ namespace MaxwellCalc.ViewModels
         /// <param name="sp">The service provider.</param>
         public CalculatorViewModel(IServiceProvider sp)
         {
-            _workspace = sp.GetRequiredService<IWorkspace>();
+            Shared = sp.GetRequiredService<SharedModel>();
         }
 
         [RelayCommand]
@@ -88,13 +86,13 @@ namespace MaxwellCalc.ViewModels
                     break;
 
                 default:
-                    if (Workspace is null)
+                    if (Shared.Workspace is null)
                         return;
 
                     // Use the current expression to evaluate
                     var lexer = new Lexer(Expression ?? string.Empty);
-                    var node = Parser.Parse(lexer, Workspace);
-                    if (node is not null && Workspace.TryResolveAndFormat(node, out var result))
+                    var node = Parser.Parse(lexer, Shared.Workspace);
+                    if (node is not null && Shared.Workspace.TryResolveAndFormat(node, out var result))
                     {
                         Results.Add(new ResultViewModel()
                         {
@@ -107,7 +105,7 @@ namespace MaxwellCalc.ViewModels
                         Results.Add(new ResultViewModel()
                         {
                             Expression = Expression,
-                            ErrorMessage = Workspace.DiagnosticMessage
+                            ErrorMessage = Shared.Workspace.DiagnosticMessage
                         });
                     }
 

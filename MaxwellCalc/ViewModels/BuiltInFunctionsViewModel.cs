@@ -1,10 +1,7 @@
 ﻿using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Workspaces;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MaxwellCalc.ViewModels
@@ -12,23 +9,8 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A view model for the built-in function list.
     /// </summary>
-    public partial class BuiltInFunctionsViewModel : ViewModelBase
+    public partial class BuiltInFunctionsViewModel : FilteredCollectionViewModel<BuiltInFunctionViewModel>
     {
-        [ObservableProperty]
-        private IWorkspace? _workspace;
-
-        [ObservableProperty]
-        private BuiltInFunctionViewModel? _selectedItem;
-
-        [ObservableProperty]
-        private ObservableCollection<BuiltInFunctionViewModel> _functions = [];
-
-        [ObservableProperty]
-        private ObservableCollection<BuiltInFunctionViewModel> _filteredFunctions = [];
-
-        [ObservableProperty]
-        private string _filter = string.Empty;
-
         /// <summary>
         /// Creates a new <see cref="BuiltInFunctionViewModel"/>.
         /// </summary>
@@ -79,78 +61,81 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         /// <param name="sp">The service provider.</param>
         public BuiltInFunctionsViewModel(IServiceProvider sp)
+            : base(sp)
         {
-            _workspace = sp.GetRequiredService<IWorkspace>();
-
-            // Add all the built-in functions
-            foreach (var builtInFunction in _workspace.BuiltInFunctions.OrderBy(bi => bi.Name))
-            {
-                InsertModel(new()
-                {
-                    Name = builtInFunction.Name,
-                    MinArgCount = builtInFunction.MinimumArgumentCount,
-                    MaxArgCount = builtInFunction.MaximumArgumentCount,
-                    Description = builtInFunction.Description
-                });
-            }
+            if (Shared.Workspace is not null)
+                Shared.Workspace.BuiltInFunctionChanged += OnBuiltInFunctionChanged;
         }
 
-        private bool MatchesFilter(BuiltInFunctionViewModel model)
+        /// <inheritdoc />
+        protected override bool MatchesFilter(BuiltInFunctionViewModel model)
             => string.IsNullOrWhiteSpace(Filter) ||
             (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
             (model.Description?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
 
-        [RelayCommand]
-        private void ApplyFilter()
+        /// <inheritdoc />
+        protected override int CompareModels(BuiltInFunctionViewModel a, BuiltInFunctionViewModel b)
+            => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
+
+        /// <inheritdoc />
+        protected override void RemoveModelFromWorkspace(IWorkspace workspace, BuiltInFunctionViewModel model)
+            => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        protected override IEnumerable<BuiltInFunctionViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
         {
-            FilteredFunctions.Clear();
-            foreach (var item in Functions.Where(MatchesFilter))
-                FilteredFunctions.Add(item);
-        }
+            if (oldWorkspace is not null)
+                oldWorkspace.BuiltInFunctionChanged -= OnBuiltInFunctionChanged;
+            if (newWorkspace is null)
+                yield break;
+            newWorkspace.BuiltInFunctionChanged += OnBuiltInFunctionChanged;
 
-        [RelayCommand]
-        private void RemoveItem(BuiltInFunctionViewModel model) => Functions.Remove(model);
-
-        partial void OnFilterChanged(string? oldValue, string newValue) => ApplyFilter();
-
-        partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
-        {
-            if (oldValue is not null)
-                Functions.Clear();
-            if (newValue is not null)
+            // Go through all built-in functions
+            foreach (var function in newWorkspace.BuiltInFunctions)
             {
-                // Add all the built-in functions
-                foreach (var builtInFunction in newValue.BuiltInFunctions)
-                    InsertModel(new()
-                    {
-                        Name = builtInFunction.Name,
-                        MinArgCount = builtInFunction.MinimumArgumentCount,
-                        MaxArgCount = builtInFunction.MaximumArgumentCount,
-                        Description = builtInFunction.Description
-                    });
+                yield return new BuiltInFunctionViewModel()
+                {
+                    Name = function.Name,
+                    MinArgCount = function.MinimumArgumentCount,
+                    MaxArgCount = function.MaximumArgumentCount,
+                    Description = function.Description
+                };
             }
         }
 
-        private void InsertModel(BuiltInFunctionViewModel model)
+        private void OnBuiltInFunctionChanged(object? sender, FunctionChangedEvent args)
         {
-            if (model.Name is null)
-                return;
+            // Find the model
+            var model = Items.FirstOrDefault(item => item.Name == args.Name);
+            if (Shared.Workspace is null || args.Name is null)
+                throw new ArgumentNullException();
 
-            // Insert into the main list
-            int index = 0;
-            while (index < Functions.Count &&
-                StringComparer.OrdinalIgnoreCase.Compare(model.Name, Functions[index].Name ?? string.Empty) > 0)
-                index++;
-            Functions.Insert(index, model);
-
-            // Insert into the filtered list
-            if (MatchesFilter(model))
+            if (model is null)
             {
-                index = 0;
-                while (index < FilteredFunctions.Count &&
-                    StringComparer.OrdinalIgnoreCase.Compare(model.Name, FilteredFunctions[index].Name) > 0)
-                    index++;
-                FilteredFunctions.Insert(index, model);
+                // This is a new built-in function
+                if (!Shared.Workspace.TryGetBuiltInFunction(args.Name, out var function))
+                    return;
+                InsertModel(new BuiltInFunctionViewModel
+                {
+                    Name = function.Name,
+                    MinArgCount = function.MinimumArgumentCount,
+                    MaxArgCount = function.MaximumArgumentCount,
+                    Description = function.Description
+                });
+            }
+            else if (Shared.Workspace.TryGetBuiltInFunction(args.Name, out var function))
+            {
+                // This is an updated function
+                model.Name = function.Name;
+                model.MinArgCount = function.MinimumArgumentCount;
+                model.MaxArgCount = function.MaximumArgumentCount;
+                model.Description = function.Description;
+            }
+            else
+            {
+                // This is a removed function
+                Items.Remove(model);
+                FilteredItems.Remove(model);
             }
         }
     }

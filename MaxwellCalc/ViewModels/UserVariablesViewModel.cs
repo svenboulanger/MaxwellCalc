@@ -1,32 +1,14 @@
 ﻿using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class UserVariablesViewModel : ViewModelBase
+    public partial class UserVariablesViewModel : FilteredCollectionViewModel<UserVariableViewModel>
     {
-        [ObservableProperty]
-        private IWorkspace? _workspace;
-
-        [ObservableProperty]
-        private VariableViewModel? _selectedItem;
-
-        [ObservableProperty]
-        ObservableCollection<VariableViewModel> _variables = [];
-
-        [ObservableProperty]
-        ObservableCollection<VariableViewModel> _filteredVariables = [];
-
-        [ObservableProperty]
-        private string _filter = string.Empty;
-
         /// <summary>
         /// Creates a new <see cref="UserVariablesViewModel"/>.
         /// </summary>
@@ -35,12 +17,12 @@ namespace MaxwellCalc.ViewModels
             if (Design.IsDesignMode)
             {
                 // Make up some variables to show what it looks like
-                InsertModel(new VariableViewModel()
+                InsertModel(new UserVariableViewModel()
                 {
                     Name = "Sven",
                     Value = new Quantity<string>("179", new Unit(("cm", 1)))
                 });
-                InsertModel(new VariableViewModel()
+                InsertModel(new UserVariableViewModel()
                 {
                     Name = "Elke",
                     Value = new Quantity<string>("150", new Unit(("cm", 1)))
@@ -53,118 +35,77 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         /// <param name="sp">The service provider.</param>
         public UserVariablesViewModel(IServiceProvider sp)
+            : base(sp)
         {
-            _workspace = sp.GetRequiredService<IWorkspace>();
-
-            // Add all the variables
-            foreach (var variable in _workspace.Variables)
-                InsertModel(new VariableViewModel() { Name = variable.Name, Value = variable.Value });
-
-            _workspace.VariableChanged += OnWorkspaceVariableChanged;
+            if (Shared.Workspace is not null)
+                Shared.Workspace.VariableChanged += OnVariableChanged;
         }
 
-        private bool MatchesFilter(VariableViewModel model)
+        /// <inheritdoc />
+        protected override bool MatchesFilter(UserVariableViewModel model)
             => string.IsNullOrWhiteSpace(Filter) ||
             (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
 
-        private void ApplyFilter()
+        /// <inheritdoc />
+        protected override int CompareModels(UserVariableViewModel a, UserVariableViewModel b)
+            => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
+
+        /// <inheritdoc />
+        protected override void RemoveModelFromWorkspace(IWorkspace workspace, UserVariableViewModel model)
         {
-            FilteredVariables.Clear();
-            foreach (var model in Variables.Where(MatchesFilter))
-                FilteredVariables.Add(model);
+            if (Shared.Workspace is null || model.Name is null)
+                return;
+            Shared.Workspace.TryRemoveVariable(model.Name);
         }
 
-        partial void OnFilterChanged(string value) => ApplyFilter();
-
-        [RelayCommand]
-        private void RemoveItem(VariableViewModel model)
+        protected override IEnumerable<UserVariableViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
         {
-            Variables.Remove(model);
-            FilteredVariables.Remove(model);
-            if (Workspace is not null && model.Name is not null)
-                Workspace.TryRemoveVariable(model.Name);
-        }
-
-        partial void OnWorkspaceChanged(IWorkspace? oldValue, IWorkspace? newValue)
-        {
-            // Unregister from the last workspace
-            if (oldValue is not null)
-                oldValue.VariableChanged -= OnWorkspaceVariableChanged;
-            if (newValue is null)
-                return; // No need to do anything
-
-            // Let's try to bring all our variables to the new workspace
-            foreach (var variableModel in Variables)
-            {
-                string name = variableModel.Name ?? string.Empty;
-                newValue.TrySetVariable(new Variable(name, variableModel.Value, variableModel.Description));
-            }
+            if (oldWorkspace is not null)
+                oldWorkspace.VariableChanged -= OnVariableChanged;
+            if (newWorkspace is null)
+                yield break;
+            newWorkspace.VariableChanged += OnVariableChanged;
 
             // Rebuild our internal list of variables
-            Variables.Clear();
-            FilteredVariables.Clear();
-            foreach (var variable in newValue.Variables)
-                InsertModel(new VariableViewModel() { Name = variable.Name, Value = variable.Value });
-
-            // Register for the new workspace
-            if (newValue is not null)
-                newValue.VariableChanged += OnWorkspaceVariableChanged;
+            foreach (var variable in newWorkspace.Variables)
+            {
+                yield return new UserVariableViewModel()
+                {
+                    Name = variable.Name,
+                    Value = variable.Value
+                };
+            }
         }
 
-        private void OnWorkspaceVariableChanged(object? sender, VariableChangedEvent args)
+        private void OnVariableChanged(object? sender, VariableChangedEvent args)
         {
-            // Let's update our own list with this
-            // First let's find the model that reflects this variable
-            if (args.Name is null || Workspace is null)
-                return;
-            
             // Check if we have a model for it
-            var model = Variables.FirstOrDefault(item => item?.Name?.Equals(args.Name) ?? false);
+            var model = Items.FirstOrDefault(item => item.Name == args.Name);
+            if (Shared.Workspace is null || args.Name is null)
+                throw new ArgumentNullException();
 
-            if (Workspace.TryGetVariable(args.Name, out var value))
+            if (model is null)
             {
-                if (model is not null)
+                // This is a new user variable
+                if (!Shared.Workspace.TryGetVariable(args.Name, out var value))
+                    return;
+                InsertModel(new UserVariableViewModel
                 {
-                    // This is an existing variable update
-                    model.Value = value;
-                }
-                else
-                {
-                    // This is an unknown variable for now
-                    InsertModel(new VariableViewModel() { Name = args.Name, Value = value });
-                }
+                    Name = args.Name,
+                    Value = value
+                });
+            }
+            else if (Shared.Workspace.TryGetVariable(args.Name, out var value))
+            {
+                // This is an updated variable
+                model.Name = args.Name;
+                model.Value = value;
             }
             else
             {
                 // This is a removed variable
-                if (model is not null)
-                {
-                    Variables.Remove(model);
-                    FilteredVariables.Remove(model);
-                }
-            }
-        }
-
-        private void InsertModel(VariableViewModel model)
-        {
-            if (model.Name is null)
-                return;
-
-            // Insert into the main list
-            int index = 0;
-            while (index < Variables.Count &&
-                StringComparer.OrdinalIgnoreCase.Compare(model.Name, Variables[index].Name ?? string.Empty) > 0)
-                index++;
-            Variables.Insert(index, model);
-
-            // Insert into the filtered list
-            if (MatchesFilter(model))
-            {
-                index = 0;
-                while (index < FilteredVariables.Count &&
-                    StringComparer.OrdinalIgnoreCase.Compare(model.Name, FilteredVariables[index].Name) > 0)
-                    index++;
-                FilteredVariables.Insert(index, model);
+                Items.Remove(model);
+                FilteredItems.Remove(model);
             }
         }
     }
