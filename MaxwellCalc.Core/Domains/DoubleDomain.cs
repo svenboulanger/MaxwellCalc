@@ -2,7 +2,6 @@
 using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace MaxwellCalc.Domains
 {

@@ -67,6 +67,16 @@ namespace MaxwellCalc.Workspaces
         public event EventHandler<FunctionChangedEvent>? BuiltInFunctionChanged;
 
         /// <summary>
+        /// Event that is called when the input units change.
+        /// </summary>
+        public event EventHandler<InputUnitChangedEvent>? InputUnitChanged;
+
+        /// <summary>
+        /// Event that is called when the output units change.
+        /// </summary>
+        public event EventHandler<OutputUnitchangedEvent>? OutputUnitChanged;
+
+        /// <summary>
         /// Determines whether a string represents a unit.
         /// </summary>
         /// <param name="name">The unit name.</param>
@@ -96,6 +106,14 @@ namespace MaxwellCalc.Workspaces
         public bool TryRemoveInputUnit(string name);
 
         /// <summary>
+        /// Tries to get an input unit information.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="unit">The unit.</param>
+        /// <returns>Returns <c>true</c> if the unit was found; otherwise, <c>false</c>.</returns>
+        public bool TryGetInputUnit(string name, out InputUnit unit);
+
+        /// <summary>
         /// Tries to register an output unit. This unit can be used to format units of results.
         /// </summary>
         /// <param name="outputUnit">The output unit.</param>
@@ -117,6 +135,14 @@ namespace MaxwellCalc.Workspaces
         /// <param name="baseUnits">The base units.</param>
         /// <returns>Returns <c>true</c> if the unit was removed; otherwise, <c>false</c>.</returns>
         public bool TryRemoveOutputUnit(Unit outputUnits, Unit baseUnits);
+
+        /// <summary>
+        /// Tries to get an output unit information.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="unit">The unit.</param>
+        /// <returns>Returns <c>true</c> if the unit was found; otherwise, <c>false</c>.</returns>
+        public bool TryGetOutputUnit(Unit input, Unit output, out OutputUnit unit);
 
         /// <summary>
         /// Tries to register a function for the given name and arguments.
@@ -217,11 +243,20 @@ namespace MaxwellCalc.Workspaces
         /// Resolves a node.
         /// </summary>
         /// <param name="node">The node.</param>
+        /// <param name="resolveOutputUnits">If <c>true</c>, the units of the result</param>
+        /// <param name="result">The formatted result.</param>
+        /// <returns>Returns <c>true</c> if the node was resolved; otherwise, <c>false</c>.</returns>
+        public bool TryResolveAndFormat(INode node, bool resolveOutputUnits, out Quantity<string> result);
+
+        /// <summary>
+        /// Resolves a node.
+        /// </summary>
+        /// <param name="node">The node.</param>
         /// <param name="format">The format.</param>
         /// <param name="formatProvider">The format provider.</param>
         /// <param name="result">The formatted result.</param>
         /// <returns>Returns <c>true</c> if the node was resolved; otherwise, <c>false</c>.</returns>
-        public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, out Quantity<string> result);
+        public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, bool resolveOutputUnits, out Quantity<string> result);
 
         /// <summary>
         /// Clears the workspace of input/output units, variables and user/built-in functions.

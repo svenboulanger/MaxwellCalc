@@ -19,7 +19,7 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         public SharedModel()
         {
-            Workspace = new Workspace<double>(new DoubleDomain());
+            _workspace = new Workspace<double>(new DoubleDomain());
         }
 
         /// <summary>

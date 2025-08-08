@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.ComponentModel;
 
 namespace MaxwellCalc.ViewModels
 {

@@ -2,15 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Material.Icons;
-using MaxwellCalc.Domains;
-using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Numerics;
-using System.Text;
-using System.Text.Json;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -68,10 +62,17 @@ namespace MaxwellCalc.ViewModels
                 });
                 _panes.Add(new PaneMenuItemViewModel()
                 {
+                    Text = "Units",
+                    Icon = MaterialIconKind.Atom,
+                    ViewModel = new UnitsViewModel()
+                });
+                _panes.Add(new PaneMenuItemViewModel()
+                {
                     Text = "Settings",
                     Icon = MaterialIconKind.Cog,
                     ViewModel = new SettingsViewModel()
                 });
+
             }
         }
 
@@ -99,6 +100,12 @@ namespace MaxwellCalc.ViewModels
                 Text = "Functions",
                 Icon = MaterialIconKind.FunctionVariant,
                 ViewModel = sp.GetRequiredService<FunctionsViewModel>()
+            });
+            _panes.Add(new PaneMenuItemViewModel()
+            {
+                Text = "Units",
+                Icon = MaterialIconKind.Atom,
+                ViewModel = sp.GetRequiredService<UnitsViewModel>()
             });
             _panes.Add(new PaneMenuItemViewModel()
             {

@@ -24,13 +24,18 @@ namespace MaxwellCalc
         {
             var services = new ServiceCollection();
             services.AddSingleton<CalculatorViewModel>();
-            services.AddSingleton<UserVariablesViewModel>();
-            services.AddSingleton<FunctionsViewModel>();
-            services.AddSingleton<UserFunctionsViewModel>();
-            services.AddSingleton<BuiltInFunctionsViewModel>();
+
             services.AddSingleton<VariablesViewModel>();
             services.AddSingleton<UserVariablesViewModel>();
             services.AddSingleton<ConstantsViewModel>();
+
+            services.AddSingleton<FunctionsViewModel>();
+            services.AddSingleton<UserFunctionsViewModel>();
+            services.AddSingleton<BuiltInFunctionsViewModel>();
+
+            services.AddSingleton<UnitsViewModel>();
+            services.AddSingleton<InputUnitsViewModel>();
+
             services.AddSingleton<SharedModel>();
             services.AddSingleton(GetSettingsViewModel());
             services.AddSingleton(BuildDefaultWorkspace());

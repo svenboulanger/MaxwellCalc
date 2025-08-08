@@ -3,22 +3,14 @@
 namespace MaxwellCalc.Workspaces
 {
     /// <summary>
-    /// Event args for when a variable changes value.
+    /// Event arguments for when a variable changes value.
     /// </summary>
-    public class VariableChangedEvent : EventArgs
+    /// <param name="name">The variable name.</param>
+    public class VariableChangedEvent(string? name) : EventArgs
     {
         /// <summary>
         /// Gets the name of the variable.
         /// </summary>
-        public string? Name { get; }
-
-        /// <summary>
-        /// Creates a new <see cref="VariableChangedEvent"/>.
-        /// </summary>
-        /// <param name="name">The variable name.</param>
-        public VariableChangedEvent(string? name)
-        {
-            Name = name;
-        }
+        public string? Name { get; } = name;
     }
 }

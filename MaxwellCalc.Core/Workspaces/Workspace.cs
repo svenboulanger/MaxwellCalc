@@ -35,6 +35,12 @@ namespace MaxwellCalc.Workspaces
         public event EventHandler<FunctionChangedEvent>? BuiltInFunctionChanged;
 
         /// <inheritdoc />
+        public event EventHandler<InputUnitChangedEvent>? InputUnitChanged;
+
+        /// <inheritdoc />
+        public event EventHandler<OutputUnitchangedEvent>? OutputUnitChanged;
+
+        /// <inheritdoc />
         public IDomain<T> Resolver { get; }
 
         /// <inheritdoc />
@@ -101,7 +107,7 @@ namespace MaxwellCalc.Workspaces
                     foreach (var p2 in p.Value)
                     {
                         if (!Resolver.TryInvert(new(p2.Value, Unit.UnitNone), this, out var inverted) ||
-                            !Resolver.TryFormat(inverted, "g3", CultureInfo.InvariantCulture, out var formatted))
+                            !Resolver.TryFormat(inverted, "g", CultureInfo.InvariantCulture, out var formatted))
                             continue;
                         yield return new(p2.Key, new(formatted.Scalar, p.Key));
                     }
@@ -274,10 +280,14 @@ namespace MaxwellCalc.Workspaces
 
         /// <inheritdoc />
         public bool TryResolveAndFormat(INode node, out Quantity<string> result)
-            => TryResolveAndFormat(node, null, null, out result);
+            => TryResolveAndFormat(node, null, null, true, out result);
 
         /// <inheritdoc />
-        public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
+        public bool TryResolveAndFormat(INode node, bool resolveOutputUnits, out Quantity<string> result)
+            => TryResolveAndFormat(node, null, null, resolveOutputUnits, out result);
+
+        /// <inheritdoc />
+        public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, bool resolveOutputUnits, out Quantity<string> result)
         {
             DiagnosticMessage = null;
             Quantity<T> r;
@@ -333,7 +343,8 @@ namespace MaxwellCalc.Workspaces
                         }
 
                         // Resolve output unit
-                        TryResolveOutputUnits(r, out r);
+                        if (resolveOutputUnits)
+                            TryResolveOutputUnits(r, out r);
                         break;
                 }
             }
@@ -346,7 +357,8 @@ namespace MaxwellCalc.Workspaces
                 }
 
                 // Resolve output unit
-                TryResolveOutputUnits(r, out r);
+                if (resolveOutputUnits)
+                    TryResolveOutputUnits(r, out r);
             }
 
             if (!Resolver.TryFormat(r, format, formatProvider, out result))
@@ -365,6 +377,7 @@ namespace MaxwellCalc.Workspaces
             if (!Resolver.TryScalar(inputUnit.Value.Scalar, this, out var q))
                 return false;
             _inputUnits[inputUnit.UnitName] = new(q.Scalar, inputUnit.Value.Unit);
+            OnInputUnitChanged(new InputUnitChangedEvent(inputUnit.UnitName));
             return true;
         }
 
@@ -379,12 +392,33 @@ namespace MaxwellCalc.Workspaces
                 return false;
             }
             _inputUnits[name] = q;
+            OnInputUnitChanged(new InputUnitChangedEvent(name));
             return true;
         }
 
         /// <inheritdoc />
         public bool TryRemoveInputUnit(string name)
-            => _inputUnits.Remove(name);
+        {
+            if (_inputUnits.Remove(name))
+            {
+                OnInputUnitChanged(new InputUnitChangedEvent(name));
+                return true;
+            }
+            return false;
+        }
+
+        /// <inheritdoc />
+        public bool TryGetInputUnit(string name, out InputUnit unit)
+        {
+            if (_inputUnits.TryGetValue(name, out var value) &&
+                Resolver.TryFormat(value, "g", CultureInfo.CurrentCulture, out var formatted))
+            {
+                unit = new InputUnit(name, formatted);
+                return true;
+            }
+            unit = default;
+            return false;
+        }
 
         /// <inheritdoc />
         public bool TryRegisterOutputUnit(OutputUnit outputUnit)
@@ -398,6 +432,7 @@ namespace MaxwellCalc.Workspaces
                 _outputUnits.Add(outputUnit.Value.Unit, dict);
             }
             dict[outputUnit.Unit] = inv.Scalar;
+            OnOutputUnitChanged(new OutputUnitchangedEvent(outputUnit.Value.Unit));
             return true;
         }
 
@@ -415,6 +450,7 @@ namespace MaxwellCalc.Workspaces
                 _outputUnits.Add(bu.Unit, dict);
             }
             dict[ou.Unit] = div.Scalar;
+            OnOutputUnitChanged(new OutputUnitchangedEvent(bu.Unit));
             return true;
         }
 
@@ -423,7 +459,27 @@ namespace MaxwellCalc.Workspaces
         {
             if (!_outputUnits.TryGetValue(baseUnits, out var dict))
                 return false;
-            return dict.Remove(outputUnits);
+            if (dict.Remove(outputUnits))
+            {
+                OnOutputUnitChanged(new OutputUnitchangedEvent(outputUnits));
+                return true;
+            }
+            return false;
+        }
+
+        /// <inheritdoc />
+        public bool TryGetOutputUnit(Unit input, Unit output, out OutputUnit unit)
+        {
+            if (_outputUnits.TryGetValue(input, out var dict) &&
+                dict.TryGetValue(output, out var value) &&
+                Resolver.TryInvert(new(value, output), this, out var inverted) &&
+                Resolver.TryFormat(inverted, "g", CultureInfo.InvariantCulture, out var formatted))
+            {
+                unit = new(output, new(formatted.Scalar, input));
+                return true;
+            }
+            unit = default;
+            return false;
         }
 
         /// <inheritdoc />
@@ -560,16 +616,46 @@ namespace MaxwellCalc.Workspaces
             return scope.RemoveVariable(name); // Will call VariableChanged event
         }
 
-        protected void OnVariableChanged(VariableChangedEvent args)
+        /// <summary>
+        /// Called when a variable changed.
+        /// </summary>
+        /// <param name="args">The event arguments.</param>
+        protected virtual void OnVariableChanged(VariableChangedEvent args)
             => VariableChanged?.Invoke(this, args);
 
-        protected void OnConstantChanged(VariableChangedEvent args)
+        /// <summary>
+        /// Calles when a constant changed.
+        /// </summary>
+        /// <param name="args">The event arguments.</param>
+        protected virtual void OnConstantChanged(VariableChangedEvent args)
             => ConstantChanged?.Invoke(this, args);
 
-        protected void OnUserFunctionChanged(FunctionChangedEvent args)
+        /// <summary>
+        /// Called when a user function changed.
+        /// </summary>
+        /// <param name="args">The event arguments.</param>
+        protected virtual void OnUserFunctionChanged(FunctionChangedEvent args)
             => FunctionChanged?.Invoke(this, args);
 
-        protected void OnBuiltInFunctionChanged(FunctionChangedEvent args)
+        /// <summary>
+        /// Called when a built-in function changed.
+        /// </summary>
+        /// <param name="args">The event arguments.</param>
+        protected virtual void OnBuiltInFunctionChanged(FunctionChangedEvent args)
             => BuiltInFunctionChanged?.Invoke(this, args);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnInputUnitChanged(InputUnitChangedEvent args)
+            => InputUnitChanged?.Invoke(this, args);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnOutputUnitChanged(OutputUnitchangedEvent args)
+            => OutputUnitChanged?.Invoke(this, args);
     }
 }
