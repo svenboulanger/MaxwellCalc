@@ -102,7 +102,13 @@ namespace MaxwellCalc.ViewModels
                 RemoveModelFromWorkspace(Shared.Workspace, model);
         }
 
-        partial void OnFilterChanged(string value) => ApplyFilter();
+        partial void OnFilterChanged(string value)
+        {
+            OnApplyingNewFilter();
+            ApplyFilter();
+        }
+
+        protected virtual void OnApplyingNewFilter() { }
 
         [RelayCommand]
         private void ApplyFilter()

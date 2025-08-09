@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using MaxwellCalc.Core.Workspaces.SpecialFunctions;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using MaxwellCalc.ViewModels;

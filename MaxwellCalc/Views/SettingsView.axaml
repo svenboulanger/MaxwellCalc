@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:my="using:MaxwellCalc.Views"
 			 xmlns:controls="using:MaxwellCalc.Controls"
 			 xmlns:material="using:Material.Styles.Controls"
 			 x:DataType="vm:SettingsViewModel"
@@ -13,17 +14,54 @@
 	</Design.DataContext>
 	<StackPanel>
 		<material:Card Margin="10">
-			<Grid ColumnDefinitions="3*, *">
+			<Grid ColumnDefinitions="3*, *" RowDefinitions="Auto, Auto, Auto">
 				<TextBlock Text="Theme"
 						   Margin="10"
 						   Grid.Column="0"
+						   Grid.Row="0"
 						   VerticalAlignment="Center"/>
+				<TextBlock Text="Primary color"
+						   Margin="10"
+						   Grid.Column="0"
+						   Grid.Row="1"
+						   VerticalAlignment="Center" />
+				<TextBlock Text="Secondary color"
+						   Margin="10"
+						   Grid.Column="0"
+						   Grid.Row="2"
+						   VerticalAlignment="Center" />
 				<ComboBox Grid.Column="1"
 						  SelectedIndex="{Binding CurrentTheme}"
 						  VerticalAlignment="Center">
 					<TextBlock>Use default</TextBlock>
 					<TextBlock>Light</TextBlock>
 					<TextBlock>Dark</TextBlock>
+				</ComboBox>
+				<ComboBox Grid.Column="1"
+						  Grid.Row="1"
+						  SelectedItem="{Binding PrimaryColor}"
+						  VerticalAlignment="Center"
+						  ItemsSource="{Binding PrimaryColors}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding}"
+									   VerticalAlignment="Center"
+									   Foreground="{Binding, Converter={x:Static my:ConverterHelpers.PrimaryColorConverter}}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+				<ComboBox Grid.Column="1"
+						  Grid.Row="2"
+						  SelectedItem="{Binding SecondaryColor}"
+						  VerticalAlignment="Center"
+						  ItemsSource="{Binding SecondaryColors}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding}"
+									   VerticalAlignment="Center"
+									   Foreground="{Binding, Converter={x:Static my:ConverterHelpers.SecondaryColorConverter}}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
 				</ComboBox>
 			</Grid>
 		</material:Card>

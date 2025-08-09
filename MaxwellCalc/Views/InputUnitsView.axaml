@@ -35,7 +35,7 @@
 						 Margin="5"
 						 Grid.Column="0"/>
 				<TextBox Text="{Binding Expression}"
-						 Watermark="Expression"
+						 Watermark="Expression (or a base unit)"
 						 Margin="5"
 						 Grid.Column="1">
 					<TextBox.KeyBindings>
@@ -48,22 +48,32 @@
 						Grid.Column="2" />
 			</Grid>
 		</material:Card>
+		
 		<material:Card Margin="5">
 			<DockPanel>
+				<DockPanel.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Remove selected units" Command="{Binding ClearSelectedInputUnitsCommand}" />
+					</ContextMenu>
+				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
 						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
 						Margin="0,0,0,5"
 						DockPanel.Dock="Top">
-					<Grid ColumnDefinitions="150, 100, *">
+					<Grid ColumnDefinitions="20, 150, *">
+						<CheckBox IsChecked="{Binding IsHeaderChecked}"
+								  VerticalAlignment="Center"
+								  Margin="5"
+								  Grid.Column="0" />
 						<TextBlock Text="Input unit"
 								   FontWeight="Bold"
 								   Margin="5"
-								   Grid.Column="0"
+								   Grid.Column="1"
 								   VerticalAlignment="Center" />
 						<TextBlock Text="Internal"
 								   FontWeight="Bold"
 								   Margin="5"
-								   Grid.Column="1"
+								   Grid.Column="2"
 								   VerticalAlignment="Center" />
 					</Grid>
 				</Border>
@@ -73,18 +83,22 @@
 					<ItemsControl ItemsSource="{Binding FilteredItems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate x:DataType="vm:InputUnitViewModel">
-								<Grid ColumnDefinitions="150, 100, *, Auto">
-									<TextBlock Text="{Binding Name}"
+								<Grid ColumnDefinitions="20, 150, *, Auto">
+									<CheckBox IsChecked="{Binding Selected}"
+											  VerticalAlignment="Center"
+											  Margin="5"
+											  Grid.Column="0" />
+									<SelectableTextBlock Text="{Binding Name}"
 											   FontWeight="Bold"
 											   Margin="5"
 											   VerticalAlignment="Center"
-											   Grid.Column="0" />
+											   Grid.Column="1" />
 									<controls:FormattedQuantity Value="{Binding Value}"
 																VerticalAlignment="Center"
 																Margin="5"
-																Grid.Column="1" />
+																Grid.Column="2" />
 									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
-											Grid.Column="3"
+											Grid.Column="4"
 											VerticalAlignment="Center"
 											Padding="3"
 											Margin="5 5 20 5"

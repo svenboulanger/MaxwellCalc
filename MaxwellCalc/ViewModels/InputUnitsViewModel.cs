@@ -12,11 +12,16 @@ namespace MaxwellCalc.ViewModels
 {
     public partial class InputUnitsViewModel : FilteredCollectionViewModel<InputUnitViewModel>
     {
+        private bool _holdOffHeaderChecked = false;
+
         [ObservableProperty]
         private string? _inputUnit;
 
         [ObservableProperty]
         private string? _expression;
+
+        [ObservableProperty]
+        private bool _isHeaderChecked = false;
 
         /// <summary>
         /// Creates a new <see cref="InputUnitsViewModel"/>.
@@ -49,6 +54,16 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override int CompareModels(InputUnitViewModel a, InputUnitViewModel b)
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
+
+        /// <inheritdoc />
+        protected override void OnApplyingNewFilter()
+        {
+            if (IsHeaderChecked)
+            {
+                _holdOffHeaderChecked = true;
+                IsHeaderChecked = false;
+            }
+        }
 
         /// <inheritdoc />
         protected override IEnumerable<InputUnitViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
@@ -116,12 +131,24 @@ namespace MaxwellCalc.ViewModels
                 return;
 
             // Try to evaluate the expression
-            var lexer = new Lexer(Expression);
-            var node = Parser.Parse(lexer, Shared.Workspace);
-            if (node is null)
+            string expression = Expression.Trim();
+            Quantity<string> formatted;
+            if (string.IsNullOrEmpty(expression))
                 return;
-            if (!Shared.Workspace.TryResolveAndFormat(node, false, out var formatted))
-                return;
+            if (!expression.All(char.IsLetter))
+            {
+                var lexer = new Lexer(Expression);
+                var node = Parser.Parse(lexer, Shared.Workspace);
+                if (node is null)
+                    return;
+                if (!Shared.Workspace.TryResolveAndFormat(node, false, out formatted))
+                    return;
+            }
+            else
+            {
+                // If the expression is just a string, allow registering as a base unit
+                formatted = new Quantity<string>("1", new Unit((expression, 1)));
+            }
 
             // Evaluate the name
             string unit = InputUnit.Trim();
@@ -132,6 +159,31 @@ namespace MaxwellCalc.ViewModels
 
             // Pass them on to the workspace
             Shared.Workspace.TryRegisterInputUnit(new InputUnit(unit, formatted));
+        }
+
+        [RelayCommand]
+        private void ClearSelectedInputUnits()
+        {
+            // Remove all input units
+            if (Shared.Workspace is null)
+                return;
+            foreach (var inputUnit in Items.Where(item => item.Selected).ToList())
+            {
+                if (inputUnit.Name is null)
+                    continue;
+                Shared.Workspace.TryRemoveInputUnit(inputUnit.Name);
+            }
+        }
+
+        partial void OnIsHeaderCheckedChanged(bool value)
+        {
+            if (_holdOffHeaderChecked)
+                _holdOffHeaderChecked = false;
+            else
+            {
+                for (int i = 0; i < FilteredItems.Count; i++)
+                    FilteredItems[i].Selected = value;
+            }
         }
     }
 }

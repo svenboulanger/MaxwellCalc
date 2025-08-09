@@ -1,15 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Units;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MaxwellCalc.ViewModels
 {
+    /// <summary>
+    /// A model for an input unit.
+    /// </summary>
     public partial class InputUnitViewModel : ViewModelBase
     {
+        [ObservableProperty]
+        private bool _selected = false;
+
         [ObservableProperty]
         private string? _name;
 

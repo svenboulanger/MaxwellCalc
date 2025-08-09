@@ -1,10 +1,13 @@
 ﻿using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MaxwellCalc.Workspaces;
+using Material.Colors;
+using Material.Styles.Themes;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -27,6 +30,18 @@ namespace MaxwellCalc.ViewModels
 
         [ObservableProperty]
         private int _currentTheme = 0;
+
+        [ObservableProperty]
+        private ObservableCollection<PrimaryColor> _primaryColors = [.. Enum.GetValues(typeof(PrimaryColor)).Cast<PrimaryColor>()];
+
+        [ObservableProperty]
+        private ObservableCollection<SecondaryColor> _secondaryColors = [.. Enum.GetValues(typeof(SecondaryColor)).Cast<SecondaryColor>()];
+
+        [ObservableProperty]
+        private PrimaryColor _primaryColor = PrimaryColor.Purple;
+
+        [ObservableProperty]
+        private SecondaryColor _secondaryColor = SecondaryColor.Indigo;
 
         /// <summary>
         /// Creates a new <see cref="SettingsViewModel"/>.
@@ -54,17 +69,31 @@ namespace MaxwellCalc.ViewModels
             switch (value)
             {
                 case 0:
-                    App.Current!.RequestedThemeVariant = new ThemeVariant("Default", null);
+                    Avalonia.Application.Current!.RequestedThemeVariant = new ThemeVariant("Default", null);
                     break;
 
                 case 1:
-                    App.Current!.RequestedThemeVariant = Material.Styles.Themes.Theme.MaterialLight;
+                    Avalonia.Application.Current!.RequestedThemeVariant = Theme.MaterialLight;
                     break;
 
                 case 2:
-                    App.Current!.RequestedThemeVariant = Material.Styles.Themes.Theme.MaterialDark;
+                    Avalonia.Application.Current!.RequestedThemeVariant = Theme.MaterialDark;
                     break;
             }
+            SaveSettings();
+        }
+
+        partial void OnPrimaryColorChanged(PrimaryColor value)
+        {
+            var theme = Avalonia.Application.Current!.LocateMaterialTheme<MaterialTheme>();
+            theme.PrimaryColor = value;
+            SaveSettings();
+        }
+
+        partial void OnSecondaryColorChanged(SecondaryColor value)
+        {
+            var theme = Avalonia.Application.Current!.LocateMaterialTheme<MaterialTheme>();
+            theme.SecondaryColor = value;
             SaveSettings();
         }
 
