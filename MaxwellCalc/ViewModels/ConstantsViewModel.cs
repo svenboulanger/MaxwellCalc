@@ -1,4 +1,7 @@
 ﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MaxwellCalc.Parsers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -9,6 +12,15 @@ namespace MaxwellCalc.ViewModels
 {
     public partial class ConstantsViewModel : FilteredCollectionViewModel<UserVariableViewModel>
     {
+        [ObservableProperty]
+        private string _constantName = string.Empty;
+
+        [ObservableProperty]
+        private string _expression = string.Empty;
+
+        [ObservableProperty]
+        private string _description = string.Empty;
+
         /// <summary>
         /// Creates a new <see cref="ConstantsViewModel"/>.
         /// </summary>
@@ -109,6 +121,24 @@ namespace MaxwellCalc.ViewModels
                 Items.Remove(model);
                 FilteredItems.Remove(model);
             }
+        }
+
+        [RelayCommand]
+        private void AddConstant()
+        {
+            string name = ConstantName.Trim();
+            string expression = Expression.Trim();
+            if (Shared.Workspace is null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(expression))
+                return;
+
+            var lexer = new Lexer(expression);
+            var node = Parser.Parse(lexer, Shared.Workspace);
+            if (node is null)
+                return;
+            if (!Shared.Workspace.TryResolveAndFormat(node, out var formatted))
+                return;
+
+            Shared.Workspace.TrySetConstant(new Variable(name, formatted, Description));
         }
     }
 }

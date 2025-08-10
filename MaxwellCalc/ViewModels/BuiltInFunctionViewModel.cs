@@ -6,7 +6,7 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A view model for representing a built-in function.
     /// </summary>
-    public partial class BuiltInFunctionViewModel : ViewModelBase
+    public partial class BuiltInFunctionViewModel : SelectableViewModelBase
     {
         [ObservableProperty]
         private string _name = string.Empty;

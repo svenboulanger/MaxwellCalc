@@ -189,7 +189,7 @@ namespace MaxwellCalc.Workspaces
         /// <remarks>A constant is different from a variable that it can be overwritten by variables, but not removed.</remarks>
         /// <param name="variable">The constant definition as a variable.</param>
         /// <returns>Returns <c>true</c> if the constant was set; otherwise, <c>false</c>.</returns>
-        public bool TrySetConstant(Variable variable, string? description = null);
+        public bool TrySetConstant(Variable variable);
 
         /// <summary>
         /// Tries to remove a variable.

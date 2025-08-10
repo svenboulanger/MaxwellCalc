@@ -12,16 +12,11 @@ namespace MaxwellCalc.ViewModels
 {
     public partial class InputUnitsViewModel : FilteredCollectionViewModel<InputUnitViewModel>
     {
-        private bool _holdOffHeaderChecked = false;
-
         [ObservableProperty]
         private string? _inputUnit;
 
         [ObservableProperty]
         private string? _expression;
-
-        [ObservableProperty]
-        private bool _isHeaderChecked = false;
 
         /// <summary>
         /// Creates a new <see cref="InputUnitsViewModel"/>.
@@ -54,16 +49,6 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override int CompareModels(InputUnitViewModel a, InputUnitViewModel b)
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
-
-        /// <inheritdoc />
-        protected override void OnApplyingNewFilter()
-        {
-            if (IsHeaderChecked)
-            {
-                _holdOffHeaderChecked = true;
-                IsHeaderChecked = false;
-            }
-        }
 
         /// <inheritdoc />
         protected override IEnumerable<InputUnitViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
@@ -159,31 +144,6 @@ namespace MaxwellCalc.ViewModels
 
             // Pass them on to the workspace
             Shared.Workspace.TryRegisterInputUnit(new InputUnit(unit, formatted));
-        }
-
-        [RelayCommand]
-        private void ClearSelectedInputUnits()
-        {
-            // Remove all input units
-            if (Shared.Workspace is null)
-                return;
-            foreach (var inputUnit in Items.Where(item => item.Selected).ToList())
-            {
-                if (inputUnit.Name is null)
-                    continue;
-                Shared.Workspace.TryRemoveInputUnit(inputUnit.Name);
-            }
-        }
-
-        partial void OnIsHeaderCheckedChanged(bool value)
-        {
-            if (_holdOffHeaderChecked)
-                _holdOffHeaderChecked = false;
-            else
-            {
-                for (int i = 0; i < FilteredItems.Count; i++)
-                    FilteredItems[i].Selected = value;
-            }
         }
     }
 }

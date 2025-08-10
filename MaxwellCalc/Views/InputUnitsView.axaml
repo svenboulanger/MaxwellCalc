@@ -53,7 +53,7 @@
 			<DockPanel>
 				<DockPanel.ContextMenu>
 					<ContextMenu>
-						<MenuItem Header="Remove selected units" Command="{Binding ClearSelectedInputUnitsCommand}" />
+						<MenuItem Header="Remove selected units" Command="{Binding RemoveSelectedItemsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"

@@ -6,11 +6,8 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A model for an input unit.
     /// </summary>
-    public partial class InputUnitViewModel : ViewModelBase
+    public partial class InputUnitViewModel : SelectableViewModelBase
     {
-        [ObservableProperty]
-        private bool _selected = false;
-
         [ObservableProperty]
         private string? _name;
 

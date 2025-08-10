@@ -15,8 +15,10 @@ namespace MaxwellCalc.ViewModels
     /// </summary>
     /// <typeparam name="M">The item view model type.</typeparam>
     public abstract partial class FilteredCollectionViewModel<M> : ViewModelBase
+        where M : SelectableViewModelBase
     {
         private IWorkspace? _lastWorkspace;
+        private bool _holdOffHeaderChecked = false;
 
         /// <summary>
         /// Gets the shared model.
@@ -34,6 +36,9 @@ namespace MaxwellCalc.ViewModels
 
         [ObservableProperty]
         private string _filter = string.Empty;
+
+        [ObservableProperty]
+        private bool _isHeaderChecked = false;
 
         /// <summary>
         /// Creates a new <see cref="FilteredCollectionViewModel{M}"/>.
@@ -104,7 +109,12 @@ namespace MaxwellCalc.ViewModels
 
         partial void OnFilterChanged(string value)
         {
-            OnApplyingNewFilter();
+            if (IsHeaderChecked)
+            {
+                // Reset the header check boolean
+                _holdOffHeaderChecked = true;
+                IsHeaderChecked = false;
+            }
             ApplyFilter();
         }
 
@@ -150,6 +160,40 @@ namespace MaxwellCalc.ViewModels
                     CompareModels(model, FilteredItems[index]) > 0)
                     index++;
                 FilteredItems.Insert(index, model);
+            }
+        }
+
+        [RelayCommand]
+        private void RemoveSelectedItems()
+        {
+            // Remove all selected units
+            foreach (var item in Items.Where(item => item.Selected).ToList())
+            {
+                RemoveItem(item);
+                Items.Remove(item);
+                FilteredItems.Remove(item);
+            }
+            IsHeaderChecked = false;
+        }
+
+        [RelayCommand]
+        private void RemoveAllItems()
+        {
+            foreach (var item in Items.ToList())
+                RemoveItem(item);
+            Items.Clear();
+            FilteredItems.Clear();
+            IsHeaderChecked = false;
+        }
+
+        partial void OnIsHeaderCheckedChanged(bool value)
+        {
+            if (_holdOffHeaderChecked)
+                _holdOffHeaderChecked = false;
+            else
+            {
+                for (int i = 0; i < FilteredItems.Count; i++)
+                    FilteredItems[i].Selected = value;
             }
         }
     }

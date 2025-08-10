@@ -23,39 +23,51 @@
 		</material:Card>
 		<material:Card Margin="5">
 			<DockPanel>
+				<DockPanel.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Remove selected variables" Command="{Binding RemoveSelectedItemsCommand}" />
+					</ContextMenu>
+				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
 						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
 						Margin="0,0,0,5"
 						DockPanel.Dock="Top">
-					<Grid ColumnDefinitions="150, *, Auto">
+					<Grid ColumnDefinitions="20, 150, *, Auto">
+						<CheckBox IsChecked="{Binding IsHeaderChecked}"
+								  Margin="5"
+								  VerticalAlignment="Center" />
 						<TextBlock Text="Parameter"
-								   FontWeight="Bold"
-								   Margin="5"
-								   Grid.Column="0"
-								   VerticalAlignment="Center" />
-						<TextBlock Text="Value"
 								   FontWeight="Bold"
 								   Margin="5"
 								   Grid.Column="1"
 								   VerticalAlignment="Center" />
+						<TextBlock Text="Value"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="2"
+								   VerticalAlignment="Center" />
 					</Grid>
 				</Border>
+				
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl ItemsSource="{Binding FilteredItems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Grid ColumnDefinitions="150, *, Auto">
+								<Grid ColumnDefinitions="20, 150, *, Auto">
+									<CheckBox IsChecked="{Binding Selected}"
+											  Margin="5"
+											  VerticalAlignment="Center" />
 									<SelectableTextBlock Text="{Binding Name}"
 														 FontWeight="Bold"
 														 Margin="5"
 														 VerticalAlignment="Center"
-														 Grid.Column="0"/>
+														 Grid.Column="1"/>
 									<controls:CopyableQuantity Value="{Binding Value}"
 															   Margin="5"
-															   Grid.Column="1"
+															   Grid.Column="2"
 															   VerticalAlignment="Center"/>
 									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
-											Grid.Column="2"
+											Grid.Column="3"
 											VerticalAlignment="Center"
 											Padding="3"
 											Margin="5 5 20 5"

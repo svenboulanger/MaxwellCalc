@@ -6,7 +6,7 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A definition for a variable.
     /// </summary>
-    public partial class UserVariableViewModel : ViewModelBase
+    public partial class UserVariableViewModel : SelectableViewModelBase
     {
         [ObservableProperty]
         private string? _name;

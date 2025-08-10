@@ -598,10 +598,10 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public bool TrySetConstant(Variable variable, string? description = null)
+        public bool TrySetConstant(Variable variable)
         {
             if (!Resolver.TryScalar(variable.Value.Scalar, this, out var scalarQuantity) ||
-                !_constantScope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit), description))
+                !_constantScope.TrySetVariable(variable.Name, new(scalarQuantity.Scalar, variable.Value.Unit), variable.Description))
                 return false;
             return true;
         }

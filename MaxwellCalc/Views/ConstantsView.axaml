@@ -21,27 +21,66 @@
 					 Height="20"
 					 Text="{Binding Filter}" />
 		</material:Card>
+
+		<material:Card DockPanel.Dock="Bottom"
+			   Margin="5">
+			<Grid ColumnDefinitions="150, 250, *, 50">
+				<TextBox Text="{Binding ConstantName}"
+						 Watermark="Constant"
+						 Margin="5"
+						 Grid.Column="0"/>
+				<TextBox Text="{Binding Expression}"
+						 Watermark="Expression"
+						 Margin="5"
+						 Grid.Column="1">
+					<TextBox.KeyBindings>
+						<KeyBinding Command="{Binding AddConstantCommand}" Gesture="Enter" />
+					</TextBox.KeyBindings>
+				</TextBox>
+				<TextBox Text="{Binding Description}"
+						 Watermark="Description"
+						 Margin="5"
+						 Grid.Column="2">
+					<TextBox.KeyBindings>
+						<KeyBinding Command="{Binding AddConstantCommand}" Gesture="Enter" />
+					</TextBox.KeyBindings>
+				</TextBox>
+				<Button Content="{materialIcons:MaterialIconExt Kind=Add}"
+						VerticalAlignment="Center"
+						Command="{Binding AddConstantCommand}"
+						Grid.Column="3" />
+			</Grid>
+		</material:Card>
+
 		<material:Card Margin="5">
 			<DockPanel>
+				<DockPanel.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Remove selected constants" Command="{Binding RemoveSelectedItemsCommand}" />
+					</ContextMenu>
+				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
 						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
 						Margin="0,0,0,5"
 						DockPanel.Dock="Top">
-					<Grid ColumnDefinitions="150, *, *, 50">
+					<Grid ColumnDefinitions="20, 150, 250, *, 50">
+						<CheckBox Margin="5"
+								  VerticalAlignment="Center"
+								  IsChecked="{Binding IsHeaderChecked}" />
 						<TextBlock Text="Parameter"
-								   FontWeight="Bold"
-								   Margin="5"
-								   Grid.Column="0"
-								   VerticalAlignment="Center" />
-						<TextBlock Text="Value"
 								   FontWeight="Bold"
 								   Margin="5"
 								   Grid.Column="1"
 								   VerticalAlignment="Center" />
-						<TextBlock Text="Description"
+						<TextBlock Text="Value"
 								   FontWeight="Bold"
 								   Margin="5"
 								   Grid.Column="2"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Description"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="3"
 								   VerticalAlignment="Center"/>
 					</Grid>
 				</Border>
@@ -49,22 +88,25 @@
 					<ItemsControl ItemsSource="{Binding FilteredItems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Grid ColumnDefinitions="150, *, *, 50">
+								<Grid ColumnDefinitions="20, 150, 250, *, 50">
+									<CheckBox Margin="5"
+											  VerticalAlignment="Center"
+											  IsChecked="{Binding Selected}" />
 									<SelectableTextBlock Text="{Binding Name}"
 														 FontWeight="Bold"
 														 Margin="5"
 														 VerticalAlignment="Center"
-														 Grid.Column="0"/>
+														 Grid.Column="1"/>
 									<controls:CopyableQuantity Value="{Binding Value}"
 															   Margin="5"
-															   Grid.Column="1"
+															   Grid.Column="2"
 															   VerticalAlignment="Center"/>
 									<SelectableTextBlock Text="{Binding Description}"
 														 Margin="5"
 														 VerticalAlignment="Center"
-														 Grid.Column="2" />
+														 Grid.Column="3" />
 									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
-											Grid.Column="3"
+											Grid.Column="4"
 											VerticalAlignment="Center"
 											Padding="3"
 											Margin="5 5 20 5"

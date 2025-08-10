@@ -6,7 +6,7 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A view model for a function.
     /// </summary>
-    public partial class UserFunctionViewModel : ViewModelBase
+    public partial class UserFunctionViewModel : SelectableViewModelBase
     {
         /// <summary>
         /// Gets or sets the name of the function.
