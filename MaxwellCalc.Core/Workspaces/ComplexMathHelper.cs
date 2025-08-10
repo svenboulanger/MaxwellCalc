@@ -646,22 +646,25 @@ namespace MaxwellCalc.Workspaces
         [CalculatorName("Ei"), CalculatorDescription("Calculates the exponential integral of a number. The argument is expected to not have units.")]
         public static bool Expi(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
         {
-            if (args.Count != 1)
-            {
-                // Only one argument allowed
-                result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for Ei().";
+            if (!SingleNonUnitArgument(args, workspace, "Ei", out result))
                 return false;
-            }
-            var arg = args[0];
-            if (arg.Unit != Unit.UnitNone)
-            {
-                // Cannot deal with units
-                result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units for Ei().";
+            result = new Quantity<Complex>(ExponentialIntegralFunctions.ExpI(args[0].Scalar), Unit.UnitNone);
+            return true;
+        }
+
+        /// <summary>
+        /// Calculates the exp(-x) * Ei(x).
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [CalculatorName("expEi"), CalculatorDescription("Calculates the multiplication exp(-x) * Ei(x). The argument is expected to not have units.")]
+        public static bool ExpiExp(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
+        {
+            if (!SingleNonUnitArgument(args, workspace, "expEi", out result))
                 return false;
-            }
-            result = new Quantity<Complex>(ExponentialIntegralFunctions.ExpI(arg.Scalar), Unit.UnitNone);
+            result = new Quantity<Complex>(ExponentialIntegralFunctions.ExpExpI(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -678,6 +681,22 @@ namespace MaxwellCalc.Workspaces
             if (!args.SingleNonUnitArgument(workspace, "E1", out result))
                 return false;
             result = new Quantity<Complex>(ExponentialIntegralFunctions.Exp1(args[0].Scalar), Unit.UnitNone);
+            return true;
+        }
+
+        /// <summary>
+        /// Calculates exp(x) * E1(x).
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <param name="workspace">The result.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+        [CalculatorName("expE1"), CalculatorDescription("Calculates the generalized exponential integral of a number with n=1. The argument is expected to not have units.")]
+        public static bool Exp1Exp(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
+        {
+            if (!args.SingleNonUnitArgument(workspace, "expE1", out result))
+                return false;
+            result = new Quantity<Complex>(ExponentialIntegralFunctions.ExpExp1(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 

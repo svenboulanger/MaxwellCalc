@@ -46,6 +46,42 @@ namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
         }
 
         /// <summary>
+        /// Computes exp(x) * E1(x).
+        /// </summary>
+        /// <param name="x">The argument.</param>
+        /// <returns>The result.</returns>
+        public static double ExpExp1(double x)
+        {
+            int k, m;
+            double e1, r, t, t0;
+            double ga = Constants.EulerGamma;
+
+            if (x == 0.0)
+                return double.PositiveInfinity;
+            if (x <= 1.0)
+            {
+                e1 = 1.0;
+                r = 1.0;
+                for (k = 1; k < 26; k++)
+                {
+                    r = -r * k * x / ((k + 1.0) * (k + 1.0));
+                    e1 += r;
+                    if (Math.Abs(r) <= Math.Abs(e1) * 1e-15)
+                        break;
+                }
+                return -ga - Math.Log(x) + x * e1;
+            }
+            m = 20 + (int)(80.0 / x);
+            t0 = 0.0;
+            for (k = m; k > 0; k--)
+            {
+                t0 = k / (1.0 + k / (x + t0));
+            }
+            t = 1.0 / (x + t0);
+            return t;
+        }
+
+        /// <summary>
         /// Computes the complex exponential integral E1(z).
         /// </summary>
         /// <param name="z">The argument.</param>
@@ -124,6 +160,84 @@ namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
         }
 
         /// <summary>
+        /// Computes exp(z) * E1(z).
+        /// </summary>
+        /// <param name="z">The argument.</param>
+        /// <returns>The result.</returns>
+        public static Complex ExpExp1(Complex z)
+        {
+            // ====================================================
+            // Purpose: Compute complex exponential integral E1(z)
+            // Input :  z   --- Argument of E1(z)
+            // Output:  CE1 --- E1(z)
+            // ====================================================
+            double el = Constants.EulerGamma;
+            int k;
+            Complex ce1, cr, zc, zd, zdc;
+            double x = z.Real;
+            double a0 = Complex.Abs(z);
+            // Continued fraction converges slowly near negative real axis,
+            // so use power series in a wedge around it until radius 40.0
+            double xt = -2.0 * Math.Abs(z.Imaginary);
+
+            if (a0 == 0.0)
+                return double.PositiveInfinity;
+            if ((a0 < 5.0) || ((x < xt) && (a0 < 40.0)))
+            {
+                // Power series
+                ce1 = 1.0;
+                cr = 1.0;
+                for (k = 1; k < 501; k++)
+                {
+                    cr = -cr * z * k / ((k + 1.0) * (k + 1.0));
+                    ce1 += cr;
+                    if (Complex.Abs(cr) < Complex.Abs(ce1) * 1e-15)
+                        break;
+                }
+                if ((x <= 0.0) && (z.Imaginary == 0.0))
+                {
+                    // Careful on the branch cut -- use the sign of the imaginary part
+                    //  to get the right sign on the factor if pi.
+                    if (z.Imaginary >= 0.0)
+                        ce1 = Complex.Exp(z) * (-el - Complex.Log(-z) + z * ce1 - new Complex(0.0, Math.PI));
+                    else
+                        ce1 = Complex.Exp(z) * (-el - Complex.Log(-z) + z * ce1 + new Complex(0.0, Math.PI));
+                }
+                else
+                {
+                    ce1 = Complex.Exp(z) * (-el - Complex.Log(z) + z * ce1);
+                }
+            }
+            else
+            {
+                // Continued fraction https://dlmf.nist.gov/6.9
+                //                  1     1     1     2     2     3     3
+                // E1 = exp(-z) * ----- ----- ----- ----- ----- ----- ----- ...
+                //                Z +   1 +   Z +   1 +   Z +   1 +   Z +
+                zc = 0.0;
+                zd = 1.0 / z;
+                zdc = zd;
+                zc += zdc;
+                for (k = 1; k < 501; k++)
+                {
+                    zd = 1.0 / (zd * k + 1.0);
+                    zdc *= (zd - 1.0);
+                    zc += zdc;
+
+                    zd = 1.0 / (zd * k + z);
+                    zdc *= (z * zd - 1.0);
+                    zc += zdc;
+                    if ((Complex.Abs(zdc) <= Complex.Abs(zc) * 1e-15) && (k > 20))
+                        break;
+                }
+                ce1 = zc;
+                if ((x <= 0.0) && (z.Imaginary == 0.0))
+                    ce1 -= Complex.Exp(z) * new Complex(0.0, Math.PI);
+            }
+            return ce1;
+        }
+
+        /// <summary>
         /// Computes the exponential integral Ei(x).
         /// </summary>
         /// <param name="x">The argument.</param>
@@ -174,6 +288,56 @@ namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
         }
 
         /// <summary>
+        /// Computes the exponential integral times the exponent exp(-x) * Ei(x).
+        /// </summary>
+        /// <param name="x">The argument.</param>
+        /// <returns>The result.</returns>
+        public static double ExpExpI(double x)
+        {
+            // ============================================
+            // Purpose: Compute exponential integral Ei(x)
+            // Input :  x  --- Argument of Ei(x)
+            // Output:  EI --- Ei(x)
+            // ============================================
+
+            double ga = Constants.EulerGamma;
+            double ei, r;
+
+            if (x == 0.0)
+                ei = double.NegativeInfinity;
+            else if (x < 0)
+                ei = -ExpExp1(-x);
+            else if (Math.Abs(x) <= 40.0)
+            {
+                // Power series around x=0
+                ei = 1.0;
+                r = 1.0;
+
+                for (int k = 1; k <= 100; k++)
+                {
+                    r = r * k * x / ((k + 1.0) * (k + 1.0));
+                    ei += r;
+                    if (Math.Abs(r / ei) <= 1.0e-15)
+                        break;
+                }
+                ei = Math.Exp(-x) * (ga + Math.Log(x) + x * ei);
+            }
+            else
+            {
+                // Asymptotic expansion (the series is not convergent)
+                ei = 1.0;
+                r = 1.0;
+                for (int k = 1; k <= 20; k++)
+                {
+                    r = r * k / x;
+                    ei += r;
+                }
+                ei = 1.0 / x * ei;
+            }
+            return ei;
+        }
+
+        /// <summary>
         /// Computes the complex exponential integral Ei(z).
         /// </summary>
         /// <param name="z">The argument.</param>
@@ -196,6 +360,33 @@ namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
             {
                 if (z.Real > 0.0)
                     cei += new Complex(0.0, z.Imaginary > 0 ? Math.PI : -Math.PI);
+            }
+            return cei;
+        }
+
+        /// <summary>
+        /// Computes the complex exponential integral Ei(z).
+        /// </summary>
+        /// <param name="z">The argument.</param>
+        /// <returns>The result.</returns>
+        public static Complex ExpExpI(Complex z)
+        {
+            // ============================================
+            // Purpose: Compute exponential integral Ei(x)
+            // Input :  x  --- Complex argument of Ei(x)
+            // Output:  EI --- Ei(x)
+            // ============================================
+
+            Complex cei;
+            cei = -ExpExp1(-z);
+            if (z.Imaginary > 0.0)
+                cei += Complex.Exp(-z) * new Complex(0.0, Math.PI);
+            else if (z.Imaginary < 0.0)
+                cei -= Complex.Exp(-z) * new Complex(0.0, Math.PI);
+            else
+            {
+                if (z.Real > 0.0)
+                    cei += Complex.Exp(-z) * new Complex(0.0, z.Imaginary > 0 ? Math.PI : -Math.PI);
             }
             return cei;
         }
