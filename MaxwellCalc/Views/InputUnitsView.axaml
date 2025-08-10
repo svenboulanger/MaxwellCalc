@@ -88,11 +88,11 @@
 											  VerticalAlignment="Center"
 											  Margin="5"
 											  Grid.Column="0" />
-									<SelectableTextBlock Text="{Binding Name}"
-											   FontWeight="Bold"
-											   Margin="5"
-											   VerticalAlignment="Center"
-											   Grid.Column="1" />
+									<controls:FormattedQuantity Value="{Binding Name, Converter={x:Static my:ConverterHelpers.StringUnitToQuantityConverter}}"
+																FontWeight="Bold"
+																Margin="5"
+																VerticalAlignment="Center"
+																Grid.Column="1" />
 									<controls:FormattedQuantity Value="{Binding Value}"
 																VerticalAlignment="Center"
 																Margin="5"

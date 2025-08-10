@@ -30,5 +30,11 @@ namespace MaxwellCalc.Views
         /// </summary>
         public static FuncValueConverter<Unit, Quantity<string>> UnitToQuantityConverter { get; } =
             new(value => new Quantity<string>(string.Empty, value));
+
+        /// <summary>
+        /// A converter for converting a string representing a unit to a quantity that can be displayed.
+        /// </summary>
+        public static FuncValueConverter<string, Quantity<string>> StringUnitToQuantityConverter { get; } =
+            new(value => string.IsNullOrEmpty(value) ? new Quantity<string>(string.Empty, Unit.UnitNone) : new Quantity<string>(string.Empty, new Unit((value, 1))));
     }
 }
