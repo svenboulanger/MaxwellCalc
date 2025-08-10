@@ -53,6 +53,9 @@ namespace MaxwellCalc.Workspaces
         public IVariableScope<T> ConstantsScope => _constantScope;
 
         /// <inheritdoc />
+        public string FullFormat { get; set; } = "g15";
+
+        /// <inheritdoc />
         public IEnumerable<Variable> Variables
         {
             get
@@ -61,7 +64,7 @@ namespace MaxwellCalc.Workspaces
                 foreach (var p in scope.Variables)
                 {
                     if (!scope.TryGetVariable(p, out var value, out string? description) ||
-                        !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
+                        !Resolver.TryFormat(value, FullFormat, CultureInfo.InvariantCulture, out var formatted))
                         continue;
                     yield return new(p, formatted, description);
                 }
@@ -76,7 +79,7 @@ namespace MaxwellCalc.Workspaces
                 foreach (var p in _constantScope.Variables)
                 {
                     if (!_constantScope.TryGetVariable(p, out var value, out string? description) ||
-                        !Resolver.TryFormat(value, "g", CultureInfo.InvariantCulture, out var formatted))
+                        !Resolver.TryFormat(value, FullFormat, CultureInfo.InvariantCulture, out var formatted))
                         continue;
                     yield return new(p, formatted, description);
                 }
@@ -90,7 +93,7 @@ namespace MaxwellCalc.Workspaces
             {
                 foreach (var p in _inputUnits)
                 {
-                    if (!Resolver.TryFormat(p.Value, "g", CultureInfo.CurrentCulture, out var formatted))
+                    if (!Resolver.TryFormat(p.Value, FullFormat, CultureInfo.CurrentCulture, out var formatted))
                         continue;
                     yield return new(p.Key, formatted);
                 }
@@ -107,7 +110,7 @@ namespace MaxwellCalc.Workspaces
                     foreach (var p2 in p.Value)
                     {
                         if (!Resolver.TryInvert(new(p2.Value, Unit.UnitNone), this, out var inverted) ||
-                            !Resolver.TryFormat(inverted, "g", CultureInfo.InvariantCulture, out var formatted))
+                            !Resolver.TryFormat(inverted, FullFormat, CultureInfo.InvariantCulture, out var formatted))
                             continue;
                         yield return new(p2.Key, new(formatted.Scalar, p.Key));
                     }
@@ -411,7 +414,7 @@ namespace MaxwellCalc.Workspaces
         public bool TryGetInputUnit(string name, out InputUnit unit)
         {
             if (_inputUnits.TryGetValue(name, out var value) &&
-                Resolver.TryFormat(value, "g", CultureInfo.CurrentCulture, out var formatted))
+                Resolver.TryFormat(value, FullFormat, CultureInfo.CurrentCulture, out var formatted))
             {
                 unit = new InputUnit(name, formatted);
                 return true;
@@ -432,7 +435,7 @@ namespace MaxwellCalc.Workspaces
                 _outputUnits.Add(outputUnit.Value.Unit, dict);
             }
             dict[outputUnit.Unit] = inv.Scalar;
-            OnOutputUnitChanged(new OutputUnitchangedEvent(outputUnit.Value.Unit));
+            OnOutputUnitChanged(new OutputUnitchangedEvent(outputUnit.Unit, outputUnit.Value.Unit));
             return true;
         }
 
@@ -440,7 +443,7 @@ namespace MaxwellCalc.Workspaces
         public bool TryRegisterOutputUnit(INode outputUnits, INode quantity)
         {
             if (!outputUnits.TryResolve(Resolver, null, out var ou) ||
-                !quantity.TryResolve(Resolver, null, out var bu))
+                !quantity.TryResolve(Resolver, this, out var bu))
                 return false;
             if (!Resolver.TryDivide(ou, bu, this, out var div))
                 return false;
@@ -450,7 +453,7 @@ namespace MaxwellCalc.Workspaces
                 _outputUnits.Add(bu.Unit, dict);
             }
             dict[ou.Unit] = div.Scalar;
-            OnOutputUnitChanged(new OutputUnitchangedEvent(bu.Unit));
+            OnOutputUnitChanged(new OutputUnitchangedEvent(ou.Unit, bu.Unit));
             return true;
         }
 
@@ -461,7 +464,7 @@ namespace MaxwellCalc.Workspaces
                 return false;
             if (dict.Remove(outputUnits))
             {
-                OnOutputUnitChanged(new OutputUnitchangedEvent(outputUnits));
+                OnOutputUnitChanged(new OutputUnitchangedEvent(outputUnits, baseUnits));
                 return true;
             }
             return false;
@@ -473,7 +476,7 @@ namespace MaxwellCalc.Workspaces
             if (_outputUnits.TryGetValue(input, out var dict) &&
                 dict.TryGetValue(output, out var value) &&
                 Resolver.TryInvert(new(value, output), this, out var inverted) &&
-                Resolver.TryFormat(inverted, "g", CultureInfo.InvariantCulture, out var formatted))
+                Resolver.TryFormat(inverted, FullFormat, CultureInfo.InvariantCulture, out var formatted))
             {
                 unit = new(output, new(formatted.Scalar, input));
                 return true;
@@ -552,7 +555,7 @@ namespace MaxwellCalc.Workspaces
         {
             var scope = _scopes.Peek();
             if (!scope.TryGetVariable(name, out var typedValue) ||
-                !Resolver.TryFormat(typedValue, "g", CultureInfo.InvariantCulture, out value))
+                !Resolver.TryFormat(typedValue, FullFormat, CultureInfo.InvariantCulture, out value))
             {
                 value = default;
                 return false;
@@ -565,7 +568,7 @@ namespace MaxwellCalc.Workspaces
         {
             var scope = _scopes.Peek();
             if (!scope.TryGetVariable(name, out var typedValue, out description) ||
-                !Resolver.TryFormat(typedValue, "g", CultureInfo.InvariantCulture, out value))
+                !Resolver.TryFormat(typedValue, FullFormat, CultureInfo.InvariantCulture, out value))
             {
                 value = default;
                 return false;

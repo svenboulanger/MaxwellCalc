@@ -34,6 +34,7 @@ namespace MaxwellCalc
 
             services.AddSingleton<UnitsViewModel>();
             services.AddSingleton<InputUnitsViewModel>();
+            services.AddSingleton<OutputUnitsViewModel>();
 
             services.AddSingleton<SharedModel>();
             services.AddSingleton(GetSettingsViewModel());

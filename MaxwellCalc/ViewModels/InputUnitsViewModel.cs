@@ -112,14 +112,12 @@ namespace MaxwellCalc.ViewModels
         [RelayCommand]
         private void AddInputUnit()
         {
-            if (Shared.Workspace is null || Expression is null || InputUnit is null)
+            if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
                 return;
 
             // Try to evaluate the expression
             string expression = Expression.Trim();
             Quantity<string> formatted;
-            if (string.IsNullOrEmpty(expression))
-                return;
             if (!expression.All(char.IsLetter))
             {
                 var lexer = new Lexer(Expression);

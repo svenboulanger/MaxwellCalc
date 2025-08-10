@@ -225,7 +225,9 @@ namespace MaxwellCalc.Units
             workspace.TryRegisterModifierOutputUnits(
                 new((Unit.Meter, 1), (Unit.Second, -1)),
                 new((Unit.Meter, 1), (Unit.Second, -1)), Unit.Meter);
-            workspace.TryRegisterOutputUnit(new(new Unit((Unit.Meter, 1), (Unit.Second, -1)), new Quantity<string>("3.6", new Unit(("km", 1), ("hour", -1)))));
+            workspace.TryRegisterOutputUnit(
+                new(new Unit(("km", 1), ("hour", -1)),
+                new("0.2777777777777777777777777", new((Unit.Meter, 1), (Unit.Second, -1)))));
 
             // Mass
             workspace.TryRegisterInputOutputUnit("ng", new Quantity<string>("1e-12", Unit.UnitKilogram));
@@ -233,7 +235,7 @@ namespace MaxwellCalc.Units
             workspace.TryRegisterInputOutputUnit("mg", new Quantity<string>("1e-6", Unit.UnitKilogram));
             workspace.TryRegisterInputOutputUnit("g", new Quantity<string>("1e-3", Unit.UnitKilogram));
             workspace.TryRegisterInputOutputUnit("kg", new Quantity<string>("1", Unit.UnitKilogram));
-            workspace.TryRegisterInputOutputUnit("ton", new Quantity<string>("1e3", Unit.UnitKilogram));
+            workspace.TryRegisterInputOutputUnit("ton", new Quantity<string>("1000", Unit.UnitKilogram));
 
             // Time
             workspace.TryRegisterModifierInputOutputUnits(Unit.Second, Unit.UnitSeconds,

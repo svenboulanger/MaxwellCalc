@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MaxwellCalc.ViewModels"
+			 xmlns:controls="using:MaxwellCalc.Controls"
+			 xmlns:my="using:MaxwellCalc.Views"
+			 xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+			 x:DataType="vm:OutputUnitsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="MaxwellCalc.Views.OutputUnitsView">
+	<Design.DataContext>
+		<vm:OutputUnitsViewModel />
+	</Design.DataContext>
+	<UserControl.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="TextWrapping" Value="WrapWithOverflow" />
+		</Style>
+	</UserControl.Styles>
+	<DockPanel>
+		<material:Card DockPanel.Dock="Top"
+					   Margin="5"
+					   Padding="5">
+			<TextBox Watermark="Search"
+					 Height="20"
+					 Text="{Binding Filter}" />
+		</material:Card>
+
+		<material:Card DockPanel.Dock="Bottom"
+					   Margin="5">
+			<Grid ColumnDefinitions="250, *, Auto">
+				<TextBox Text="{Binding Unit}"
+						 Watermark="Output units"
+						 Margin="5"
+						 Grid.Column="0"/>
+				<TextBox Text="{Binding Expression}"
+						 Watermark="Expression"
+						 Margin="5"
+						 Grid.Column="1">
+					<TextBox.KeyBindings>
+						<KeyBinding Command="{Binding AddOutputUnitCommand}" Gesture="Enter" />
+					</TextBox.KeyBindings>
+				</TextBox>
+				<Button Content="{materialIcons:MaterialIconExt Kind=Add}"
+						VerticalAlignment="Center"
+						Command="{Binding AddOutputUnitCommand}"
+						Grid.Column="2" />
+			</Grid>
+		</material:Card>
+
+		<material:Card Margin="5">
+			<DockPanel>
+				<DockPanel.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Remove selected units" Command="{Binding RemoveSelectedItemsCommand}" />
+					</ContextMenu>
+				</DockPanel.ContextMenu>
+				<Border BorderThickness="0,0,0,1"
+						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
+						Margin="0,0,0,5"
+						DockPanel.Dock="Top">
+					<Grid ColumnDefinitions="20, 150, *">
+						<CheckBox IsChecked="{Binding IsHeaderChecked}"
+								  VerticalAlignment="Center"
+								  Margin="5"
+								  Grid.Column="0" />
+						<TextBlock Text="Output unit"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="1"
+								   VerticalAlignment="Center" />
+						<TextBlock Text="Internal"
+								   FontWeight="Bold"
+								   Margin="5"
+								   Grid.Column="2"
+								   VerticalAlignment="Center" />
+					</Grid>
+				</Border>
+				<ScrollViewer HorizontalScrollBarVisibility="Disabled"
+							  Padding="0"
+							  Margin="0,0,0,5">
+					<ItemsControl ItemsSource="{Binding FilteredItems}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="vm:OutputUnitViewModel">
+								<Grid ColumnDefinitions="20, 150, *, Auto">
+									<CheckBox IsChecked="{Binding Selected}"
+											  VerticalAlignment="Center"
+											  Margin="5"
+											  Grid.Column="0" />
+									<controls:FormattedQuantity Value="{Binding Unit, Converter={x:Static my:ConverterHelpers.UnitToQuantityConverter}}"
+																FontWeight="Bold"
+																Margin="5"
+																VerticalAlignment="Center"
+																Grid.Column="1" />
+									<controls:FormattedQuantity Value="{Binding Value}}"
+																VerticalAlignment="Center"
+																Margin="5"
+																Grid.Column="2" />
+									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
+											Grid.Column="4"
+											VerticalAlignment="Center"
+											Padding="3"
+											Margin="5 5 20 5"
+											Classes="Outline"
+											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
+											CommandParameter="{Binding}"/>
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</DockPanel>
+		</material:Card>
+	</DockPanel>
+</UserControl>

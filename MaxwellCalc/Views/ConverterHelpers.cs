@@ -1,5 +1,6 @@
 ﻿using Avalonia.Data.Converters;
 using Material.Colors;
+using MaxwellCalc.Units;
 using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.Views
@@ -23,5 +24,11 @@ namespace MaxwellCalc.Views
         /// </summary>
         public static FuncValueConverter<SecondaryColor, string> SecondaryColorConverter { get; } =
             new(value => SwatchHelper.Lookup[(MaterialColor)value].ToString());
+
+        /// <summary>
+        /// A converter for converting a unit to a quantity that can be displayed.
+        /// </summary>
+        public static FuncValueConverter<Unit, Quantity<string>> UnitToQuantityConverter { get; } =
+            new(value => new Quantity<string>(string.Empty, value));
     }
 }
