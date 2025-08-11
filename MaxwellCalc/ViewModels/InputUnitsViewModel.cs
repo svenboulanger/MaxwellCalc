@@ -141,7 +141,11 @@ namespace MaxwellCalc.ViewModels
                 return;
 
             // Pass them on to the workspace
-            Shared.Workspace.TryRegisterInputUnit(new InputUnit(unit, formatted));
+            if (Shared.Workspace.TryRegisterInputUnit(new InputUnit(unit, formatted)))
+            {
+                Expression = string.Empty;
+                InputUnit = string.Empty;
+            }
         }
     }
 }

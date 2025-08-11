@@ -435,7 +435,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the arcsine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the arcsine of a real number.")]
         public static bool Asin(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Asin, workspace, nameof(Asin), out result);
 
@@ -446,7 +446,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the arccosine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the arccosine of a real number.")]
         public static bool Acos(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Acos, workspace, nameof(Acos), out result);
 
@@ -457,7 +457,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the arctangent of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the arctangent of a real number.")]
         public static bool Atan(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Atan, workspace, nameof(Atan), out result);
 
@@ -469,7 +469,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the hyperbolic arcsine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arcsine of a real number.")]
         public static bool Asinh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Asinh, workspace, nameof(Asinh), out result);
 
@@ -480,7 +480,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the hyperbolic arccosine of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arccosine of a real number.")]
         public static bool Acosh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Acosh, workspace, nameof(Acosh), out result);
 
@@ -491,7 +491,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the hyperbolic arctangent of a real number. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arctangent of a real number.")]
         public static bool Atanh(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Atanh, workspace, nameof(Atanh), out result);
 
@@ -502,7 +502,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units. The result is in radians.")]
+        [CalculatorDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units.")]
         [MinArg(2), MaxArg(2)]
         public static bool Atan2(IReadOnlyList<Quantity<Complex>> args, IWorkspace workspace, out Quantity<Complex> result)
             => EvaluateAsReal(args, DoubleMathHelper.Atan2, workspace, nameof(Atan2), out result);

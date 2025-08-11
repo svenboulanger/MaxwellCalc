@@ -6,6 +6,7 @@
 			 xmlns:vm="using:MaxwellCalc.ViewModels"
 			 xmlns:controls="using:MaxwellCalc.Controls"
 			 xmlns:material="using:Material.Styles.Controls"
+			 xmlns:materialIcon="using:Material.Icons.Avalonia"
 			 x:DataType="vm:ResultViewModel"
              x:Class="MaxwellCalc.Views.ResultView">
 	<Design.DataContext>
@@ -16,9 +17,18 @@
 			<SelectableTextBlock Text="{Binding Expression}"
 								 Margin="0 0 0 5"
 								 Foreground="{DynamicResource MaterialBodyLightBrush}"/>
-			<SelectableTextBlock Text="{Binding ErrorMessage}"
-								 Foreground="Red"
-								 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+			<StackPanel Orientation="Horizontal"
+						IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+				<materialIcon:MaterialIcon Kind="AlertCircle"
+										   VerticalAlignment="Center"
+										   FontSize="20"
+										   Foreground="Red"/>
+				<SelectableTextBlock Text="{Binding ErrorMessage}"
+									 Margin="5"
+									 VerticalAlignment="Center"
+									 FontSize="20"
+									 Foreground="Red" />
+			</StackPanel>
 			<controls:CopyableQuantity VerticalAlignment="Center"
 									   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}"
 									   Margin="3"

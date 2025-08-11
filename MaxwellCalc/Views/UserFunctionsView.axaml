@@ -21,6 +21,27 @@
 					 Height="20"
 					 Text="{Binding Filter}" />
 		</material:Card>
+
+		<material:Card DockPanel.Dock="Bottom"
+					   Margin="5">
+			<Grid ColumnDefinitions="*, *, Auto">
+				<TextBox Text="{Binding Signature}"
+						 Watermark="Signature"
+						 Margin="5"
+						 Grid.Column="0"/>
+				<TextBox Text="{Binding Expression}"
+						 Watermark="Expression (can have multiple lines)"
+						 Margin="5"
+						 AcceptsReturn="True"
+						 Grid.Column="1">
+				</TextBox>
+				<Button Content="{materialIcons:MaterialIconExt Kind=Add}"
+						VerticalAlignment="Center"
+						Command="{Binding AddUserFunctionCommand}"
+						Grid.Column="2" />
+			</Grid>
+		</material:Card>
+		
 		<material:Card Margin="5">
 			<DockPanel>
 				<DockPanel.ContextMenu>

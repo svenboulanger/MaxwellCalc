@@ -182,15 +182,22 @@ namespace MaxwellCalc.Workspaces
                     }
                 }
 
-                // Parse the function
-                var lexer = new Lexer(userFunction.Item2);
-                var node = Parser.Parse(lexer, this);
-                if (node is null)
+                // Split the function in lines
+                var lines = userFunction.Item2.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+                bool r = false;
+                result = default;
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    result = default;
-                    return false;
+                    // Parse the function
+                    var lexer = new Lexer(lines[i]);
+                    var node = Parser.Parse(lexer, this);
+                    if (node is null)
+                    {
+                        result = default;
+                        return false;
+                    }
+                    r = node.TryResolve(resolver, this, out result);
                 }
-                bool r = node.TryResolve(resolver, this, out result);
 
                 // Pop the scope with the arguments
                 _scopes.Pop();

@@ -144,6 +144,8 @@ namespace MaxwellCalc.ViewModels
 
             // Pass them on to the workspace
             Shared.Workspace.TryRegisterOutputUnit(unitNode, exprNode);
+            Unit = string.Empty;
+            Expression = string.Empty;
         }
     }
 }

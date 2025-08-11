@@ -380,7 +380,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the arcsine of a real number. The argument is expected to be between -1 and 1, and to have no units. The result is in radians.")]
+        [CalculatorDescription("Calculates the arcsine of a real number. The argument is expected to be between -1 and 1, and to have no units.")]
         public static bool Asin(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Asin), out result))
@@ -391,7 +391,7 @@ namespace MaxwellCalc.Workspaces
                 workspace.DiagnosticMessage = $"The argument for {nameof(Asin)}() is out of range [-1, 1].";
                 return false;
             }
-            result = new Quantity<double>(Math.Asin(args[0].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Asin(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -402,7 +402,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the arccosine of a real number. The argument is expected to be between -1 and 1, and to have no units. The result is in radians.")]
+        [CalculatorDescription("Calculates the arccosine of a real number. The argument is expected to be between -1 and 1, and to have no units.")]
         public static bool Acos(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Acos), out result))
@@ -413,7 +413,7 @@ namespace MaxwellCalc.Workspaces
                 workspace.DiagnosticMessage = "The argument for acos() is out of range [-1, 1].";
                 return false;
             }
-            result = new Quantity<double>(Math.Acos(args[0].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Acos(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -424,12 +424,12 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the arctangent of a real number. The argument is expected to have no units. The result is in radians.")]
+        [CalculatorDescription("Calculates the arctangent of a real number. The argument is expected to have no units.")]
         public static bool Atan(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Atan), out result))
                 return false;
-            result = new Quantity<double>(Math.Atan(args[0].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Atan(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -440,12 +440,12 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the hyperbolic arcsine of a real number. The argument is expected to have no units. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arcsine of a real number. The argument is expected to have no units.")]
         public static bool Asinh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Asinh), out result))
                 return false;
-            result = new Quantity<double>(Math.Asinh(args[0].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Asinh(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -456,12 +456,12 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the hyperbolic arccosine of a real number. The argument is expected to have no units. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arccosine of a real number. The argument is expected to have no units.")]
         public static bool Acosh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Acosh), out result))
                 return false;
-            result = new Quantity<double>(Math.Acosh(args[0].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Acosh(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -472,12 +472,12 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the hyperbolic arctangent of a real number. The argument is expected to have no units. The result is in radians.")]
+        [CalculatorDescription("Calculates the hyperbolic arctangent of a real number. The argument is expected to have no units.")]
         public static bool Atanh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
             if (!args.SingleNonUnitArgument(workspace, nameof(Atanh), out result))
                 return false;
-            result = new Quantity<double>(Math.Atanh(args[0].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Atanh(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
@@ -488,7 +488,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="workspace">The workspace.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-        [CalculatorDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units. The result is in radians.")]
+        [CalculatorDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units.")]
         [MinArg(2), MaxArg(2)]
         public static bool Atan2(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
@@ -505,7 +505,7 @@ namespace MaxwellCalc.Workspaces
                 workspace.DiagnosticMessage = $"Expected the two arguments to have the same units for {nameof(Atan2)}().";
                 return false;
             }
-            result = new Quantity<double>(Math.Atan2(args[0].Scalar, args[1].Scalar), Unit.UnitRadian);
+            result = new Quantity<double>(Math.Atan2(args[0].Scalar, args[1].Scalar), Unit.UnitNone);
             return true;
         }
 
