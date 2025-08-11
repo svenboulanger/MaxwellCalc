@@ -19,23 +19,13 @@
 			<SelectableTextBlock Text="{Binding ErrorMessage}"
 								 Foreground="Red"
 								 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-			<StackPanel Orientation="Horizontal"
-						IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
-				<controls:FormattedQuantity VerticalAlignment="Center"
-											Margin="3"
-											Value="{Binding Quantity}"
-											Padding="0"
-											x:Name="quantity" />
-				<Button Classes="Outline Dark"
-						Padding="5"
-						Margin="20 0 0 0"
-						Background="Transparent"
-						Name="CopyOutputButton">
-					<PathIcon Width="{Binding #quantity.FontSize}"
-							  Height="{Binding #quantity.FontSize}"
-							  Data="{StaticResource copy}" />
-				</Button>
-			</StackPanel>
+			<controls:CopyableQuantity VerticalAlignment="Center"
+									   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+									   Margin="3"
+									   Value="{Binding Quantity}"
+									   Padding="0"
+									   FontSize="20"
+									   x:Name="quantity" />
 		</StackPanel>
 	</material:Card>
 </UserControl>

@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using MaxwellCalc.Units;
 
@@ -11,7 +10,7 @@ namespace MaxwellCalc.Controls
         private FormattedQuantity? _output;
 
         public static readonly StyledProperty<Quantity<string>> ValueProperty =
-            AvaloniaProperty.Register<ResultBox, Quantity<string>>(nameof(Value), new Quantity<string>("Unrecognized", Unit.UnitNone));
+            AvaloniaProperty.Register<CopyableQuantity, Quantity<string>>(nameof(Value), new Quantity<string>("Unrecognized", Unit.UnitNone));
 
         /// <summary>
         /// Gets or sets the value.

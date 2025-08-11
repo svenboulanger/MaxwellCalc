@@ -19,19 +19,19 @@ namespace MaxwellCalc.Controls
         /// The value.
         /// </summary>
         public static readonly StyledProperty<Quantity<string>> ValueProperty =
-            AvaloniaProperty.Register<ResultBox, Quantity<string>>(nameof(Value), new Quantity<string>("Unrecognized", Unit.UnitNone));
+            AvaloniaProperty.Register<FormattedQuantity, Quantity<string>>(nameof(Value), new Quantity<string>("Unrecognized", Unit.UnitNone));
 
         /// <summary>
         /// The foreground color for units.
         /// </summary>
         public static readonly StyledProperty<IBrush?> UnitForegroundProperty =
-            AvaloniaProperty.Register<ResultBox, IBrush?>(nameof(UnitForeground), Brushes.Red);
+            AvaloniaProperty.Register<FormattedQuantity, IBrush?>(nameof(UnitForeground), Brushes.Red);
 
         /// <summary>
         /// The 
         /// </summary>
         public static readonly StyledProperty<double?> UnitFontSizeProperty =
-            AvaloniaProperty.Register<ResultBox, double?>(nameof(UnitFontSize), 14.0);
+            AvaloniaProperty.Register<FormattedQuantity, double?>(nameof(UnitFontSize), 14.0);
 
         /// <summary>
         /// Gets or sets the value.
@@ -103,10 +103,11 @@ namespace MaxwellCalc.Controls
             var scalar = new Run
             {
                 Text = Value.Scalar,
-                Foreground = Foreground
+                Foreground = Foreground,
+                FontSize = FontSize
             };
             _output.Inlines.Add(scalar);
-            double exponentFontSize = 0.75 * scalar.FontSize; // Use the font size as the baseline for our exponents later
+            double exponentFontSize = 0.75 * FontSize; // Use the font size as the baseline for our exponents later
 
             // Show the units
             if (Value.Unit.Dimension is null)
