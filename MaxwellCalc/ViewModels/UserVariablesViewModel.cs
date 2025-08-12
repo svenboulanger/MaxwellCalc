@@ -82,7 +82,7 @@ namespace MaxwellCalc.ViewModels
             // Check if we have a model for it
             var model = Items.FirstOrDefault(item => item.Name == args.Name);
             if (Shared.Workspace is null || args.Name is null)
-                throw new ArgumentNullException();
+                return;
 
             if (model is null)
             {
@@ -105,7 +105,6 @@ namespace MaxwellCalc.ViewModels
             {
                 // This is a removed variable
                 Items.Remove(model);
-                FilteredItems.Remove(model);
             }
         }
     }

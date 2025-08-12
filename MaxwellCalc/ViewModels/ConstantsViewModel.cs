@@ -94,7 +94,7 @@ namespace MaxwellCalc.ViewModels
             // Find the variabel with the same name
             var model = Items.FirstOrDefault(item => item.Name == args.Name);
             if (Shared.Workspace is null || args.Name is null)
-                throw new ArgumentNullException();
+                return;
 
             if (model is null)
             {
@@ -119,7 +119,6 @@ namespace MaxwellCalc.ViewModels
             {
                 // This is a removed constant
                 Items.Remove(model);
-                FilteredItems.Remove(model);
             }
         }
 

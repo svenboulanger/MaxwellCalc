@@ -50,10 +50,11 @@
 					</Grid>
 				</Border>
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredItems}">
+					<ItemsControl ItemsSource="{Binding Items}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate x:DataType="vm:BuiltInFunctionViewModel">
-								<Grid ColumnDefinitions="100, 100, *">
+								<Grid ColumnDefinitions="100, 100, *"
+									  IsVisible="{Binding Visible}">
 									<TextBlock Text="{Binding Name}"
 											   FontWeight="Bold"
 											   Width="100"

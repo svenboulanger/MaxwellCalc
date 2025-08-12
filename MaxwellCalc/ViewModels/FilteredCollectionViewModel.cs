@@ -32,9 +32,6 @@ namespace MaxwellCalc.ViewModels
         private ObservableCollection<M> _items = [];
 
         [ObservableProperty]
-        private ObservableCollection<M> _filteredItems = [];
-
-        [ObservableProperty]
         private string _filter = string.Empty;
 
         [ObservableProperty]
@@ -101,8 +98,6 @@ namespace MaxwellCalc.ViewModels
         private void RemoveItem(M model)
         {
             Items.Remove(model);
-            FilteredItems.Remove(model);
-
             if (Shared.Workspace is not null)
                 RemoveModelFromWorkspace(Shared.Workspace, model);
         }
@@ -118,20 +113,16 @@ namespace MaxwellCalc.ViewModels
             ApplyFilter();
         }
 
-        protected virtual void OnApplyingNewFilter() { }
-
         [RelayCommand]
         private void ApplyFilter()
         {
-            FilteredItems.Clear();
-            foreach (var item in Items.Where(MatchesFilter))
-                FilteredItems.Add(item);
+            foreach (var item in Items)
+                item.Visible = MatchesFilter(item);
         }
 
         private void BuildModels()
         {
             Items.Clear();
-            FilteredItems.Clear();
             if (Shared.Workspace is null)
                 return;
             foreach (var model in ChangeWorkspace(_lastWorkspace, Shared.Workspace))
@@ -151,16 +142,6 @@ namespace MaxwellCalc.ViewModels
                 CompareModels(model, Items[index]) > 0)
                 index++;
             Items.Insert(index, model);
-
-            // Insert into the filtered list
-            if (MatchesFilter(model))
-            {
-                index = 0;
-                while (index < FilteredItems.Count &&
-                    CompareModels(model, FilteredItems[index]) > 0)
-                    index++;
-                FilteredItems.Insert(index, model);
-            }
         }
 
         [RelayCommand]
@@ -171,7 +152,6 @@ namespace MaxwellCalc.ViewModels
             {
                 RemoveItem(item);
                 Items.Remove(item);
-                FilteredItems.Remove(item);
             }
             IsHeaderChecked = false;
         }
@@ -182,7 +162,6 @@ namespace MaxwellCalc.ViewModels
             foreach (var item in Items.ToList())
                 RemoveItem(item);
             Items.Clear();
-            FilteredItems.Clear();
             IsHeaderChecked = false;
         }
 
@@ -192,8 +171,11 @@ namespace MaxwellCalc.ViewModels
                 _holdOffHeaderChecked = false;
             else
             {
-                for (int i = 0; i < FilteredItems.Count; i++)
-                    FilteredItems[i].Selected = value;
+                for (int i = 0; i < Items.Count; i++)
+                {
+                    if (Items[i].Visible)
+                        Items[i].Selected = value;
+                }
             }
         }
     }

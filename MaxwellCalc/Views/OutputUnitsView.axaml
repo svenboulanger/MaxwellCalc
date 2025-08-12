@@ -54,6 +54,9 @@
 				<DockPanel.ContextMenu>
 					<ContextMenu>
 						<MenuItem Header="Remove selected units" Command="{Binding RemoveSelectedItemsCommand}" />
+						<Separator />
+						<MenuItem Header="Add common input and output units" Command="{Binding Shared.AddCommonUnitsCommand}" />
+						<MenuItem Header="Add electrical input and output units" Command="{Binding Shared.AddElectricalUnitsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
@@ -80,10 +83,11 @@
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled"
 							  Padding="0"
 							  Margin="0,0,0,5">
-					<ItemsControl ItemsSource="{Binding FilteredItems}">
+					<ItemsControl ItemsSource="{Binding Items}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate x:DataType="vm:OutputUnitViewModel">
-								<Grid ColumnDefinitions="20, 150, *, Auto">
+								<Grid ColumnDefinitions="20, 150, *, Auto"
+									  IsVisible="{Binding Visible}">
 									<CheckBox IsChecked="{Binding Selected}"
 											  VerticalAlignment="Center"
 											  Margin="5"

@@ -50,7 +50,7 @@ namespace MaxwellCalc.ViewModels
         {
             var model = Items.FirstOrDefault(item => item.Unit.Equals(args.OutputUnit) && item.Value.Unit.Equals(args.BaseUnit));
             if (Shared.Workspace is null)
-                throw new ArgumentNullException();
+                return;
 
             if (model is null)
             {
@@ -73,7 +73,6 @@ namespace MaxwellCalc.ViewModels
             {
                 // This is a removed unit
                 Items.Remove(model);
-                FilteredItems.Remove(model);
             }
         }
 

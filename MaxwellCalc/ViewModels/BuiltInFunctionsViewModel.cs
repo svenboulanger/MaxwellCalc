@@ -108,7 +108,7 @@ namespace MaxwellCalc.ViewModels
             // Find the model
             var model = Items.FirstOrDefault(item => item.Name == args.Name);
             if (Shared.Workspace is null || args.Name is null)
-                throw new ArgumentNullException();
+                return;
 
             if (model is null)
             {
@@ -135,7 +135,6 @@ namespace MaxwellCalc.ViewModels
             {
                 // This is a removed function
                 Items.Remove(model);
-                FilteredItems.Remove(model);
             }
         }
     }

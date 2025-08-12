@@ -261,7 +261,8 @@ namespace MaxwellCalc.Workspaces
         /// <summary>
         /// Clears the workspace of input/output units, variables and user/built-in functions.
         /// </summary>
-        public void Clear();
+        /// <param name="clearBuiltInFunctions">If <c>true</c>, any built-in functions are also cleared.</param>
+        public void Clear(bool clearBuiltInFunctions = false);
     }
 
     /// <summary>

@@ -350,7 +350,7 @@ namespace MaxwellCalc.Units
                 new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2), (Unit.Ampere, -1)));
             
             // Ohm
-            workspace.TryRegisterModifierInputOutputUnits("ohm",
+            workspace.TryRegisterModifierInputOutputUnits("Ohm",
                 new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -3), (Unit.Ampere, -2)),
                 micro: true, milli: true, kilo: true, mega: true);
 
@@ -377,10 +377,10 @@ namespace MaxwellCalc.Units
             // Bits per second
             var bps = new Unit(("bit", 1), (Unit.Second, -1));
             workspace.TryRegisterOutputUnit(new(bps, new Quantity<string>("1", bps)));
-            workspace.TryRegisterOutputUnit(new(new(("kbps", 1)), new Quantity<string>("1024", bps)));
-            workspace.TryRegisterOutputUnit(new(new(("Mbps", 1)), new Quantity<string>("1048576", bps)));
-            workspace.TryRegisterOutputUnit(new(new(("Gbps", 1)), new Quantity<string>("1073741824", bps)));
-            workspace.TryRegisterOutputUnit(new(new(("Tbps", 1)), new Quantity<string>("1099511627776", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("kbps", 1)), new Quantity<string>("1000", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("Mbps", 1)), new Quantity<string>("1000000", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("Gbps", 1)), new Quantity<string>("1000000000", bps)));
+            workspace.TryRegisterOutputUnit(new(new(("Tbps", 1)), new Quantity<string>("1000000000000", bps)));
         }
     }
 }

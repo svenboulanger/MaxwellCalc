@@ -57,6 +57,8 @@
 				<DockPanel.ContextMenu>
 					<ContextMenu>
 						<MenuItem Header="Remove selected constants" Command="{Binding RemoveSelectedItemsCommand}" />
+						<Separator />
+						<MenuItem Header="Add common constants" Command="{Binding Shared.AddCommonConstantsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
@@ -85,10 +87,11 @@
 					</Grid>
 				</Border>
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredItems}">
+					<ItemsControl ItemsSource="{Binding Items}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Grid ColumnDefinitions="20, 150, 300, *, 50">
+								<Grid ColumnDefinitions="20, 150, 300, *, 50"
+									  IsVisible="{Binding Visible}">
 									<CheckBox Margin="5"
 											  VerticalAlignment="Center"
 											  IsChecked="{Binding Selected}" />

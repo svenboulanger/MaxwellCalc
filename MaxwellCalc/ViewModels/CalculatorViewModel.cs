@@ -92,7 +92,7 @@ namespace MaxwellCalc.ViewModels
                     // Use the current expression to evaluate
                     var lexer = new Lexer(Expression ?? string.Empty);
                     var node = Parser.Parse(lexer, Shared.Workspace);
-                    if (node is not null && Shared.Workspace.TryResolveAndFormat(node, out var result))
+                    if (node is not null && Shared.Workspace.TryResolveAndFormat(node, Shared.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, true, out var result))
                     {
                         Results.Add(new ResultViewModel()
                         {

@@ -50,10 +50,11 @@
 				</Border>
 				
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl ItemsSource="{Binding FilteredItems}">
+					<ItemsControl ItemsSource="{Binding Items}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Grid ColumnDefinitions="20, 150, *, Auto">
+								<Grid ColumnDefinitions="20, 150, *, Auto"
+									  IsVisible="{Binding Visible}">
 									<CheckBox IsChecked="{Binding Selected}"
 											  Margin="5"
 											  VerticalAlignment="Center" />

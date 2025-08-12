@@ -536,14 +536,15 @@ namespace MaxwellCalc.Workspaces
         }
 
         /// <inheritdoc />
-        public void Clear()
+        public void Clear(bool clearBuiltInFunctions = false)
         {
             _inputUnits.Clear();
             _outputUnits.Clear();
-            _builtInFunctions.Clear();
+            if (clearBuiltInFunctions)
+                _builtInFunctions.Clear();
             _userFunctions.Clear();
             _scopes.Clear();
-            _scopes.Push(new VariableScope<T>());
+            _scopes.Push(_constantScope.CreateLocal());
             DiagnosticMessage = string.Empty;
         }
 

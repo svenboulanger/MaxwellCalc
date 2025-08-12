@@ -6,6 +6,7 @@ using MaxwellCalc.Units;
 using MaxwellCalc.ViewModels;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.IO;
 using System.Numerics;
 using System.Text.Json;
@@ -37,7 +38,7 @@ namespace MaxwellCalc
             services.AddSingleton<OutputUnitsViewModel>();
 
             services.AddSingleton<SharedModel>();
-            services.AddSingleton(GetSettingsViewModel());
+            services.AddSingleton<SettingsViewModel>();
             services.AddSingleton(BuildDefaultWorkspace());
 
             var serviceProvider = services.BuildServiceProvider();
@@ -61,17 +62,6 @@ namespace MaxwellCalc
             UnitHelper.RegisterCommonUnits(workspace);
             UnitHelper.RegisterCommonElectronicsUnits(workspace);
             return workspace;
-        }
-
-        private SettingsViewModel GetSettingsViewModel()
-        {
-            SettingsViewModel.SettingsFile = Path.Combine(Directory.GetCurrentDirectory(), "settings.json");
-            if (File.Exists(SettingsViewModel.SettingsFile))
-            {
-                string json = File.ReadAllText(SettingsViewModel.SettingsFile);
-                return JsonSerializer.Deserialize<SettingsViewModel>(json)!;
-            }
-            return new SettingsViewModel();
         }
     }
 }

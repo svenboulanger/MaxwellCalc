@@ -8,6 +8,9 @@ namespace MaxwellCalc.ViewModels
     public abstract partial class SelectableViewModelBase : ViewModelBase
     {
         [ObservableProperty]
-        private bool _selected;
+        private bool _selected = false;
+
+        [ObservableProperty]
+        private bool _visible = true;
     }
 }
