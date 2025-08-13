@@ -1,16 +1,17 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.Units;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Workspaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using MaxwellCalc.Units;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class InputUnitsViewModel : FilteredCollectionViewModel<InputUnitViewModel>
+    public partial class InputUnitsViewModel : FilteredCollectionViewModel<InputUnitViewModel, string, Quantity<INode>>
     {
         [ObservableProperty]
         private string? _inputUnit;
@@ -25,8 +26,10 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                InsertModel(new InputUnitViewModel { Name = "cm", Value = new("0.01", Unit.UnitMeter) });
-                InsertModel(new InputUnitViewModel { Name = "kbps", Value = new("1000", new Unit(("bps", 1))) });
+                if (Shared.Workspace is IWorkspace<double> workspace)
+                {
+                    workspace.RegisterCommonUnits();
+                }
             }
         }
 
@@ -37,8 +40,6 @@ namespace MaxwellCalc.ViewModels
         public InputUnitsViewModel(IServiceProvider sp)
             : base(sp)
         {
-            if (Shared.Workspace is not null)
-                Shared.Workspace.InputUnitChanged += OnInputUnitChanged;
         }
 
         /// <inheritdoc />
@@ -51,61 +52,14 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IEnumerable<InputUnitViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
-        {
-            if (oldWorkspace is not null)
-                oldWorkspace.InputUnitChanged -= OnInputUnitChanged;
-            if (newWorkspace is null)
-                yield break;
-            newWorkspace.InputUnitChanged += OnInputUnitChanged;
-
-            // Build the list
-            foreach (var unit in newWorkspace.InputUnits)
-            {
-                yield return new InputUnitViewModel
-                {
-                    Name = unit.UnitName,
-                    Value = unit.Value
-                };
-            }
-        }
+        protected override IObservableDictionary<string, Quantity<INode>> GetCollection(IWorkspace workspace)
+            => workspace.InputUnits;
 
         /// <inheritdoc />
-        protected override void RemoveModelFromWorkspace(IWorkspace workspace, InputUnitViewModel model)
+        protected override void UpdateModel(InputUnitViewModel model, string key, Quantity<INode> value)
         {
-            if (model.Name is null)
-                return;
-            workspace.TryRemoveInputUnit(model.Name);
-        }
-
-        private void OnInputUnitChanged(object? sender, InputUnitChangedEvent args)
-        {
-            var model = Items.FirstOrDefault(item => item.Name == args.Name);
-            if (Shared.Workspace is null || args.Name is null)
-                return;
-
-            if (model is null)
-            {
-                // This is a new input unit
-                if (!Shared.Workspace.TryGetInputUnit(args.Name, out var unit))
-                    return;
-                InsertModel(new InputUnitViewModel
-                {
-                    Name = unit.UnitName,
-                    Value = unit.Value
-                });
-            }
-            else if (Shared.Workspace.TryGetInputUnit(args.Name, out var unit))
-            {
-                // This is an updated unit
-                model.Name = unit.UnitName;
-                model.Value = unit.Value;
-            }
-            else
-            {
-                // This is a removed unit
-                Items.Remove(model);
-            }
+            model.Name = key;
+            model.Value = new(value.Scalar.Content.ToString(), value.Unit);
         }
 
         [RelayCommand]
@@ -114,23 +68,21 @@ namespace MaxwellCalc.ViewModels
             if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
                 return;
 
+            bool oldResolveInputUnits = Shared.Workspace.ResolveInputUnits;
+            bool oldResolveOutputUnits = Shared.Workspace.ResolveOutputUnits;
+            bool oldAllowVariables = Shared.Workspace.AllowVariables;
+            Shared.Workspace.AllowVariables = false;
+            Shared.Workspace.ResolveInputUnits = false;
+            Shared.Workspace.ResolveOutputUnits = false;
+
             // Try to evaluate the expression
             string expression = Expression.Trim();
-            Quantity<string> formatted;
-            if (!expression.All(char.IsLetter))
-            {
-                var lexer = new Lexer(Expression);
-                var node = Parser.Parse(lexer, Shared.Workspace);
-                if (node is null)
-                    return;
-                if (!Shared.Workspace.TryResolveAndFormat(node, false, out formatted))
-                    return;
-            }
-            else
-            {
-                // If the expression is just a string, allow registering as a base unit
-                formatted = new Quantity<string>("1", new Unit((expression, 1)));
-            }
+            var lexer = new Lexer(Expression);
+            var baseUnits = Parser.Parse(lexer, Shared.Workspace);
+            if (baseUnits is null)
+                return;
+            if (!Shared.Workspace.TryResolveAndFormat(baseUnits, "g", System.Globalization.CultureInfo.InvariantCulture, out var result))
+                return;
 
             // Evaluate the name
             string unit = InputUnit.Trim();
@@ -140,12 +92,14 @@ namespace MaxwellCalc.ViewModels
                 return;
 
             // Pass them on to the workspace
-            if (Shared.Workspace.TryRegisterInputUnit(new InputUnit(unit, formatted)))
-            {
-                Expression = string.Empty;
-                InputUnit = string.Empty;
-                Shared.SaveWorkspace();
-            }
+            Shared.Workspace.InputUnits[unit] = new(new ScalarNode(result.Scalar.AsMemory()), result.Unit);
+
+            // Reset
+            Shared.Workspace.ResolveInputUnits = oldResolveInputUnits;
+            Shared.Workspace.ResolveOutputUnits = oldResolveOutputUnits;
+            Shared.Workspace.AllowVariables = oldAllowVariables;
+            InputUnit = string.Empty;
+            Expression = string.Empty;
         }
     }
 }

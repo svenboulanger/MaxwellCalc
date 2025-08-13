@@ -1,13 +1,12 @@
 ﻿using Avalonia.Controls;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Workspaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class UserVariablesViewModel : FilteredCollectionViewModel<UserVariableViewModel>
+    public partial class UserVariablesViewModel : FilteredCollectionViewModel<UserVariableViewModel, string, INode>
     {
         /// <summary>
         /// Creates a new <see cref="UserVariablesViewModel"/>.
@@ -16,17 +15,8 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                // Make up some variables to show what it looks like
-                InsertModel(new UserVariableViewModel()
-                {
-                    Name = "Sven",
-                    Value = new Quantity<string>("179", new Unit(("cm", 1)))
-                });
-                InsertModel(new UserVariableViewModel()
-                {
-                    Name = "Elke",
-                    Value = new Quantity<string>("150", new Unit(("cm", 1)))
-                });
+                if (Shared.Workspace is not null)
+                    Shared.Workspace.Variables.Variables["test"] = new ScalarNode("123".AsMemory());
             }
         }
 
@@ -37,8 +27,6 @@ namespace MaxwellCalc.ViewModels
         public UserVariablesViewModel(IServiceProvider sp)
             : base(sp)
         {
-            if (Shared.Workspace is not null)
-                Shared.Workspace.VariableChanged += OnVariableChanged;
         }
 
         /// <inheritdoc />
@@ -51,61 +39,18 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override void RemoveModelFromWorkspace(IWorkspace workspace, UserVariableViewModel model)
+        protected override IObservableDictionary<string, INode> GetCollection(IWorkspace workspace)
+            => workspace.Variables.Variables;
+
+        /// <inheritdoc />
+        protected override void UpdateModel(UserVariableViewModel model, string key, INode value)
         {
-            if (Shared.Workspace is null || model.Name is null)
-                return;
-            Shared.Workspace.TryRemoveVariable(model.Name);
-        }
+            model.Name = key;
+            model.Expression = value.Content.ToString();
 
-        protected override IEnumerable<UserVariableViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
-        {
-            if (oldWorkspace is not null)
-                oldWorkspace.VariableChanged -= OnVariableChanged;
-            if (newWorkspace is null)
-                yield break;
-            newWorkspace.VariableChanged += OnVariableChanged;
-
-            // Rebuild our internal list of variables
-            foreach (var variable in newWorkspace.Variables)
-            {
-                yield return new UserVariableViewModel()
-                {
-                    Name = variable.Name,
-                    Value = variable.Value
-                };
-            }
-        }
-
-        private void OnVariableChanged(object? sender, VariableChangedEvent args)
-        {
-            // Check if we have a model for it
-            var model = Items.FirstOrDefault(item => item.Name == args.Name);
-            if (Shared.Workspace is null || args.Name is null)
-                return;
-
-            if (model is null)
-            {
-                // This is a new user variable
-                if (!Shared.Workspace.TryGetVariable(args.Name, out var value))
-                    return;
-                InsertModel(new UserVariableViewModel
-                {
-                    Name = args.Name,
-                    Value = value
-                });
-            }
-            else if (Shared.Workspace.TryGetVariable(args.Name, out var value))
-            {
-                // This is an updated variable
-                model.Name = args.Name;
-                model.Value = value;
-            }
-            else
-            {
-                // This is a removed variable
-                Items.Remove(model);
-            }
+            var node = new VariableNode(key.AsMemory());
+            if (Shared.Workspace?.TryResolveAndFormat(node, out var result) ?? false)
+                model.Value = result;
         }
     }
 }

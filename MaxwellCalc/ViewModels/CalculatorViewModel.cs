@@ -3,8 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Units;
+using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.ViewModels
@@ -90,25 +92,29 @@ namespace MaxwellCalc.ViewModels
                         return;
 
                     // Use the current expression to evaluate
-                    var lexer = new Lexer(Expression ?? string.Empty);
-                    var node = Parser.Parse(lexer, Shared.Workspace);
-                    if (node is not null && Shared.Workspace.TryResolveAndFormat(node, Shared.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, true, out var result))
+                    var diagnostics = new List<string>();
+                    void StoreDiagnostic(object? sender, DiagnosticMessagePostedEventArgs args) => diagnostics.Add(args.Message);
+                    Shared.Workspace.DiagnosticMessagePosted += StoreDiagnostic;
+                    Quantity<string> result = default;
+
+                    try
                     {
-                        Results.Add(new ResultViewModel()
-                        {
-                            Expression = Expression,
-                            Quantity = result
-                        });
+                        var lexer = new Lexer(Expression ?? string.Empty);
+                        var node = Parser.Parse(lexer, Shared.Workspace);
+                        if (node is not null)
+                            Shared.Workspace.TryResolveAndFormat(node, Shared.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
                     }
-                    else
+                    finally
                     {
-                        Results.Add(new ResultViewModel()
-                        {
-                            Expression = Expression,
-                            ErrorMessage = Shared.Workspace.DiagnosticMessage
-                        });
+                        Shared.Workspace.DiagnosticMessagePosted -= StoreDiagnostic;
                     }
 
+                    Results.Add(new ResultViewModel
+                    {
+                        Expression = Expression,
+                        Quantity = result,
+                        ErrorMessage = diagnostics.Count > 0 ? string.Join(Environment.NewLine, diagnostics) : null
+                    });
                     break;
             }
 

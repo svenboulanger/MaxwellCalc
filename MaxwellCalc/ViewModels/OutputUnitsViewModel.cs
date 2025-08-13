@@ -1,7 +1,9 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class OutputUnitsViewModel : FilteredCollectionViewModel<OutputUnitViewModel>
+    public partial class OutputUnitsViewModel : FilteredCollectionViewModel<OutputUnitViewModel, OutputUnitKey, INode>
     {
         [ObservableProperty]
         private string _unit = string.Empty;
@@ -27,11 +29,10 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                InsertModel(new OutputUnitViewModel
+                if (Shared.Workspace is not null)
                 {
-                    Unit = new(("cm", 2)),
-                    Value = new("0.0001", new(("m", 2)))
-                });
+                    Shared.Workspace.OutputUnits[new(new(("cm", 1)), Units.Unit.UnitMeter)] = new ScalarNode("0.01".AsMemory());
+                }
             }
         }
 
@@ -42,38 +43,6 @@ namespace MaxwellCalc.ViewModels
         public OutputUnitsViewModel(IServiceProvider sp)
             : base(sp)
         {
-            if (Shared.Workspace is not null)
-                Shared.Workspace.OutputUnitChanged += OnOutputUnitChanged;
-        }
-
-        private void OnOutputUnitChanged(object? sender, OutputUnitchangedEvent args)
-        {
-            var model = Items.FirstOrDefault(item => item.Unit.Equals(args.OutputUnit) && item.Value.Unit.Equals(args.BaseUnit));
-            if (Shared.Workspace is null)
-                return;
-
-            if (model is null)
-            {
-                // This is a new output unit
-                if (!Shared.Workspace.TryGetOutputUnit(args.BaseUnit, args.OutputUnit, out var unit))
-                    return;
-                InsertModel(new OutputUnitViewModel
-                {
-                    Unit = unit.Unit,
-                    Value = unit.Value
-                });
-            }
-            else if (Shared.Workspace.TryGetOutputUnit(args.BaseUnit, args.OutputUnit, out var unit))
-            {
-                // This is an updated unit
-                model.Unit = unit.Unit;
-                model.Value = unit.Value;
-            }
-            else
-            {
-                // This is a removed unit
-                Items.Remove(model);
-            }
         }
 
         /// <inheritdoc />
@@ -98,29 +67,13 @@ namespace MaxwellCalc.ViewModels
         }
 
         /// <inheritdoc />
-        protected override IEnumerable<OutputUnitViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
-        {
-            if (oldWorkspace is not null)
-                oldWorkspace.OutputUnitChanged -= OnOutputUnitChanged;
-            if (newWorkspace is null)
-                yield break;
-            newWorkspace.OutputUnitChanged += OnOutputUnitChanged;
+        protected override IObservableDictionary<OutputUnitKey, INode> GetCollection(IWorkspace workspace)
+            => workspace.OutputUnits;
 
-            // Build the list
-            foreach (var unit in newWorkspace.OutputUnits)
-            {
-                yield return new OutputUnitViewModel
-                {
-                    Unit = unit.Unit,
-                    Value = unit.Value
-                };
-            }
-        }
-
-        /// <inheritdoc />
-        protected override void RemoveModelFromWorkspace(IWorkspace workspace, OutputUnitViewModel model)
+        protected override void UpdateModel(OutputUnitViewModel model, OutputUnitKey key, INode value)
         {
-            workspace.TryRemoveOutputUnit(model.Unit, model.Value.Unit);
+            model.Unit = key.OutputUnit;
+            model.Value = new Quantity<string>(value.Content.ToString(), key.BaseUnit);
         }
 
         [RelayCommand]
@@ -129,20 +82,45 @@ namespace MaxwellCalc.ViewModels
             if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Unit) || string.IsNullOrWhiteSpace(Expression))
                 return;
 
-            // Try to evaluate the unit
+            bool oldResolveInputUnits = Shared.Workspace.ResolveInputUnits;
+            bool oldResolveOutputUnits = Shared.Workspace.ResolveOutputUnits;
+            bool oldAllowVariables = Shared.Workspace.AllowVariables;
+            Shared.Workspace.AllowVariables = false;
+            Shared.Workspace.ResolveInputUnits = false;
+            Shared.Workspace.ResolveOutputUnits = false;
+
+            // Try to evaluate the output unit
             var lexer = new Lexer(Unit);
             var unitNode = Parser.Parse(lexer, Shared.Workspace);
             if (unitNode is null)
                 return;
+            if (!Shared.Workspace.TryResolveAndFormat(unitNode, out var unitNodeResult))
+                return;
 
-            // Try to evaluate the expression
+            // Try to evaluate the expression to get to the input units
             lexer = new Lexer(Expression);
             var exprNode = Parser.Parse(lexer, Shared.Workspace);
             if (exprNode is null)
                 return;
+            Shared.Workspace.ResolveInputUnits = true;
+            if (!Shared.Workspace.TryResolveAndFormat(unitNode, out var exprNodeResult))
+                return;
 
             // Pass them on to the workspace
-            Shared.Workspace.TryRegisterOutputUnit(unitNode, exprNode);
+            if (unitNodeResult.Scalar != "1")
+            {
+                Shared.Workspace.OutputUnits[new(unitNodeResult.Unit, exprNodeResult.Unit)] = new BinaryNode(BinaryOperatorTypes.Divide,
+                    new ScalarNode(exprNodeResult.Scalar.AsMemory()),
+                    new ScalarNode(unitNodeResult.Scalar.AsMemory()),
+                    $"{exprNodeResult.Scalar}/{exprNodeResult.Scalar}".AsMemory());
+            }
+            else
+                Shared.Workspace.OutputUnits[new(unitNodeResult.Unit, exprNodeResult.Unit)] = new ScalarNode(exprNodeResult.Scalar.AsMemory());
+
+            // Reset
+            Shared.Workspace.ResolveInputUnits = oldResolveInputUnits;
+            Shared.Workspace.ResolveOutputUnits = oldResolveOutputUnits;
+            Shared.Workspace.AllowVariables = oldAllowVariables;
             Unit = string.Empty;
             Expression = string.Empty;
         }

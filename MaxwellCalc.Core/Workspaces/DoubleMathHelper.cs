@@ -176,7 +176,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {nameof(Abs)}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {nameof(Abs)}()."));
                 return false;
             }
             result = new Quantity<double>(Math.Abs(args[0].Scalar), args[0].Unit);
@@ -357,13 +357,13 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {nameof(Sqrt)}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {nameof(Sqrt)}()."));
                 return false;
             }
             if (args[0].Scalar < 0.0)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Cannot calculate the square root of a negative number. If this was intended, please us a complex domain.";
+                workspace.PostDiagnosticMessage(new($"Cannot calculate the square root of a negative number. If this was intended, please us a complex domain."));
                 return false;
             }
             var arg = args[0];
@@ -388,7 +388,7 @@ namespace MaxwellCalc.Workspaces
             if (args[0].Scalar < -1.0 || args[0].Scalar > 1.0)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"The argument for {nameof(Asin)}() is out of range [-1, 1].";
+                workspace.PostDiagnosticMessage(new($"The argument for {nameof(Asin)}() is out of range [-1, 1]."));
                 return false;
             }
             result = new Quantity<double>(Math.Asin(args[0].Scalar), Unit.UnitNone);
@@ -410,7 +410,7 @@ namespace MaxwellCalc.Workspaces
             if (args[0].Scalar < -1.0 || args[0].Scalar > 1.0)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = "The argument for acos() is out of range [-1, 1].";
+                workspace.PostDiagnosticMessage(new("The argument for acos() is out of range [-1, 1]."));
                 return false;
             }
             result = new Quantity<double>(Math.Acos(args[0].Scalar), Unit.UnitNone);
@@ -496,13 +496,13 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a two arguments for {nameof(Atan2)}().";
+                workspace.PostDiagnosticMessage(new($"Expected a two arguments for {nameof(Atan2)}()."));
                 return false;
             }
             if (args[0].Unit != args[1].Unit)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected the two arguments to have the same units for {nameof(Atan2)}().";
+                workspace.PostDiagnosticMessage(new($"Expected the two arguments to have the same units for {nameof(Atan2)}()."));
                 return false;
             }
             result = new Quantity<double>(Math.Atan2(args[0].Scalar, args[1].Scalar), Unit.UnitNone);
@@ -522,7 +522,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count < 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected at least 1 argument for {nameof(Max)}().";
+                workspace.PostDiagnosticMessage(new($"Expected at least 1 argument for {nameof(Max)}()."));
                 return false;
             }
 
@@ -533,7 +533,7 @@ namespace MaxwellCalc.Workspaces
                 if (!unit.Equals(args[i].Unit))
                 {
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"The units of the arguments do not match for {nameof(Max)}().";
+                    workspace.PostDiagnosticMessage(new($"The units of the arguments do not match for {nameof(Max)}()."));
                     return false;
                 }
                 value = Math.Max(value, args[i].Scalar);
@@ -557,7 +557,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count < 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected at least 1 argument for {nameof(Min)}().";
+                workspace.PostDiagnosticMessage(new($"Expected at least 1 argument for {nameof(Min)}()."));
                 return false;
             }
 
@@ -568,7 +568,7 @@ namespace MaxwellCalc.Workspaces
                 if (!unit.Equals(args[i].Unit))
                 {
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"The units of the arguments do not match for {nameof(Min)}().";
+                    workspace.PostDiagnosticMessage(new($"The units of the arguments do not match for {nameof(Min)}()."));
                     return false;
                 }
                 value = Math.Min(value, args[i].Scalar);
@@ -593,7 +593,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1 && args.Count != 2)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected 1 or 2 arguments for {nameof(Round)}()";
+                workspace.PostDiagnosticMessage(new($"Expected 1 or 2 arguments for {nameof(Round)}()"));
                 return false;
             }
 
@@ -605,7 +605,7 @@ namespace MaxwellCalc.Workspaces
                 {
                     // Cannot deal with units
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"Expected the second argument to not have units units for {nameof(Round)}().";
+                    workspace.PostDiagnosticMessage(new($"Expected the second argument to not have units units for {nameof(Round)}()."));
                     return false;
                 }
 
@@ -646,7 +646,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {nameof(FactorialLn)}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {nameof(FactorialLn)}()."));
                 return false;
             }
             var arg = args[0];
@@ -654,7 +654,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units for {nameof(FactorialLn)}().";
+                workspace.PostDiagnosticMessage(new($"Expected an argument without units for {nameof(FactorialLn)}()."));
                 return false;
             }
             int value = (int)arg.Scalar;
@@ -677,14 +677,14 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected two argument for {nameof(Binomial)}().";
+                workspace.PostDiagnosticMessage(new($"Expected two argument for {nameof(Binomial)}()."));
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an arguments without units for {nameof(Binomial)}().";
+                workspace.PostDiagnosticMessage(new($"Expected an arguments without units for {nameof(Binomial)}()."));
                 return false;
             }
             var a = (int)args[0].Scalar;
@@ -708,14 +708,14 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected two arguments for {nameof(BinomialLn)}().";
+                workspace.PostDiagnosticMessage(new($"Expected two arguments for {nameof(BinomialLn)}()."));
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an arguments without units for {nameof(BinomialLn)}().";
+                workspace.PostDiagnosticMessage(new($"Expected an arguments without units for {nameof(BinomialLn)}()."));
                 return false;
             }
             var a = (int)args[0].Scalar;
@@ -738,7 +738,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected at least two argument for {nameof(Multinomial)}().";
+                workspace.PostDiagnosticMessage(new($"Expected at least two argument for {nameof(Multinomial)}()."));
                 return false;
             }
             int n = 0;
@@ -748,7 +748,7 @@ namespace MaxwellCalc.Workspaces
                 if (args[0].Unit != Unit.UnitNone)
                 {
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"Expected all arguments without units for {nameof(Multinomial)}().";
+                    workspace.PostDiagnosticMessage(new($"Expected all arguments without units for {nameof(Multinomial)}()."));
                     return false;
                 }
                 if (i == 0)
@@ -839,14 +839,14 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for En().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for En()."));
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected all arguments to not have units for En().";
+                workspace.PostDiagnosticMessage(new($"Expected all arguments to not have units for En()."));
                 return false;
             }
             int n = (int)args[1].Scalar;
@@ -892,7 +892,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
                 return false;
             }
             var arg = args[0];
@@ -900,7 +900,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot 
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units, or in radians for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected an argument without units, or in radians for {name}()."));
                 return false;
             }
             result = default;
@@ -913,7 +913,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
                 return false;
             }
             var arg = args[0];
@@ -921,7 +921,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected an argument without units for {name}()."));
                 return false;
             }
             result = default;

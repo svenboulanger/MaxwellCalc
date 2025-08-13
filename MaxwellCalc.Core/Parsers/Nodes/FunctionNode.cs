@@ -30,18 +30,14 @@ namespace MaxwellCalc.Parsers.Nodes
         /// <inheritdoc />
         public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
         {
-            // Evaluate the arguments
-            var args = new List<Quantity<T>>(Arguments.Count);
-            for (int i = 0; i < Arguments.Count; i++)
+            if (workspace is null)
             {
-                if (!Arguments[i].TryResolve(resolver, workspace, out var arg))
-                {
-                    result = resolver.Default;
-                    return false;
-                }
-                args.Add(arg);
+                // No support for functions
+                result = default;
+                return false;
             }
-            return resolver.TryFunction(Name, args, workspace, out result);
+
+            return workspace.TryCalculateFunction(Name, Arguments, out result);
         }
     }
 }

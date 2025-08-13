@@ -168,7 +168,14 @@ namespace MaxwellCalc.Units
                 if (exponent != Fraction.One)
                 {
                     sb.Append('^');
-                    sb.Append(exponent.ToString());
+                    if (exponent.Denominator != 1)
+                    {
+                        sb.Append('(');
+                        sb.Append(exponent.ToString());
+                        sb.Append(')');
+                    }
+                    else
+                        sb.Append(exponent.ToString());
                 }
             }
         }

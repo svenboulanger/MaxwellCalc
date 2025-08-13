@@ -1,16 +1,15 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.Units;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Workspaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class ConstantsViewModel : FilteredCollectionViewModel<UserVariableViewModel>
+    public partial class ConstantsViewModel : FilteredCollectionViewModel<UserVariableViewModel, string, INode>
     {
         [ObservableProperty]
         private string _constantName = string.Empty;
@@ -29,17 +28,12 @@ namespace MaxwellCalc.ViewModels
             if (Design.IsDesignMode)
             {
                 // Make up some constants to show what it looks like
-                InsertModel(new()
+                if (Shared.Workspace is not null)
                 {
-                    Name = "Sven",
-                    Value = new Quantity<string>("179", new Unit(("cm", 1))),
-                    Description = "The length of the author."
-                });
-                InsertModel(new()
-                {
-                    Name = "CheckThis",
-                    Value = new Quantity<string>("123", Unit.UnitAmperes)
-                });
+                    Shared.Workspace.Constants.Variables["Sven"] = new BinaryNode(BinaryOperatorTypes.Multiply, new ScalarNode("179".AsMemory()), new UnitNode("cm".AsMemory()), "179cm".AsMemory());
+                    Shared.Workspace.Constants.TrySetDescription("Sven", "The length of the author.");
+                    Shared.Workspace.Constants.Variables["CheckThis"] = new BinaryNode(BinaryOperatorTypes.Multiply, new ScalarNode("123".AsMemory()), new UnitNode("A".AsMemory()), "123A".AsMemory());
+                }
             }
         }
 
@@ -50,8 +44,6 @@ namespace MaxwellCalc.ViewModels
         public ConstantsViewModel(IServiceProvider sp)
             : base(sp)
         {
-            if (Shared.Workspace is not null)
-                Shared.Workspace.ConstantChanged += OnConstantChanged;
         }
 
         /// <inheritdoc />
@@ -65,61 +57,20 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override void RemoveModelFromWorkspace(IWorkspace workspace, UserVariableViewModel model)
-            => workspace.TryRemoveConstant(model.Name ?? string.Empty);
+        protected override IObservableDictionary<string, INode> GetCollection(IWorkspace workspace)
+            => workspace.Constants.Variables;
 
-        /// <inheritdoc />
-        protected override IEnumerable<UserVariableViewModel> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace)
+        protected override void UpdateModel(UserVariableViewModel model, string key, INode value)
         {
-            if (oldWorkspace is not null)
-                oldWorkspace.ConstantChanged -= OnConstantChanged;
-            if (newWorkspace is null)
-                yield break; ;
-            newWorkspace.ConstantChanged += OnConstantChanged;
+            model.Name = key;
+            model.Expression = value.Content.ToString();
 
-            // Go through all the constants and convert
-            foreach (var constant in newWorkspace.Constants)
-            {
-                yield return new UserVariableViewModel()
-                {
-                    Name = constant.Name,
-                    Value = constant.Value,
-                    Description = constant.Description
-                };
-            }
-        }
+            var node = new VariableNode(key.AsMemory());
+            if (Shared.Workspace?.TryResolveAndFormat(node, out var result) ?? false)
+                model.Value = result;
 
-        private void OnConstantChanged(object? sender, VariableChangedEvent args)
-        {
-            // Find the variabel with the same name
-            var model = Items.FirstOrDefault(item => item.Name == args.Name);
-            if (Shared.Workspace is null || args.Name is null)
-                return;
-
-            if (model is null)
-            {
-                // This is a new constant
-                if (!Shared.Workspace.TryGetConstant(args.Name, out var value, out string? description))
-                    return;
-                InsertModel(new UserVariableViewModel
-                {
-                    Name = args.Name,
-                    Value = value,
-                    Description = description
-                });
-            }
-            else if (Shared.Workspace.TryGetConstant(args.Name, out var value, out string? description))
-            {
-                // This is an updated constant
-                model.Name = args.Name;
-                model.Value = value;
-                model.Description = description;
-            }
-            else
-            {
-                // This is a removed constant
-                Items.Remove(model);
-            }
+            if (Shared.Workspace?.Constants.TryGetDescription(key, out var description) ?? false)
+                model.Description = description ?? string.Empty;
         }
 
         [RelayCommand]
@@ -134,10 +85,11 @@ namespace MaxwellCalc.ViewModels
             var node = Parser.Parse(lexer, Shared.Workspace);
             if (node is null)
                 return;
-            if (!Shared.Workspace.TryResolveAndFormat(node, out var formatted))
-                return;
 
-            Shared.Workspace.TrySetConstant(new Variable(name, formatted, Description));
+            Shared.Workspace.Constants.Variables[name] = node;
+            Shared.Workspace.Constants.TrySetDescription(name, Description);
+            ConstantName = string.Empty;
+            Expression = string.Empty;
         }
     }
 }

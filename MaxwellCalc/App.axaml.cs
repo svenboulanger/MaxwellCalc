@@ -39,7 +39,7 @@ namespace MaxwellCalc
 
             services.AddSingleton<SharedModel>();
             services.AddSingleton<SettingsViewModel>();
-            services.AddSingleton(BuildDefaultWorkspace());
+            // services.AddSingleton(BuildDefaultWorkspace());
 
             var serviceProvider = services.BuildServiceProvider();
 

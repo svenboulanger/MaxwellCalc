@@ -1,4 +1,5 @@
-﻿using MaxwellCalc.Units;
+﻿using MaxwellCalc.Parsers.Nodes;
+using MaxwellCalc.Units;
 using System.Text.Json.Serialization;
 
 namespace MaxwellCalc.Workspaces
@@ -6,7 +7,7 @@ namespace MaxwellCalc.Workspaces
     /// <summary>
     /// An input unit.
     /// </summary>
-    public readonly struct InputUnit
+    public readonly record struct InputUnit
     {
         /// <summary>
         /// Gets the unit name.
@@ -18,7 +19,7 @@ namespace MaxwellCalc.Workspaces
         /// Gets the value.
         /// </summary>
         [JsonPropertyName("v")]
-        public Quantity<string> Value { get; }
+        public Quantity<INode> Value { get; }
 
         /// <summary>
         /// Creates a new <see cref="InputUnit"/>.
@@ -26,7 +27,7 @@ namespace MaxwellCalc.Workspaces
         /// <param name="unitName">The unit name.</param>
         /// <param name="value">The unit value.</param>
         [JsonConstructor]
-        public InputUnit(string unitName, Quantity<string> value)
+        public InputUnit(string unitName, Quantity<INode> value)
         {
             UnitName = unitName;
             Value = value;

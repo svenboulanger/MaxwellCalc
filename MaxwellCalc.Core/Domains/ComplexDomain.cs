@@ -21,8 +21,7 @@ namespace MaxwellCalc.Domains
             // Parse the scalar
             if (!double.TryParse(scalar, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double dbl))
             {
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = $"Could not evaluate the scalar '{scalar}'.";
+                workspace?.PostDiagnosticMessage(new($"Could not evaluate the scalar '{scalar}'."));
                 result = Default;
                 return false;
             }
@@ -43,16 +42,24 @@ namespace MaxwellCalc.Domains
         {
             if (workspace is not null)
             {
-                if (workspace.TryGetUnit(unit, out result))
-                    return true;
-                workspace.DiagnosticMessage = $"Could not recognize unit '{unit}'.";
-                return false;
+                if (!workspace.AllowUnits)
+                {
+                    workspace.PostDiagnosticMessage(new("Units are not allowed"));
+                    result = default;
+                    return false;
+                }
+
+                if (workspace.ResolveInputUnits)
+                {
+                    if (workspace.TryGetUnit(unit, out result))
+                        return true;
+                    workspace.PostDiagnosticMessage(new($"Could not recognize unit '{unit}'."));
+                    return false;
+                }
             }
-            else
-            {
-                result = new Quantity<Complex>(1.0, new Unit((unit, 1)));
-                return true;
-            }
+
+            result = new Quantity<Complex>(1.0, new Unit((unit, 1)));
+            return true;
         }
 
         /// <inheritdoc />
@@ -60,14 +67,15 @@ namespace MaxwellCalc.Domains
         {
             if (workspace is not null)
             {
-                if (workspace.Scope.TryGetVariable(variable, out result))
+                // We're not checking here on AllowVariables because it might be user function parameters...
+                if (workspace.Scope.TryGetComputedVariable(variable, out result))
                     return true;
                 if (variable == "i" || variable == "j")
                 {
                     result = new Quantity<Complex>(new Complex(0.0, 1.0), Unit.UnitNone);
                     return true;
                 }
-                workspace.DiagnosticMessage = $"Could not find a variable with the name '{variable}'.";
+                workspace.PostDiagnosticMessage(new($"Could not find a variable with the name '{variable}'."));
                 return false;
             }
             else
@@ -99,8 +107,11 @@ namespace MaxwellCalc.Domains
             return true;
         }
 
+        /// <inheritdoc />
         public bool TryFactorial(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
         {
+            if (workspace is not null)
+                return ComplexMathHelper.Factorial([a], workspace, out result);
             throw new NotImplementedException();
         }
 
@@ -111,8 +122,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Units should match!
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Units do not match for addition.";
+                workspace?.PostDiagnosticMessage(new("Units do not match for addition."));
                 result = Default;
                 return false;
             }
@@ -126,8 +136,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Units should match!
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Units do not match for subtraction.";
+                workspace?.PostDiagnosticMessage(new("Units do not match for subtraction."));
                 result = Default;
                 return false;
             }
@@ -181,8 +190,7 @@ namespace MaxwellCalc.Domains
             if (b.Unit != Unit.UnitNone)
             {
                 // Cannot use exponent with units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot raise to a power where the exponent contains units.";
+                workspace?.PostDiagnosticMessage(new("Cannot raise to a power where the exponent contains units."));
                 result = Default;
                 return false;
             }
@@ -206,8 +214,7 @@ namespace MaxwellCalc.Domains
                 if (!b.Scalar.Imaginary.Equals(0.0))
                 {
                     // Cannot raise units to an imaginary power
-                    if (workspace is not null)
-                        workspace.DiagnosticMessage = "Cannot raise units to a complex power.";
+                    workspace?.PostDiagnosticMessage(new("Cannot raise units to a complex power."));
                     result = Default;
                     return false;
                 }
@@ -215,8 +222,7 @@ namespace MaxwellCalc.Domains
                 if (!Fraction.TryConvert(b.Scalar.Real, out var fraction))
                 {
                     // Could not convert to a fraction
-                    if (workspace is not null)
-                        workspace.DiagnosticMessage = "Cannot raise units to a power that is too complex.";
+                    workspace?.PostDiagnosticMessage(new("Cannot raise units to a power that is too complex."));
                     result = Default;
                     return false;
                 }
@@ -234,8 +240,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Should be same units in order to compute
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "The units do not match.";
+                workspace?.PostDiagnosticMessage(new("The units do not match."));
                 result = Default;
                 return false;
             }
@@ -252,8 +257,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot take a bitwise OR of quantities with units.";
+                workspace?.PostDiagnosticMessage(new("Cannot take a bitwise OR of quantities with units."));
                 result = Default;
                 return false;
             }
@@ -270,8 +274,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot take a bitwise AND of quantities with units.";
+                workspace?.PostDiagnosticMessage(new("Cannot take a bitwise AND of quantities with units."));
                 result = Default;
                 return false;
             }
@@ -288,8 +291,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot take shift quantities with units.";
+                workspace?.PostDiagnosticMessage(new("Cannot take shift quantities with units."));
                 result = Default;
                 return false;
             }
@@ -305,8 +307,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot take shift quantities with units.";
+                workspace?.PostDiagnosticMessage(new("Cannot take shift quantities with units."));
                 result = Default;
                 return false;
             }
@@ -322,8 +323,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
+                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -337,8 +337,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
+                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -352,8 +351,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
+                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -367,8 +365,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
+                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -382,8 +379,7 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
+                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -397,53 +393,12 @@ namespace MaxwellCalc.Domains
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                if (workspace is not null)
-                    workspace.DiagnosticMessage = "Cannot compare quantities with different units.";
+                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
             result = new Quantity<Complex>(a.Scalar != b.Scalar ? 1.0 : 0.0, Unit.UnitNone);
             return true;
-        }
-
-        /// <inheritdoc />
-        public bool TryAssign(string name, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
-        {
-            if (workspace is not null)
-            {
-                if (workspace.Scope.TrySetVariable(name, b))
-                {
-                    result = b;
-                    return true;
-                }
-
-                workspace.DiagnosticMessage = $"Could not assign to '{name}'.";
-                result = Default;
-                return false;
-            }
-            else
-            {
-                // workspace.ErrorMessage = "Assignment is not supported.";
-                result = Default;
-                return false;
-            }
-        }
-
-        /// <inheritdoc />
-        public bool TryFunction(string name, IReadOnlyList<Quantity<Complex>> arguments, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
-        {
-            if (workspace is not null)
-            {
-                if (workspace.TryFunction(name, arguments, this, out result))
-                    return true;
-                return false;
-            }
-            else
-            {
-                // workspace.ErrorMessage = "Functions are not supported.";
-                result = Default;
-                return false;
-            }
         }
 
         /// <inheritdoc />

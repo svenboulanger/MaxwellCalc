@@ -41,9 +41,19 @@ namespace MaxwellCalc.Parsers.Nodes
             {
                 if (Left is VariableNode variable)
                 {
-                    if (!Right.TryResolve(resolver, workspace, out result))
+                    if (workspace is not null)
+                    {
+                        string name = variable.Content.ToString();
+                        workspace.Scope.Variables[name] = Right;
+                        return workspace.Scope.TryGetComputedVariable(name, out result);
+                    }
+                    else
+                    {
+                        // We don't have a workspace to save the variable to
+                        // Let's at least return the value
+                        Right.TryResolve(resolver, workspace, out result);
                         return false;
-                    return resolver.TryAssign(variable.Content.ToString(), result, workspace, out result);
+                    }
                 }
                 else if (Left is FunctionNode function)
                 {
@@ -53,14 +63,15 @@ namespace MaxwellCalc.Parsers.Nodes
                         if (function.Arguments[i] is not VariableNode argNode)
                         {
                             if (workspace is not null)
-                                workspace.DiagnosticMessage = "Function argument has to be a simple variable.";
+                                workspace.PostDiagnosticMessage(new("Function argument has to be a simple variable."));
                             result = resolver.Default;
                             return false;
                         }
                         args.Add(argNode.Content.ToString());
                     }
-                    if (workspace is not null && workspace.TryRegisterUserFunction(new(function.Name, args.ToArray(), Right.Content.ToString())))
-                    {   
+                    if (workspace is not null)
+                    {
+                        workspace.UserFunctions[new(function.Name, args.Count)] = new(args.ToArray(), [Right]);
                         result = resolver.Default;
                         return true;
                     }
@@ -70,7 +81,7 @@ namespace MaxwellCalc.Parsers.Nodes
                 else
                 {
                     if (workspace is not null)
-                        workspace.DiagnosticMessage = "Can only assign to variables or functions.";
+                        workspace.PostDiagnosticMessage(new("Can only assign to variables or functions."));
                     result = resolver.Default;
                     return false;
                 }

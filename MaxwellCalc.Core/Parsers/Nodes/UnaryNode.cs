@@ -48,7 +48,7 @@ namespace MaxwellCalc.Parsers.Nodes
                 else if (unit.Unit != value.Unit)
                 {
                     if (workspace is not null)
-                        workspace.DiagnosticMessage = "Cannot convert units as units don't match.";
+                        workspace.PostDiagnosticMessage(new("Cannot convert units as units don't match."));
                     result = resolver.Default;
                     return false;
                 }

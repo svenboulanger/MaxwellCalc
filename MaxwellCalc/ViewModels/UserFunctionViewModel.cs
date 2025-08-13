@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MaxwellCalc.Workspaces;
 using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.ViewModels
@@ -6,7 +7,7 @@ namespace MaxwellCalc.ViewModels
     /// <summary>
     /// A view model for a function.
     /// </summary>
-    public partial class UserFunctionViewModel : SelectableViewModelBase
+    public partial class UserFunctionViewModel : SelectableViewModelBase<UserFunctionKey>
     {
         /// <summary>
         /// Gets or sets the name of the function.

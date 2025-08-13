@@ -98,9 +98,9 @@
 																VerticalAlignment="Center"
 																Grid.Column="1" />
 									<controls:FormattedQuantity Value="{Binding Value}"
-																VerticalAlignment="Center"
-																Margin="5"
-																Grid.Column="2" />
+														 VerticalAlignment="Center"
+														 Margin="5"
+														 Grid.Column="2" />
 									<Button Content="{materialIcons:MaterialIconExt Kind=Trash}"
 											Grid.Column="4"
 											VerticalAlignment="Center"

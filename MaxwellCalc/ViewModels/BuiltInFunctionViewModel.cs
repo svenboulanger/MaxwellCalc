@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Material.Styles.Converters;
 
 namespace MaxwellCalc.ViewModels
 {
     /// <summary>
     /// A view model for representing a built-in function.
     /// </summary>
-    public partial class BuiltInFunctionViewModel : SelectableViewModelBase
+    public partial class BuiltInFunctionViewModel : SelectableViewModelBase<string>
     {
         [ObservableProperty]
         private string _name = string.Empty;

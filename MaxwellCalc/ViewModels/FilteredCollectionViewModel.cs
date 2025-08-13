@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 
 namespace MaxwellCalc.ViewModels
@@ -14,10 +15,11 @@ namespace MaxwellCalc.ViewModels
     /// It supports removing of items as well.
     /// </summary>
     /// <typeparam name="M">The item view model type.</typeparam>
-    public abstract partial class FilteredCollectionViewModel<M> : ViewModelBase
-        where M : SelectableViewModelBase
+    public abstract partial class FilteredCollectionViewModel<M, TKey, TValue> : ViewModelBase
+        where M : SelectableViewModelBase<TKey>, new()
     {
         private IWorkspace? _lastWorkspace;
+        private IObservableDictionary<TKey, TValue>? _dictionary;
         private bool _holdOffHeaderChecked = false;
 
         /// <summary>
@@ -43,7 +45,15 @@ namespace MaxwellCalc.ViewModels
         protected FilteredCollectionViewModel()
         {
             Shared = new();
+            Shared.PropertyChanged += SharedPropertyChanged;
+
             _lastWorkspace = Shared.Workspace;
+            if (_lastWorkspace is not null)
+            {
+                _dictionary = GetCollection(_lastWorkspace);
+                _dictionary.DictionaryChanged += DictionaryChanged;
+            }
+            BuildModels();
         }
 
         /// <summary>
@@ -53,16 +63,47 @@ namespace MaxwellCalc.ViewModels
         protected FilteredCollectionViewModel(IServiceProvider sp)
         {
             Shared = sp.GetRequiredService<SharedModel>();
-            _lastWorkspace = Shared.Workspace;
+            Shared.PropertyChanged += SharedPropertyChanged;
 
-            if (Shared.Workspace is not null)
-                BuildModels();
-            Shared.PropertyChanged += (sender, args) =>
+            _lastWorkspace = Shared.Workspace;
+            if (_lastWorkspace is not null)
             {
-                if (args.PropertyName == nameof(Shared.Workspace))
-                    BuildModels();
-            };
+                _dictionary = GetCollection(_lastWorkspace);
+                _dictionary.DictionaryChanged += DictionaryChanged;
+            }
+            BuildModels();
         }
+
+        private void SharedPropertyChanged(object? sender, PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == nameof(Shared.Workspace))
+            {
+                if (_dictionary is not null)
+                    _dictionary.DictionaryChanged -= DictionaryChanged;
+                _lastWorkspace = Shared.Workspace;
+                if (_lastWorkspace is not null)
+                {
+                    _dictionary = GetCollection(_lastWorkspace);
+                    _dictionary.DictionaryChanged += DictionaryChanged;
+                }
+                BuildModels();
+            }
+        }
+
+        /// <summary>
+        /// Gets the dictionary that needs to be treated.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <returns></returns>
+        protected abstract IObservableDictionary<TKey, TValue> GetCollection(IWorkspace workspace);
+
+        /// <summary>
+        /// Updates a model with values from the original collection.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="key">The original dictionary key.</param>
+        /// <param name="value">The original dictionary value.</param>
+        protected abstract void UpdateModel(M model, TKey key, TValue value);
 
         /// <summary>
         /// Checks whether the model matches the filter.
@@ -79,27 +120,12 @@ namespace MaxwellCalc.ViewModels
         /// <returns>Should return <c>-1</c> if <paramref name="a"/> comes before <paramref name="b"/>, <c>1</c> if <paramref name="a"/> comes after <paramref name="b"/>, and 0 if they are equal.</returns>
         protected abstract int CompareModels(M a, M b);
 
-        /// <summary>
-        /// Gets all the models from a workspace.
-        /// </summary>
-        /// <param name="oldWorkspace">The old workspace.</param>
-        /// <param name="newWorkspace">The new workspace.</param>
-        /// <returns>The models.</returns>
-        protected abstract IEnumerable<M> ChangeWorkspace(IWorkspace? oldWorkspace, IWorkspace? newWorkspace);
-
-        /// <summary>
-        /// Removes an item from the workspace if it was removed from the model collection.
-        /// </summary>
-        /// <param name="workspace">The workspace.</param>
-        /// <param name="model">The model</param>
-        protected abstract void RemoveModelFromWorkspace(IWorkspace workspace, M model);
-
         [RelayCommand]
         private void RemoveItem(M model)
         {
-            Items.Remove(model);
-            if (Shared.Workspace is not null)
-                RemoveModelFromWorkspace(Shared.Workspace, model);
+            if (_dictionary is null || model.Key is null)
+                throw new InvalidOperationException();
+            _dictionary.Remove(model.Key);
         }
 
         partial void OnFilterChanged(string value)
@@ -125,16 +151,55 @@ namespace MaxwellCalc.ViewModels
             Items.Clear();
             if (Shared.Workspace is null)
                 return;
-            foreach (var model in ChangeWorkspace(_lastWorkspace, Shared.Workspace))
+            var dictionary = GetCollection(Shared.Workspace);
+            foreach (var pair in dictionary)
+            {
+                var model = new M();
+                UpdateModel(model, pair.Key, pair.Value);
+                model.Visible = MatchesFilter(model);
                 InsertModel(model);
-            _lastWorkspace = Shared.Workspace;
+            }
+        }
+
+        private void DictionaryChanged(object? sender, DictionaryChangedEventArgs<TKey, TValue> e)
+        {
+            switch (e.Action)
+            {
+                case DictionaryChangeAction.Add:
+                    foreach (var item in e.Items)
+                    {
+                        var model = new M() { Key = item.Key };
+                        UpdateModel(model, item.Key, item.Value);
+                        model.Visible = MatchesFilter(model);
+                        InsertModel(model);
+                    }
+                    break;
+
+                case DictionaryChangeAction.Replace:
+                    foreach (var item in e.Items)
+                    {
+                        var model = Items.First(m => m.Key?.Equals(item.Key) ?? false);
+                        UpdateModel(model, item.Key, item.Value);
+                        model.Visible = MatchesFilter(model);
+                    }
+                    break;
+
+                case DictionaryChangeAction.Remove:
+                    foreach (var item in e.Items)
+                    {
+                        var model = Items.FirstOrDefault(m => m.Key?.Equals(item.Key) ?? false);
+                        if (model is not null)
+                            Items.Remove(model);
+                    }
+                    break;
+            }
         }
 
         /// <summary>
         /// Inserts a model.
         /// </summary>
         /// <param name="model">The model.</param>
-        protected void InsertModel(M model)
+        private void InsertModel(M model)
         {
             // Insert into the main list
             int index = 0;
@@ -147,11 +212,12 @@ namespace MaxwellCalc.ViewModels
         [RelayCommand]
         private void RemoveSelectedItems()
         {
-            // Remove all selected units
+            if (_dictionary is null)
+                throw new InvalidOperationException();
             foreach (var item in Items.Where(item => item.Selected).ToList())
             {
-                RemoveItem(item);
-                Items.Remove(item);
+                if (item.Key is not null)
+                    _dictionary.Remove(item.Key);
             }
             IsHeaderChecked = false;
         }
@@ -159,9 +225,13 @@ namespace MaxwellCalc.ViewModels
         [RelayCommand]
         private void RemoveAllItems()
         {
+            if (_dictionary is null)
+                throw new InvalidOperationException();
             foreach (var item in Items.ToList())
-                RemoveItem(item);
-            Items.Clear();
+            {
+                if (item.Key is not null)
+                    _dictionary.Remove(item.Key);
+            }
             IsHeaderChecked = false;
         }
 

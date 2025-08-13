@@ -1,7 +1,9 @@
 ﻿using MaxwellCalc.Core.Parsers.Nodes;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Workspaces;
+using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace MaxwellCalc.Parsers
 {
@@ -23,10 +25,45 @@ namespace MaxwellCalc.Parsers
             var node = ParseAssignment(lexer, workspace);
             if (lexer.Type != TokenTypes.EndOfLine)
             {
-                workspace.DiagnosticMessage = $"Unrecognized token at column {lexer.Index + 1}.";
+                workspace.PostDiagnosticMessage(new($"Unrecognized token at column {lexer.Index + 1}."));
                 return null;
             }
             return node;
+        }
+
+        /// <summary>
+        /// Determines whether the next token should be considered as a unit.
+        /// </summary>
+        /// <param name="lexer">The lexer.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <returns>Returns <c>true</c> if the next token should be considered as a unit.</returns>
+        private static bool RecognizeUnit(ReadOnlyMemory<char> name, IWorkspace workspace)
+        {
+            if (!workspace.AllowUnits)
+                return false;
+            if (workspace.InputUnits.ContainsKey(name.ToString()))
+                return true;
+
+            // If variables are not allowed, let's force the word to be recognized as a variable anyway
+            if (!workspace.AllowVariables)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the next token should be considered as a variable.
+        /// </summary>
+        /// <param name="lexer">The lexer.</param>
+        /// <param name="workspace">The workspace.</param>
+        /// <returns>Returns <c>true</c> if the next token should be considered as a variable.</returns>
+        private static bool RecognizeVariable(Lexer lexer, IWorkspace workspace)
+        {
+            if (!workspace.AllowVariables)
+                return false;
+            if (lexer.Type == TokenTypes.OpenParenthesis || lexer.Type == TokenTypes.OpenSquareBracket)
+                return false;
+            return true;
         }
 
         private static INode? ParseAssignment(Lexer lexer, IWorkspace workspace)
@@ -71,7 +108,7 @@ namespace MaxwellCalc.Parsers
 
                 if (lexer.Type != TokenTypes.Colon)
                 {
-                    workspace.DiagnosticMessage = $"Expected a colon at column {lexer.Index + 1}.";
+                    workspace.PostDiagnosticMessage(new($"Expected a colon at column {lexer.Index + 1}."));
                     return null;
                 }
                 lexer.Next();
@@ -315,6 +352,7 @@ namespace MaxwellCalc.Parsers
             while (lexer.Type == TokenTypes.Multiply ||
                 lexer.Type == TokenTypes.Divide ||
                 lexer.Type == TokenTypes.OpenParenthesis ||
+                lexer.Type == TokenTypes.Modulo ||
                 lexer.Type == TokenTypes.Word && lexer.Content.ToString() != "in")
             {
                 INode? b;
@@ -342,19 +380,35 @@ namespace MaxwellCalc.Parsers
                         result = new BinaryNode(BinaryOperatorTypes.Divide, result, b, lexer.Track(start));
                         break;
 
+                    case TokenTypes.Modulo:
+                        lexer.Next();
+                        // Right argument
+                        b = ParseIntegerDivision(lexer, workspace);
+                        if (b is null)
+                            return null;
+
+                        result = new BinaryNode(BinaryOperatorTypes.Modulo, result, b, lexer.Track(start));
+                        break;
+
                     case TokenTypes.Word:
                         // Implicit multiplication
-                        var name = lexer.Content;
-                        lexer.Next();
-                        if (workspace.IsUnit(name.ToString()))
+                        if (RecognizeUnit(lexer.Content, workspace))
                         {
-                            // Units will have exponent precedence
+                            // Units are right-associative multiplication
+                            var unitStart = lexer.Index;
                             b = ParseExponentiation(lexer, workspace);
-                            if (b is null)
-                                return null;
+                            while (RecognizeUnit(lexer.Content, workspace))
+                            {
+                                var next = ParseExponentiation(lexer, workspace);
+                                if (next is null)
+                                    return null;
+                                b = new BinaryNode(BinaryOperatorTypes.Multiply, b, next, lexer.Track(unitStart));
+                            }
                         }
                         else
-                            b = new VariableNode(name);
+                            b = ParseIntegerDivision(lexer, workspace);
+                        if (b is null)
+                            return null;
                         result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
                         break;
 
@@ -369,7 +423,7 @@ namespace MaxwellCalc.Parsers
 
                         if (lexer.Type != TokenTypes.CloseParenthesis)
                         {
-                            workspace.DiagnosticMessage = $"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}.";
+                            workspace.PostDiagnosticMessage(new($"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}."));
                             return null;
                         }
                         lexer.Next();
@@ -377,7 +431,7 @@ namespace MaxwellCalc.Parsers
                         break;
 
                     default:
-                        workspace.DiagnosticMessage = $"Unrecognized token at column {lexer.Index + 1}.";
+                        workspace.PostDiagnosticMessage(new($"Unrecognized token at column {lexer.Index + 1}."));
                         return null;
                 }
             }
@@ -453,7 +507,7 @@ namespace MaxwellCalc.Parsers
                 lexer.Next();
             
                 // Right argument
-                var b = ParseExponentiation(lexer, workspace);
+                var b = ParseUnary(lexer, workspace);  // Unary is also right-associative
                 if (b is null)
                     return null;
 
@@ -492,7 +546,7 @@ namespace MaxwellCalc.Parsers
 
                 if (lexer.Type != TokenTypes.CloseParenthesis)
                 {
-                    workspace.DiagnosticMessage = $"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}.";
+                    workspace.PostDiagnosticMessage(new($"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}."));
                     return null;
                 }
                 lexer.Next();
@@ -508,7 +562,7 @@ namespace MaxwellCalc.Parsers
                 lexer.Next();
 
                 // If there is a unit right after it, then we will give it precedence
-                while (lexer.Type == TokenTypes.Word && workspace.IsUnit(lexer.Content.ToString()))
+                while (lexer.Type == TokenTypes.Word && workspace.InputUnits.ContainsKey(lexer.Content.ToString()))
                 {
                     var b = ParseExponentiation(lexer, workspace);
                     if (b is null)
@@ -550,21 +604,21 @@ namespace MaxwellCalc.Parsers
                         }
                         if (lexer.Type != TokenTypes.CloseParenthesis)
                         {
-                            workspace.DiagnosticMessage = $"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}.";
+                            workspace.PostDiagnosticMessage(new($"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}."));
                             return null;
                         }
                         lexer.Next();
                         return new FunctionNode(name.ToString(), arguments, lexer.Track(start));
                     }
                 }
-                else if (workspace.IsUnit(name.ToString()))
+                else if (RecognizeUnit(name, workspace))
                     return new UnitNode(name);
-                else
+                else if (RecognizeVariable(lexer, workspace))
                     return new VariableNode(name);
             }
 
             // No clue what to do here
-            workspace.DiagnosticMessage = $"Unrecognized token at column {lexer.Index + 1}.";
+            workspace.PostDiagnosticMessage(new($"Unrecognized token at column {lexer.Index + 1}."));
             return null;
         }
 

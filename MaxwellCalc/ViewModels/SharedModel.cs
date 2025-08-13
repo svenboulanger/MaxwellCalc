@@ -42,6 +42,7 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         public SharedModel()
         {
+            Workspace = new Workspace<double>(new DoubleDomain());
         }
 
         /// <summary>
@@ -103,7 +104,10 @@ namespace MaxwellCalc.ViewModels
         public void ClearWorkspace()
         {
             if (Workspace is not null)
-                Workspace.Clear();
+            {
+                Workspace.Variables.Variables.Clear();
+                Workspace.UserFunctions.Clear();
+            }
         }
 
         [RelayCommand]
@@ -111,11 +115,11 @@ namespace MaxwellCalc.ViewModels
         {   
             if (Workspace is not null && !string.IsNullOrEmpty(WorkspaceFile))
             {
-                Workspace.Clear();
+                ClearWorkspace();
                 var content = File.ReadAllText(WorkspaceFile);
                 var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(content));
                 reader.Read();
-                Workspace.ReadFromJson(ref reader);
+                // Workspace.ReadFromJson(ref reader);
             }
         }
 

@@ -177,7 +177,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = "Expected single argument for abs().";
+                workspace.PostDiagnosticMessage(new("Expected single argument for abs()."));
                 return false;
             }
             result = new Quantity<Complex>(Complex.Abs(args[0].Scalar), args[0].Unit);
@@ -197,7 +197,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = "Expected single argument for arg().";
+                workspace.PostDiagnosticMessage(new("Expected single argument for arg()."));
                 return false;
             }
             result = new Quantity<Complex>(Math.Atan2(args[0].Scalar.Imaginary, args[0].Scalar.Real), Unit.UnitRadian);
@@ -217,7 +217,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected single argument for {nameof(Re)}.";
+                workspace.PostDiagnosticMessage(new($"Expected single argument for {nameof(Re)}."));
                 return false;
             }
             result = new Quantity<Complex>(args[0].Scalar.Real, args[0].Unit);
@@ -237,7 +237,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected single argument for {nameof(Im)}.";
+                workspace.PostDiagnosticMessage(new($"Expected single argument for {nameof(Im)}."));
                 return false;
             }
             result = new Quantity<Complex>(args[0].Scalar.Imaginary, args[0].Unit);
@@ -418,7 +418,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = "Expected single argument for sqrt().";
+                workspace.PostDiagnosticMessage(new("Expected single argument for sqrt()."));
                 return false;
             }
             var arg = args[0];
@@ -544,7 +544,7 @@ namespace MaxwellCalc.Workspaces
             if (args.Count != 1 && args.Count != 2)
             {
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected 1 or 2 arguments for {nameof(Round)}()";
+                workspace.PostDiagnosticMessage(new($"Expected 1 or 2 arguments for {nameof(Round)}()"));
                 return false;
             }
 
@@ -560,13 +560,13 @@ namespace MaxwellCalc.Workspaces
                 {
                     // Cannot deal with units
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"Expected the second argument to not have units units for {nameof(Round)}().";
+                    workspace.PostDiagnosticMessage(new($"Expected the second argument to not have units units for {nameof(Round)}()."));
                     return false;
                 }
                 if (args[1].Scalar.Imaginary != 0.0)
                 {
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"Expected the second argument to be real.";
+                    workspace.PostDiagnosticMessage(new($"Expected the second argument to be real."));
                     return false;
                 }
                 int digits = (int)args[1].Scalar.Real;
@@ -740,7 +740,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
                 return false;
             }
             var arg = args[0];
@@ -748,7 +748,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot 
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units, or in radians for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected an argument without units, or in radians for {name}()."));
                 return false;
             }
             result = default;
@@ -761,7 +761,7 @@ namespace MaxwellCalc.Workspaces
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected a single argument for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
                 return false;
             }
             var arg = args[0];
@@ -769,14 +769,14 @@ namespace MaxwellCalc.Workspaces
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.DiagnosticMessage = $"Expected an argument without units for {name}().";
+                workspace.PostDiagnosticMessage(new($"Expected an argument without units for {name}()."));
                 return false;
             }
             result = default;
             return true;
         }
 
-        private static bool EvaluateAsReal(IReadOnlyList<Quantity<Complex>> args, IWorkspace<double>.FunctionDelegate function, IWorkspace workspace, string name, out Quantity<Complex> result)
+        private static bool EvaluateAsReal(IReadOnlyList<Quantity<Complex>> args, IWorkspace<double>.BuiltInFunctionDelegate function, IWorkspace workspace, string name, out Quantity<Complex> result)
         {
             var realArgs = new Quantity<double>[args.Count];
             for (int i = 0; i < args.Count; i++)
@@ -784,7 +784,7 @@ namespace MaxwellCalc.Workspaces
                 if (args[i].Scalar.Imaginary != 0.0)
                 {
                     result = _invalid;
-                    workspace.DiagnosticMessage = $"Expected real arguments for {name}().";
+                    workspace.PostDiagnosticMessage(new($"Expected real arguments for {name}()."));
                     return false;
                 }
                 realArgs[i] = new Quantity<double>(args[i].Scalar.Real, args[i].Unit);

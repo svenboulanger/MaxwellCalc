@@ -298,26 +298,6 @@ namespace MaxwellCalc.Domains
         public bool TryIsTrue(Quantity<T> a, IWorkspace<T>? workspace, out bool result);
 
         /// <summary>
-        /// Evaluates the binary assignment operator.
-        /// </summary>
-        /// <param name="name">The left argument.</param>
-        /// <param name="b">The right argument.</param>
-        /// <param name="workspace">The workspace.</param>
-        /// <param name="result">The result.</param>
-        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
-        public bool TryAssign(string name, Quantity<T> b, IWorkspace<T>? workspace, out Quantity<T> result);
-
-        /// <summary>
-        /// Evaluates the function.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="arguments">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
-        /// <param name="result">The result.</param>
-        /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
-        public bool TryFunction(string name, IReadOnlyList<Quantity<T>> arguments, IWorkspace<T>? workspace, out Quantity<T> result);
-
-        /// <summary>
         /// Evaluates a factor to determine which unit should be used to describe
         /// <paramref name="a"/>.
         /// </summary>
