@@ -8,8 +8,8 @@ namespace MaxwellCalc.Core.Workspaces
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
-    public interface IObservableDictionary<TKey, TValue> 
-        : IDictionary<TKey, TValue>
+    public interface IReadonlyObservableDictionary<TKey, TValue>
+        : IReadOnlyDictionary<TKey, TValue>
     {
         /// <summary>
         /// An event that is called when the dictionary changed.

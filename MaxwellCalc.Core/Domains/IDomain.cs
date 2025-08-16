@@ -2,6 +2,7 @@
 using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace MaxwellCalc.Domains
 {
@@ -316,5 +317,21 @@ namespace MaxwellCalc.Domains
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the formatting succeeded; otherwise, <c>false</c>.</returns>
         public bool TryFormat(Quantity<T> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result);
+
+        /// <summary>
+        /// Writes a value to a JSON writer.
+        /// </summary>
+        /// <param name="value">The value that needs to be written.</param>
+        /// <param name="writer">The writer.</param>
+        /// <param name="options">The JSON writer options.</param>
+        public void ToJSON(T value, Utf8JsonWriter writer, JsonWriterOptions options);
+
+        /// <summary>
+        /// Reads a value from a JSON reader.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="options">The reader options.</param>
+        /// <returns>Returns the value that was read.</returns>
+        public T FromJSON(ref Utf8JsonReader reader, JsonReaderOptions options);
     }
 }

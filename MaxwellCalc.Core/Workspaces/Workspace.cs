@@ -278,7 +278,14 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                 var newScope = new VariableScope<T>(this, Scope);
                 _scopes.Push(newScope);
                 for (int i = 0; i < arguments.Count; i++)
-                    newScope.Variables[userFunction.Parameters[i]] = arguments[i];
+                {
+                    if (!TryResolve(arguments[i], out var arg))
+                    {
+                        result = default;
+                        return false;
+                    }
+                    newScope.Local[userFunction.Parameters[i]] = new(arg, null);
+                }
 
                 // Evaluate the body
                 foreach (var node in userFunction.Body)

@@ -15,9 +15,6 @@ namespace MaxwellCalc.ViewModels
         private Quantity<string> _value;
 
         [ObservableProperty]
-        private string _expression;
-
-        [ObservableProperty]
         private string _description = string.Empty;
     }
 }

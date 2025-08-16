@@ -1,12 +1,13 @@
 ﻿using Avalonia.Controls;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers.Nodes;
+using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class UserVariablesViewModel : FilteredCollectionViewModel<UserVariableViewModel, string, INode>
+    public partial class UserVariablesViewModel : FilteredCollectionViewModel<UserVariableViewModel, string, Variable<string>>
     {
         /// <summary>
         /// Creates a new <see cref="UserVariablesViewModel"/>.
@@ -15,8 +16,8 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                if (Shared.Workspace is not null)
-                    Shared.Workspace.Variables.Variables["test"] = new ScalarNode("123".AsMemory());
+                if (Shared.Workspace is IWorkspace<double> workspace && workspace.Variables is IVariableScope<double> scope)
+                    scope.Local["test"] = new(new Quantity<double>(123, Unit.UnitNone), null);
             }
         }
 
@@ -39,18 +40,22 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IObservableDictionary<string, INode> GetCollection(IWorkspace workspace)
-            => workspace.Variables.Variables;
+        protected override IReadonlyObservableDictionary<string, Variable<string>> GetCollection(IWorkspace workspace)
+            => workspace.Variables.Local;
 
         /// <inheritdoc />
-        protected override void UpdateModel(UserVariableViewModel model, string key, INode value)
+        protected override void UpdateModel(UserVariableViewModel model, string key, Variable<string> value)
         {
             model.Name = key;
-            model.Expression = value.Content.ToString();
+            model.Value = value.Value;
+        }
 
-            var node = new VariableNode(key.AsMemory());
-            if (Shared.Workspace?.TryResolveAndFormat(node, out var result) ?? false)
-                model.Value = result;
+        /// <inheritdoc />
+        protected override void RemoveItem(string key)
+        {
+            if (Shared.Workspace is null)
+                return;
+            Shared.Workspace.Variables.TryRemoveVariable(key);
         }
     }
 }

@@ -67,13 +67,22 @@ namespace MaxwellCalc.ViewModels
         }
 
         /// <inheritdoc />
-        protected override IObservableDictionary<OutputUnitKey, INode> GetCollection(IWorkspace workspace)
-            => workspace.OutputUnits;
+        protected override IReadonlyObservableDictionary<OutputUnitKey, INode> GetCollection(IWorkspace workspace)
+            => workspace.OutputUnits.AsReadOnly();
 
+        /// <inheritdoc />
         protected override void UpdateModel(OutputUnitViewModel model, OutputUnitKey key, INode value)
         {
             model.Unit = key.OutputUnit;
             model.Value = new Quantity<string>(value.Content.ToString(), key.BaseUnit);
+        }
+
+        /// <inheritdoc />
+        protected override void RemoveItem(OutputUnitKey key)
+        {
+            if (Shared.Workspace is null)
+                return;
+            Shared.Workspace.OutputUnits.Remove(key);
         }
 
         [RelayCommand]

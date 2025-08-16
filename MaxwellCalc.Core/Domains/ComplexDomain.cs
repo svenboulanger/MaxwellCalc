@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using System.Text.Json;
 
 namespace MaxwellCalc.Domains
 {
@@ -460,6 +461,49 @@ namespace MaxwellCalc.Domains
             }
             result = new(left && right ? 1.0 : 0.0, Unit.UnitNone);
             return true;
+        }
+
+        /// <inheritdoc />
+        public void ToJSON(Complex value, Utf8JsonWriter writer, JsonWriterOptions options)
+        {
+            if (value.Imaginary.Equals(0.0))
+            {
+                writer.WriteNumberValue(value.Real);
+            }
+            else
+            {
+                writer.WriteStartArray();
+                writer.WriteNumberValue(value.Real);
+                writer.WriteNumberValue(value.Imaginary);
+                writer.WriteEndArray();
+            }
+        }
+
+        /// <inheritdoc />
+        public Complex FromJSON(ref Utf8JsonReader reader, JsonReaderOptions options)
+        {
+            switch (reader.TokenType)
+            {
+                case JsonTokenType.Number:
+                    return reader.GetDouble();
+
+                case JsonTokenType.StartArray:
+                    reader.Read();
+                    if (reader.TokenType != JsonTokenType.Number)
+                        throw new JsonException("Expected a number for the real part of a complex number.");
+                    double real = reader.GetDouble();
+                    reader.Read();
+                    if (reader.TokenType != JsonTokenType.Number)
+                        throw new JsonException("Expected a number for the imaginary part of a complex number.");
+                    double imaginary = reader.GetDouble();
+                    reader.Read();
+                    if (reader.TokenType != JsonTokenType.EndArray)
+                        throw new JsonException("Expected only 2 numbers for a complex number.");
+                    return new Complex(real, imaginary);
+
+                default:
+                    throw new JsonException("Expected a number or a 2-number array for a complex number.");
+            }
         }
     }
 }

@@ -23,7 +23,7 @@
 		</material:Card>
 
 		<material:Card DockPanel.Dock="Bottom"
-			   Margin="5">
+					   Margin="5">
 			<Grid ColumnDefinitions="150, 300, *, 50">
 				<TextBox Text="{Binding ConstantName}"
 						 Watermark="Constant"
@@ -56,8 +56,6 @@
 			<DockPanel>
 				<DockPanel.ContextMenu>
 					<ContextMenu>
-						<MenuItem Header="Remove selected constants" Command="{Binding RemoveSelectedItemsCommand}" />
-						<Separator />
 						<MenuItem Header="Add common constants" Command="{Binding Shared.AddCommonConstantsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
@@ -114,8 +112,8 @@
 											Padding="3"
 											Margin="5 5 20 5"
 											Classes="Outline"
-											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
 											CommandParameter="{Binding}"/>
+											<!-- Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}" -->
 								</Grid>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>

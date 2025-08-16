@@ -1,6 +1,6 @@
 ﻿using MaxwellCalc.Core.Workspaces;
-using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
+using System;
 
 namespace MaxwellCalc.Workspaces;
 
@@ -10,25 +10,16 @@ namespace MaxwellCalc.Workspaces;
 public interface IVariableScope
 {
     /// <summary>
-    /// Gets the dictionary for the given variables.
+    /// Gets the variables that are currently in the scope.
     /// </summary>
-    public IObservableDictionary<string, INode> Variables { get; }
+    public IReadonlyObservableDictionary<string, Variable<string>> Local { get; }
 
     /// <summary>
-    /// Tries to add a description to a variable.
+    /// Tries to remove a local variable.
     /// </summary>
     /// <param name="name">The name.</param>
-    /// <param name="description">The description.</param>
-    /// <returns>Returns <c>true</c> if the description was set; otherwise, <c>false</c>.</returns>
-    public bool TrySetDescription(string name, string? description);
-
-    /// <summary>
-    /// Tries to get a description for the given variable.
-    /// </summary>
-    /// <param name="name">The name.</param>
-    /// <param name="description">The description.</param>
-    /// <returns>Returns <c>true</c> if the description was found; otherwise, <c>false</c>.</returns>
-    public bool TryGetDescription(string name, out string? description);
+    /// <returns>Returns <c>true</c> if a variable by this name was removed; otherwise, <c>false</c>.</returns>
+    public bool TryRemoveVariable(string name);
 }
 
 /// <summary>
@@ -36,6 +27,11 @@ public interface IVariableScope
 /// </summary>
 public interface IVariableScope<T> : IVariableScope
 {
+    /// <summary>
+    /// Gets a dictionary with the locally defined variables.
+    /// </summary>
+    public new IObservableDictionary<string, Variable<T>> Local { get; }
+
     /// <summary>
     /// Tries to get a variable value from the workspace.
     /// </summary>

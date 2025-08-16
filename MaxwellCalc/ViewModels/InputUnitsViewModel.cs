@@ -8,6 +8,7 @@ using MaxwellCalc.Workspaces;
 using System;
 using System.Linq;
 using MaxwellCalc.Units;
+using System.Collections.Generic;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -52,14 +53,22 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IObservableDictionary<string, Quantity<INode>> GetCollection(IWorkspace workspace)
-            => workspace.InputUnits;
+        protected override IReadonlyObservableDictionary<string, Quantity<INode>> GetCollection(IWorkspace workspace)
+            => workspace.InputUnits.AsReadOnly();
 
         /// <inheritdoc />
         protected override void UpdateModel(InputUnitViewModel model, string key, Quantity<INode> value)
         {
             model.Name = key;
             model.Value = new(value.Scalar.Content.ToString(), value.Unit);
+        }
+
+        /// <inheritdoc />
+        protected override void RemoveItem(string key)
+        {
+            if (Shared.Workspace is null)
+                return;
+            Shared.Workspace.InputUnits.Remove(key);
         }
 
         [RelayCommand]

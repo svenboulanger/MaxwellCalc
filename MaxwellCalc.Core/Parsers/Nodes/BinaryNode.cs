@@ -41,19 +41,12 @@ namespace MaxwellCalc.Parsers.Nodes
             {
                 if (Left is VariableNode variable)
                 {
-                    if (workspace is not null)
-                    {
-                        string name = variable.Content.ToString();
-                        workspace.Scope.Variables[name] = Right;
-                        return workspace.Scope.TryGetComputedVariable(name, out result);
-                    }
-                    else
-                    {
-                        // We don't have a workspace to save the variable to
-                        // Let's at least return the value
-                        Right.TryResolve(resolver, workspace, out result);
+                    if (!Right.TryResolve(resolver, workspace, out result))
                         return false;
-                    }
+                    string name = variable.Content.ToString();
+                    if (workspace is not null)
+                        workspace.Scope.Local[name] = new(result, null);
+                    return true;
                 }
                 else if (Left is FunctionNode function)
                 {

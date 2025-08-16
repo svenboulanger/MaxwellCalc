@@ -93,7 +93,7 @@ namespace MaxwellCalc.ViewModels
             using (var stream = new MemoryStream())
             using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
             {
-                Workspace.WriteToJson(writer, new JsonSerializerOptions { WriteIndented = true });
+                // Workspace.WriteToJson(writer, new JsonSerializerOptions { WriteIndented = true });
                 writer.Flush();
                 content = stream.ToArray();
             }
@@ -105,7 +105,7 @@ namespace MaxwellCalc.ViewModels
         {
             if (Workspace is not null)
             {
-                Workspace.Variables.Variables.Clear();
+                // Workspace.Variables.Variables.Clear();
                 Workspace.UserFunctions.Clear();
             }
         }
@@ -116,6 +116,8 @@ namespace MaxwellCalc.ViewModels
             if (Workspace is not null && !string.IsNullOrEmpty(WorkspaceFile))
             {
                 ClearWorkspace();
+                if (!File.Exists(WorkspaceFile))
+                    return;
                 var content = File.ReadAllText(WorkspaceFile);
                 var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(content));
                 reader.Read();

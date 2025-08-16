@@ -54,8 +54,8 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IObservableDictionary<UserFunctionKey, UserFunction> GetCollection(IWorkspace workspace)
-            => workspace.UserFunctions;
+        protected override IReadonlyObservableDictionary<UserFunctionKey, UserFunction> GetCollection(IWorkspace workspace)
+            => workspace.UserFunctions.AsReadOnly();
 
         /// <inheritdoc />
         protected override void UpdateModel(UserFunctionViewModel model, UserFunctionKey key, UserFunction value)
@@ -63,6 +63,14 @@ namespace MaxwellCalc.ViewModels
             model.Name = key.Name;
             model.Arguments = [.. value.Parameters];
             model.Value = string.Join(Environment.NewLine, value.Body.Select(n => n.Content.ToString()));
+        }
+
+        /// <inheritdoc />
+        protected override void RemoveItem(UserFunctionKey key)
+        {
+            if (Shared.Workspace is null)
+                return;
+            Shared.Workspace.UserFunctions.Remove(key);
         }
 
         [RelayCommand]

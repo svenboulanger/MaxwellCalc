@@ -55,8 +55,8 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IObservableDictionary<string, BuiltInFunction> GetCollection(IWorkspace workspace)
-            => workspace.BuiltInFunctions;
+        protected override IReadonlyObservableDictionary<string, BuiltInFunction> GetCollection(IWorkspace workspace)
+            => workspace.BuiltInFunctions.AsReadOnly();
 
         /// <inheritdoc />
         protected override void UpdateModel(BuiltInFunctionViewModel model, string key, BuiltInFunction value)

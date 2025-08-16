@@ -19,7 +19,7 @@ namespace MaxwellCalc.ViewModels
         where M : SelectableViewModelBase<TKey>, new()
     {
         private IWorkspace? _lastWorkspace;
-        private IObservableDictionary<TKey, TValue>? _dictionary;
+        private IReadonlyObservableDictionary<TKey, TValue>? _dictionary;
         private bool _holdOffHeaderChecked = false;
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         /// <param name="workspace">The workspace.</param>
         /// <returns></returns>
-        protected abstract IObservableDictionary<TKey, TValue> GetCollection(IWorkspace workspace);
+        protected abstract IReadonlyObservableDictionary<TKey, TValue> GetCollection(IWorkspace workspace);
 
         /// <summary>
         /// Updates a model with values from the original collection.
@@ -119,14 +119,6 @@ namespace MaxwellCalc.ViewModels
         /// <param name="b">The right argument.</param>
         /// <returns>Should return <c>-1</c> if <paramref name="a"/> comes before <paramref name="b"/>, <c>1</c> if <paramref name="a"/> comes after <paramref name="b"/>, and 0 if they are equal.</returns>
         protected abstract int CompareModels(M a, M b);
-
-        [RelayCommand]
-        private void RemoveItem(M model)
-        {
-            if (_dictionary is null || model.Key is null)
-                throw new InvalidOperationException();
-            _dictionary.Remove(model.Key);
-        }
 
         partial void OnFilterChanged(string value)
         {
@@ -209,30 +201,46 @@ namespace MaxwellCalc.ViewModels
             Items.Insert(index, model);
         }
 
+        protected virtual void RemoveItem(TKey key)
+            => throw new NotImplementedException();
+
+        /// <summary>
+        /// Removes an item.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        [RelayCommand]
+        private void RemoveItem(M model)
+        {
+            if (model is not null && model.Key is not null)
+                RemoveItem(model.Key);
+        }
+
+        /// <summary>
+        /// Removes any selected items.
+        /// </summary>
         [RelayCommand]
         private void RemoveSelectedItems()
         {
-            if (_dictionary is null)
-                throw new InvalidOperationException();
-            foreach (var item in Items.Where(item => item.Selected).ToList())
+            var toRemove = Items.Where(item => item.Selected).Select(item => item.Key).ToList();
+            foreach (var key in toRemove)
             {
-                if (item.Key is not null)
-                    _dictionary.Remove(item.Key);
+                if (key is not null)
+                    RemoveItem(key);
             }
-            IsHeaderChecked = false;
         }
 
+        /// <summary>
+        /// Removes all selected items.
+        /// </summary>
         [RelayCommand]
         private void RemoveAllItems()
         {
-            if (_dictionary is null)
-                throw new InvalidOperationException();
-            foreach (var item in Items.ToList())
+            var toRemove = Items.Select(item => item.Key).ToList();
+            foreach (var key in toRemove)
             {
-                if (item.Key is not null)
-                    _dictionary.Remove(item.Key);
+                if (key is not null)
+                    RemoveItem(key);
             }
-            IsHeaderChecked = false;
         }
 
         partial void OnIsHeaderCheckedChanged(bool value)

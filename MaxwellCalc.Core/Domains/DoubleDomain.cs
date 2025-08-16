@@ -1,7 +1,7 @@
 ﻿using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
-using System.Collections.Generic;
+using System.Text.Json;
 
 namespace MaxwellCalc.Domains
 {
@@ -433,6 +433,18 @@ namespace MaxwellCalc.Domains
             }
             result = new(left && right ? 1.0 : 0.0, Unit.UnitNone);
             return true;
+        }
+
+        /// <inheritdoc />
+        public void ToJSON(double value, Utf8JsonWriter writer, JsonWriterOptions options)
+            => writer.WriteNumberValue(value);
+
+        /// <inheritdoc />
+        public double FromJSON(ref Utf8JsonReader reader, JsonReaderOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Number)
+                return reader.GetDouble();
+            throw new JsonException("Expected a double in JSON, but could not read it.");
         }
     }
 }

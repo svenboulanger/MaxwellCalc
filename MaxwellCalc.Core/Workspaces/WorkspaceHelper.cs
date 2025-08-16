@@ -1,11 +1,11 @@
 ﻿using MaxwellCalc.Core.Attributes;
-using MaxwellCalc.Parsers;
+using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
 
 namespace MaxwellCalc.Workspaces;
 
@@ -15,55 +15,14 @@ namespace MaxwellCalc.Workspaces;
 public static class WorkspaceHelper
 {
     /// <summary>
-    /// Writes a workspace to JSON. Note that built-in functions are not written.
+    /// Converts an <see cref="IObservableDictionary{TKey, TValue}"/> into a read-only version.
     /// </summary>
-    /// <param name="workspace">The workspace.</param>
-    /// <param name="writer">The writer.</param>
-    /// <param name="options">The options.</param>
-    public static void WriteToJson(this IWorkspace workspace, Utf8JsonWriter writer, JsonSerializerOptions? options = null)
-    {
-        writer.WriteStartObject();
-
-        // Write the input units
-        writer.WriteStartArray("input_units");
-        foreach (var inputUnit in workspace.InputUnits)
-            JsonSerializer.Serialize(writer, inputUnit, options);
-        writer.WriteEndArray();
-
-        // Write the constants
-        writer.WriteStartObject("constants");
-        foreach (var constant in workspace.Constants.Variables)
-        {
-            writer.WriteStartObject(constant.Key);
-            JsonSerializer.Serialize(writer, constant.Value, options);
-            writer.WriteEndObject();
-        }
-        writer.WriteEndArray();
-
-        // Write the variables
-        writer.WriteStartObject("variables");
-        foreach (var variable in workspace.Variables.Variables)
-        {
-            writer.WriteStartObject(variable.Key);
-            JsonSerializer.Serialize(writer, variable.Value, options);
-            writer.WriteEndObject();
-        }
-        writer.WriteEndArray();
-
-        // Write the output units
-        writer.WriteStartArray("output_units");
-        foreach (var outputUnit in workspace.OutputUnits)
-            JsonSerializer.Serialize(writer, outputUnit, options);
-        writer.WriteEndArray();
-
-        // Write the user functions
-        writer.WriteStartArray("user_functions");
-        foreach (var userFunction in workspace.UserFunctions)
-            JsonSerializer.Serialize(writer, userFunction, options);
-        writer.WriteEndArray();
-
-        writer.WriteEndObject();
-    }
+    /// <typeparam name="TKey">The key.</typeparam>
+    /// <typeparam name="TValue">The value.</typeparam>
+    /// <param name="dictionary">The dictionary.</param>
+    /// <returns>Returns the read-only shadow version of the dictionary.</returns>
+    public static IReadonlyObservableDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IObservableDictionary<TKey, TValue> dictionary)
+        => new MappedObservableDictionary<TKey, TValue, TValue>(dictionary, x => x);
 
     /// <summary>
     /// Uses reflection to register all static methods on a type that match the signature of the workspace domain.
@@ -146,6 +105,8 @@ public static class WorkspaceHelper
         var domainType = workspaceType.GenericTypeArguments[0];
         var quantityType = typeof(Quantity<>).MakeGenericType(domainType);
         var scopeType = typeof(IVariableScope<>).MakeGenericType(domainType);
+        var domain = workspaceType.GetProperty("Resolver", BindingFlags.Public | BindingFlags.Instance)?.GetValue(workspace);
+        var formatMethod = typeof(IDomain<>).MakeGenericType(domainType).GetMethod("TryFormat", BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
         {
@@ -163,41 +124,26 @@ public static class WorkspaceHelper
 
             if (field.IsLiteral)
             {
-                if (field.FieldType == typeof(string))
+                if (field.FieldType == domainType)
                 {
-                    string expression = (string)field.GetRawConstantValue();
-                    var lexer = new Lexer(expression);
-                    var node = Parser.Parse(lexer, workspace);
-                    if (node is not null)
+                    var parameters = new object[] { Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone), "g", System.Globalization.CultureInfo.CurrentCulture, null };
+                    bool result = (bool)formatMethod.Invoke(workspace, parameters);
+                    if (result)
                     {
-                        workspace.Constants.Variables[name] = node;
-                        workspace.Constants.TrySetDescription(name, description);
+                        var formattedResult = parameters[3];
                     }
                 }
             }
             else
             {
                 // Deal with static constants or units
-                if (field.FieldType == typeof(string))
+                if (field.FieldType == domainType)
                 {
-                    string expression = (string)field.GetValue(null);
-                    var lexer = new Lexer(expression);
-                    var node = Parser.Parse(lexer, workspace);
-                    if (node is not null)
+                    var parameters = new object[] { Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone), "g", System.Globalization.CultureInfo.CurrentCulture, null };
+                    bool result = (bool)formatMethod.Invoke(workspace, parameters);
+                    if (result)
                     {
-                        workspace.Constants.Variables[name] = node;
-                        workspace.Constants.TrySetDescription(name, description);
-                    }
-                }
-                else if (field.FieldType == typeof(Quantity<string>))
-                {
-                    var expression = (Quantity<string>)field.GetValue(null);
-                    var lexer = new Lexer(expression.Scalar);
-                    var node = Parser.Parse(lexer, workspace);
-                    if (node is not null)
-                    {
-                        workspace.Constants.Variables[name] = node;
-                        workspace.Constants.TrySetDescription(name, description);
+                        var formattedResult = parameters[3];
                     }
                 }
             }
