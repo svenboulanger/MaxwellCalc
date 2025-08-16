@@ -13,11 +13,7 @@ namespace MaxwellCalc.Tests
         public void When_Expression_Expect_Reference(string expression)
         {
             var dws = new Workspace<double>(new DoubleDomain());
-            dws.InputUnits.Add("cm", new(
-                new BinaryNode(
-                    BinaryOperatorTypes.Divide,
-                    new ScalarNode("1".AsMemory()),
-                    new ScalarNode("100".AsMemory()), "1/100".AsMemory()), Unit.UnitMeter));
+
 
             var lexer = new Lexer(expression);
             var node = Parser.Parse(lexer, dws);

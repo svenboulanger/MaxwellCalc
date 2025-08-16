@@ -21,7 +21,7 @@ namespace MaxwellCalc.Core.Workspaces
             get => _dictionary[key];
             set
             {
-                if (_dictionary.TryGetValue(key, out var existing))
+                if (_dictionary.TryGetValue(key, out var existing) && existing is not null)
                 {
                     if (existing.Equals(value))
                         return;

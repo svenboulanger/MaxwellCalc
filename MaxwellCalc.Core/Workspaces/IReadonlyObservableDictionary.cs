@@ -8,7 +8,7 @@ namespace MaxwellCalc.Core.Workspaces
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
-    public interface IReadonlyObservableDictionary<TKey, TValue>
+    public interface IReadOnlyObservableDictionary<TKey, TValue>
         : IReadOnlyDictionary<TKey, TValue>
     {
         /// <summary>

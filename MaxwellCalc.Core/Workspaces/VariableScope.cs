@@ -1,4 +1,5 @@
 ﻿using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ public class VariableScope<T> : IVariableScope<T>
 {
     private readonly IVariableScope<T>? _parent;
     private readonly IWorkspace<T> _workspace;
-    private readonly IReadonlyObservableDictionary<string, Variable<string>> _mapped;
+    private readonly IReadOnlyObservableDictionary<string, Variable<string>> _mapped;
 
     /// <inheritdoc />
     public IEnumerable<string> VariableNames => Local.Keys;
@@ -22,7 +23,7 @@ public class VariableScope<T> : IVariableScope<T>
     /// <inheritdoc />
     public IObservableDictionary<string, Variable<T>> Local { get; } = new ObservableDictionary<string, Variable<T>>();
 
-    IReadonlyObservableDictionary<string, Variable<string>> IVariableScope.Local => _mapped;
+    IReadOnlyObservableDictionary<string, Variable<string>> IVariableScope.Local => _mapped;
 
     /// <summary>
     /// Creates a new <see cref="VariableScope{T}"/>.
@@ -65,6 +66,17 @@ public class VariableScope<T> : IVariableScope<T>
         if (_parent is not null)
             return _parent.TryGetComputedVariable(name, out result);
         result = default;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool TryAssignVariable(string name, INode node, string? description)
+    {
+        if (_workspace.TryResolve(node, out var result))
+        {
+            Local[name] = new(result, description);
+            return true;
+        }
         return false;
     }
 

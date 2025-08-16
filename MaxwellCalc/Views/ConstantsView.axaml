@@ -23,7 +23,20 @@
 		</material:Card>
 
 		<material:Card DockPanel.Dock="Bottom"
+					   Name="Input"
 					   Margin="5">
+			<FlyoutBase.AttachedFlyout>
+				<Flyout ShowMode="Transient">
+					<ItemsControl ItemsSource="{Binding Diagnostics}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding}"
+										   Foreground="Red" />
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Flyout>
+			</FlyoutBase.AttachedFlyout>
 			<Grid ColumnDefinitions="150, 300, *, 50">
 				<TextBox Text="{Binding ConstantName}"
 						 Watermark="Constant"
@@ -56,6 +69,9 @@
 			<DockPanel>
 				<DockPanel.ContextMenu>
 					<ContextMenu>
+						<MenuItem Header="Remove selected items" Command="{Binding RemoveSelectedItemsCommand}" />
+						<MenuItem Header="Remove all items" Command="{Binding RemoveAllItemsCommand}" />
+						<Separator />
 						<MenuItem Header="Add common constants" Command="{Binding Shared.AddCommonConstantsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
@@ -112,8 +128,8 @@
 											Padding="3"
 											Margin="5 5 20 5"
 											Classes="Outline"
+											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
 											CommandParameter="{Binding}"/>
-											<!-- Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}" -->
 								</Grid>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>

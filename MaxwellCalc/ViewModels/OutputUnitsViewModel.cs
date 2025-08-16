@@ -3,24 +3,23 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class OutputUnitsViewModel : FilteredCollectionViewModel<OutputUnitViewModel, OutputUnitKey, INode>
+    public partial class OutputUnitsViewModel : FilteredCollectionViewModel<OutputUnitViewModel, OutputUnitKey, string>
     {
         [ObservableProperty]
         private string _unit = string.Empty;
 
         [ObservableProperty]
         private string _expression = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<string> _diagnostics = [];
 
         /// <summary>
         /// Creates a new <see cref="OutputUnitsViewModel"/>.
@@ -29,9 +28,9 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                if (Shared.Workspace is not null)
+                if (Shared.Workspace is IWorkspace<double> workspace)
                 {
-                    Shared.Workspace.OutputUnits[new(new(("cm", 1)), Units.Unit.UnitMeter)] = new ScalarNode("0.01".AsMemory());
+                    workspace.OutputUnits[new(new(("cm", 1)), Units.Unit.UnitMeter)] = 0.01;
                 }
             }
         }
@@ -67,14 +66,14 @@ namespace MaxwellCalc.ViewModels
         }
 
         /// <inheritdoc />
-        protected override IReadonlyObservableDictionary<OutputUnitKey, INode> GetCollection(IWorkspace workspace)
-            => workspace.OutputUnits.AsReadOnly();
+        protected override IReadOnlyObservableDictionary<OutputUnitKey, string> GetCollection(IWorkspace workspace)
+            => workspace.OutputUnits;
 
         /// <inheritdoc />
-        protected override void UpdateModel(OutputUnitViewModel model, OutputUnitKey key, INode value)
+        protected override void UpdateModel(OutputUnitViewModel model, OutputUnitKey key, string value)
         {
             model.Unit = key.OutputUnit;
-            model.Value = new Quantity<string>(value.Content.ToString(), key.BaseUnit);
+            model.Value = new Quantity<string>(value, key.BaseUnit);
         }
 
         /// <inheritdoc />
@@ -82,7 +81,7 @@ namespace MaxwellCalc.ViewModels
         {
             if (Shared.Workspace is null)
                 return;
-            Shared.Workspace.OutputUnits.Remove(key);
+            Shared.Workspace.TryRemoveOutputUnit(key);
         }
 
         [RelayCommand]
@@ -91,47 +90,39 @@ namespace MaxwellCalc.ViewModels
             if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Unit) || string.IsNullOrWhiteSpace(Expression))
                 return;
 
-            bool oldResolveInputUnits = Shared.Workspace.ResolveInputUnits;
-            bool oldResolveOutputUnits = Shared.Workspace.ResolveOutputUnits;
-            bool oldAllowVariables = Shared.Workspace.AllowVariables;
-            Shared.Workspace.AllowVariables = false;
-            Shared.Workspace.ResolveInputUnits = false;
-            Shared.Workspace.ResolveOutputUnits = false;
+            // Deal with diagnostic messages
+            Diagnostics.Clear();
+            void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
+                => Diagnostics.Add(args.Message);
+            Shared.Workspace.DiagnosticMessagePosted += AddDiagnosticMessage;
 
-            // Try to evaluate the output unit
-            var lexer = new Lexer(Unit);
-            var unitNode = Parser.Parse(lexer, Shared.Workspace);
-            if (unitNode is null)
-                return;
-            if (!Shared.Workspace.TryResolveAndFormat(unitNode, out var unitNodeResult))
-                return;
-
-            // Try to evaluate the expression to get to the input units
-            lexer = new Lexer(Expression);
-            var exprNode = Parser.Parse(lexer, Shared.Workspace);
-            if (exprNode is null)
-                return;
-            Shared.Workspace.ResolveInputUnits = true;
-            if (!Shared.Workspace.TryResolveAndFormat(unitNode, out var exprNodeResult))
-                return;
-
-            // Pass them on to the workspace
-            if (unitNodeResult.Scalar != "1")
+            var oldState = Shared.Workspace.Restrict(false, false, true, false, false);
+            try
             {
-                Shared.Workspace.OutputUnits[new(unitNodeResult.Unit, exprNodeResult.Unit)] = new BinaryNode(BinaryOperatorTypes.Divide,
-                    new ScalarNode(exprNodeResult.Scalar.AsMemory()),
-                    new ScalarNode(unitNodeResult.Scalar.AsMemory()),
-                    $"{exprNodeResult.Scalar}/{exprNodeResult.Scalar}".AsMemory());
-            }
-            else
-                Shared.Workspace.OutputUnits[new(unitNodeResult.Unit, exprNodeResult.Unit)] = new ScalarNode(exprNodeResult.Scalar.AsMemory());
+                // Try to evaluate the output unit
+                var lexer = new Lexer(Unit);
+                var outputUnitsNode = Parser.Parse(lexer, Shared.Workspace);
+                if (outputUnitsNode is null)
+                    return;
 
-            // Reset
-            Shared.Workspace.ResolveInputUnits = oldResolveInputUnits;
-            Shared.Workspace.ResolveOutputUnits = oldResolveOutputUnits;
-            Shared.Workspace.AllowVariables = oldAllowVariables;
-            Unit = string.Empty;
-            Expression = string.Empty;
+                // Try to evaluate the expression to get to the input units
+                lexer = new Lexer(Expression);
+                var baseUnitsNode = Parser.Parse(lexer, Shared.Workspace);
+                if (baseUnitsNode is null)
+                    return;
+
+                if (Shared.Workspace.TryAssignOutputUnit(outputUnitsNode, baseUnitsNode))
+                {
+                    // Reset
+                    Unit = string.Empty;
+                    Expression = string.Empty;
+                }
+            }
+            finally
+            {
+                Shared.Workspace.Restore(oldState);
+                Shared.Workspace.DiagnosticMessagePosted -= AddDiagnosticMessage;
+            }
         }
     }
 }

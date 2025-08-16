@@ -1,6 +1,6 @@
 ﻿using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
-using System;
 
 namespace MaxwellCalc.Workspaces;
 
@@ -12,7 +12,16 @@ public interface IVariableScope
     /// <summary>
     /// Gets the variables that are currently in the scope.
     /// </summary>
-    public IReadonlyObservableDictionary<string, Variable<string>> Local { get; }
+    public IReadOnlyObservableDictionary<string, Variable<string>> Local { get; }
+
+    /// <summary>
+    /// Tries to assign a value to a local variable. The variable is assigned immediately.
+    /// </summary>
+    /// <param name="name">The name of the variable.</param>
+    /// <param name="node">The node.</param>
+    /// <param name="description">An optional description.</param>
+    /// <returns>Returns <c>true</c> if the variable could be assigned; otherwise, <c>false</c>.</returns>
+    public bool TryAssignVariable(string name, INode node, string? description = null);
 
     /// <summary>
     /// Tries to remove a local variable.

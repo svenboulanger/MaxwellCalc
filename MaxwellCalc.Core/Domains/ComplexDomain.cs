@@ -52,7 +52,7 @@ namespace MaxwellCalc.Domains
 
                 if (workspace.ResolveInputUnits)
                 {
-                    if (workspace.TryGetUnit(unit, out result))
+                    if (workspace.InputUnits.TryGetValue(unit, out result))
                         return true;
                     workspace.PostDiagnosticMessage(new($"Could not recognize unit '{unit}'."));
                     return false;

@@ -1,6 +1,5 @@
 ﻿using MaxwellCalc.Core.Attributes;
 using MaxwellCalc.Core.Workspaces;
-using MaxwellCalc.Domains;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
@@ -21,8 +20,54 @@ public static class WorkspaceHelper
     /// <typeparam name="TValue">The value.</typeparam>
     /// <param name="dictionary">The dictionary.</param>
     /// <returns>Returns the read-only shadow version of the dictionary.</returns>
-    public static IReadonlyObservableDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IObservableDictionary<TKey, TValue> dictionary)
+    public static IReadOnlyObservableDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IObservableDictionary<TKey, TValue> dictionary)
         => new MappedObservableDictionary<TKey, TValue, TValue>(dictionary, x => x);
+
+    /// <summary>
+    /// Restricts the workspace usage.
+    /// </summary>
+    /// <param name="workspace">The workspace.</param>
+    /// <param name="resolveInputUnits">If <c>true</c>, units are resolved to their base units.</param>
+    /// <param name="resolveOutputUnits">If <c>true</c>, base units are resolved to their output units.</param>
+    /// <param name="allowUnits">If <c>true</c>, units can be used.</param>
+    /// <param name="allowVariables">If <c>true</c>, variables can be used.</param>
+    /// <param name="allowUserFunctions">If <c>true</c>, user functions can be used.</param>
+    /// <returns>Returns the old state.</returns>
+    public static Tuple<bool, bool, bool, bool, bool> Restrict(
+        this IWorkspace workspace, 
+        bool resolveInputUnits = true, 
+        bool resolveOutputUnits = true, 
+        bool allowUnits = true, 
+        bool allowVariables = true, 
+        bool allowUserFunctions = true)
+    {
+        var old = Tuple.Create(
+            workspace.ResolveInputUnits,
+            workspace.ResolveOutputUnits,
+            workspace.AllowUnits,
+            workspace.AllowVariables,
+            workspace.AllowUserFunctions);
+        workspace.ResolveInputUnits = resolveInputUnits;
+        workspace.ResolveOutputUnits = resolveOutputUnits;
+        workspace.AllowUnits = allowUnits;
+        workspace.AllowVariables = allowVariables;
+        workspace.AllowUserFunctions = allowUserFunctions;
+        return old;
+    }
+
+    /// <summary>
+    /// Restores a workspace state after having used <see cref="Restrict(IWorkspace, bool, bool, bool, bool, bool)"/>.
+    /// </summary>
+    /// <param name="workspace">The workspace.</param>
+    /// <param name="oldState">The old state.</param>
+    public static void Restore(this IWorkspace workspace, Tuple<bool, bool, bool, bool, bool> oldState)
+    {
+        workspace.ResolveInputUnits = oldState.Item1;
+        workspace.ResolveOutputUnits = oldState.Item2;
+        workspace.AllowUnits = oldState.Item3;
+        workspace.AllowVariables = oldState.Item4;
+        workspace.AllowUserFunctions = oldState.Item5;
+    }
 
     /// <summary>
     /// Uses reflection to register all static methods on a type that match the signature of the workspace domain.
@@ -104,9 +149,11 @@ public static class WorkspaceHelper
         // Get the method to register a new built-in function
         var domainType = workspaceType.GenericTypeArguments[0];
         var quantityType = typeof(Quantity<>).MakeGenericType(domainType);
+        var variableType = typeof(Variable<>).MakeGenericType(domainType);
         var scopeType = typeof(IVariableScope<>).MakeGenericType(domainType);
-        var domain = workspaceType.GetProperty("Resolver", BindingFlags.Public | BindingFlags.Instance)?.GetValue(workspace);
-        var formatMethod = typeof(IDomain<>).MakeGenericType(domainType).GetMethod("TryFormat", BindingFlags.Public | BindingFlags.Instance);
+        var constantsScope = typeof(IWorkspace).GetProperty("Constants", BindingFlags.Public | BindingFlags.Instance).GetValue(workspace);
+        var constantsDictionary = scopeType.GetProperty("Local", BindingFlags.Instance | BindingFlags.Public).GetValue(constantsScope);
+        var setterProperty = typeof(IDictionary<,>).MakeGenericType(typeof(string), variableType).GetProperty("Item");
 
         foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
         {
@@ -126,12 +173,9 @@ public static class WorkspaceHelper
             {
                 if (field.FieldType == domainType)
                 {
-                    var parameters = new object[] { Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone), "g", System.Globalization.CultureInfo.CurrentCulture, null };
-                    bool result = (bool)formatMethod.Invoke(workspace, parameters);
-                    if (result)
-                    {
-                        var formattedResult = parameters[3];
-                    }
+                    var quantity = Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone);
+                    var variable = Activator.CreateInstance(variableType, quantity, description);
+                    setterProperty.SetValue(constantsDictionary, variable, [name]);
                 }
             }
             else
@@ -139,12 +183,14 @@ public static class WorkspaceHelper
                 // Deal with static constants or units
                 if (field.FieldType == domainType)
                 {
-                    var parameters = new object[] { Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone), "g", System.Globalization.CultureInfo.CurrentCulture, null };
-                    bool result = (bool)formatMethod.Invoke(workspace, parameters);
-                    if (result)
-                    {
-                        var formattedResult = parameters[3];
-                    }
+                    var quantity = Activator.CreateInstance(quantityType, field.GetValue(null), Unit.UnitNone);
+                    var variable = Activator.CreateInstance(variableType, quantity, description);
+                    setterProperty.SetValue(constantsDictionary, variable, [name]);
+                }
+                else if (field.FieldType == quantityType)
+                {
+                    var variable = Activator.CreateInstance(variableType, field.GetValue(null), description);
+                    setterProperty.SetValue(constantsDictionary, variable, [name]);
                 }
             }
         }

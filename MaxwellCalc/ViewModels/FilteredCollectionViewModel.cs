@@ -19,7 +19,7 @@ namespace MaxwellCalc.ViewModels
         where M : SelectableViewModelBase<TKey>, new()
     {
         private IWorkspace? _lastWorkspace;
-        private IReadonlyObservableDictionary<TKey, TValue>? _dictionary;
+        private IReadOnlyObservableDictionary<TKey, TValue>? _dictionary;
         private bool _holdOffHeaderChecked = false;
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         /// <param name="workspace">The workspace.</param>
         /// <returns></returns>
-        protected abstract IReadonlyObservableDictionary<TKey, TValue> GetCollection(IWorkspace workspace);
+        protected abstract IReadOnlyObservableDictionary<TKey, TValue> GetCollection(IWorkspace workspace);
 
         /// <summary>
         /// Updates a model with values from the original collection.

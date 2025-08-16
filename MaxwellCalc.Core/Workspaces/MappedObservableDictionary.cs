@@ -6,13 +6,13 @@ using System.Linq;
 namespace MaxwellCalc.Core.Workspaces
 {
     /// <summary>
-    /// An implementation of an <see cref="IReadonlyObservableDictionary{TKey, TValue}"/> that will
+    /// An implementation of an <see cref="IReadOnlyObservableDictionary{TKey, TValue}"/> that will
     /// give a read-only version of an underlying dictionary.
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
     public class MappedObservableDictionary<TKey, TValue, TOriginalValue>
-        : IReadonlyObservableDictionary<TKey, TValue>
+        : IReadOnlyObservableDictionary<TKey, TValue>
     {
         private readonly IObservableDictionary<TKey, TOriginalValue> _dictionary;
         private readonly Func<TOriginalValue, TValue> _mapper;

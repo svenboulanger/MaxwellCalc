@@ -54,7 +54,7 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IReadonlyObservableDictionary<UserFunctionKey, UserFunction> GetCollection(IWorkspace workspace)
+        protected override IReadOnlyObservableDictionary<UserFunctionKey, UserFunction> GetCollection(IWorkspace workspace)
             => workspace.UserFunctions.AsReadOnly();
 
         /// <inheritdoc />

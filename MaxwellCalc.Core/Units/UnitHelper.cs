@@ -20,30 +20,22 @@ namespace MaxwellCalc.Units
         public static bool TryRegisterInputOutputUnit<T>(this IWorkspace<T> workspace, string inputUnit, Unit baseUnits, string value)
             where T : struct, IFormattable
         {
-            bool oldAllowUnits = workspace.AllowUnits;
-            bool oldAllowVariables = workspace.AllowVariables;
-            bool oldAllowUserFunctions = workspace.AllowUserFunctions;
-            bool oldAllowBuiltInFunctions = workspace.AllowBuiltInFunctions;
-            workspace.AllowUnits = false;
-            workspace.AllowVariables = false;
-            workspace.AllowUserFunctions = false;
-            workspace.AllowBuiltInFunctions = false;
+            var oldState = workspace.Restrict(false, false, true, false, false);
 
             // Parse
             var lexer = new Lexer(value);
             var node = Parser.Parse(lexer, workspace);
             if (node is null)
                 return false;
+            if (!workspace.TryResolve(node, out var result))
+                return false;
 
             // Set the input and output unit
-            workspace.InputUnits[inputUnit] = new(node, baseUnits);
-            workspace.OutputUnits[new(new Unit((inputUnit, 1)), baseUnits)] = node;
+            workspace.InputUnits[inputUnit] = new(result.Scalar, baseUnits);
+            workspace.OutputUnits[new(new Unit((inputUnit, 1)), baseUnits)] = result.Scalar;
 
             // Reset
-            workspace.AllowUnits = oldAllowUnits;
-            workspace.AllowVariables = oldAllowVariables;
-            workspace.AllowUserFunctions = oldAllowUserFunctions;
-            workspace.AllowBuiltInFunctions = oldAllowBuiltInFunctions;
+            workspace.Restore(oldState);
             return true;
         }
 
@@ -72,10 +64,12 @@ namespace MaxwellCalc.Units
             var node = Parser.Parse(lexer, workspace);
             if (node is null)
                 return false;
+            if (!workspace.TryResolve(node, out var result))
+                return false;
 
             // Set the output unit
             var key = new OutputUnitKey(outputUnit, baseUnits.Unit);
-            workspace.OutputUnits[key] = node;
+            workspace.OutputUnits[key] = result.Scalar;
 
             // Reset
             workspace.AllowUnits = oldAllowUnits;

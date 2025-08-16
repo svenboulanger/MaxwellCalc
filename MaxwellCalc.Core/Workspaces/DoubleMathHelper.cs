@@ -125,19 +125,19 @@ namespace MaxwellCalc.Workspaces
         /// The mass of a tau particle.
         /// </summary>
         [CalculatorName("mtau"), CalculatorDescription("The mass of a tau particle.")]
-        public static Quantity<double> TauMass = new(3.1675421e10-27, Unit.UnitKilogram);
+        public static Quantity<double> TauMass = new(3.1675421e-27, Unit.UnitKilogram);
 
         /// <summary>
         /// The mass of a proton.
         /// </summary>
         [CalculatorName("mp"), CalculatorDescription("The mass of a proton.")]
-        public static Quantity<double> ProtonMass = new(1.6726219259552e10-27, Unit.UnitKilogram);
+        public static Quantity<double> ProtonMass = new(1.6726219259552e-27, Unit.UnitKilogram);
 
         /// <summary>
         /// The mass of a neutron.
         /// </summary>
         [CalculatorName("mn"), CalculatorDescription("The mass of a neutron.")]
-        public static Quantity<double> NeutronMass = new(1.6749275005685e10-27, Unit.UnitKilogram);
+        public static Quantity<double> NeutronMass = new(1.6749275005685e-27, Unit.UnitKilogram);
 
         /// <summary>
         /// The g-factor of an electron.

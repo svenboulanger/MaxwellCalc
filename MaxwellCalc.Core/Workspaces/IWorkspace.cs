@@ -60,16 +60,14 @@ public interface IWorkspace
     public IVariableScope Constants { get; }
 
     /// <summary>
-    /// Gets the input units defined in the workspace. The key represents the
-    /// unit that should be mapped to base units.
+    /// Gets the input units.
     /// </summary>
-    public IObservableDictionary<string, Quantity<INode>> InputUnits { get; }
+    public IReadOnlyObservableDictionary<string, Quantity<string>> InputUnits { get; }
 
     /// <summary>
-    /// Gets the output units defined in the workspace. The key represents a set of
-    /// base units and output units.
+    /// Gets the output units.
     /// </summary>
-    public IObservableDictionary<OutputUnitKey, INode> OutputUnits { get; }
+    public IReadOnlyObservableDictionary<OutputUnitKey, string> OutputUnits { get; }
 
     /// <summary>
     /// Gets the user functions defined in the workspace. The key represents the name
@@ -102,6 +100,36 @@ public interface IWorkspace
     public bool TryResolveAndFormat(INode node, string? format, IFormatProvider? formatProvider, out Quantity<string> result);
 
     /// <summary>
+    /// Tries to remove an input unit from the workspace.
+    /// </summary>
+    /// <param name="key">The input unit name.</param>
+    /// <returns>Returns <c>true</c> if the input unit was removed; otherwise, <c>false</c>.</returns>
+    public bool TryRemoveInputUnit(string key);
+
+    /// <summary>
+    /// Tries to assign an input unit to the workspace.
+    /// </summary>
+    /// <param name="key">The name of the input unit.</param>
+    /// <param name="node">The node representing the expression on how to calculate the input unit.</param>
+    /// <returns>Returns <c>true</c> if the input unit was assigned; otherwise, <c>false</c>.</returns>
+    public bool TryAssignInputUnit(string key, INode node);
+
+    /// <summary>
+    /// Tries to remove an output unit from the workspace.
+    /// </summary>
+    /// <param name="key">The output unit pair.</param>
+    /// <returns>Returns <c>true</c> if the output unit was removed; otherwise, <c>false</c>.</returns>
+    public bool TryRemoveOutputUnit(OutputUnitKey key);
+
+    /// <summary>
+    /// Tries to assign an output unit to the workspace.
+    /// </summary>
+    /// <param name="outputUnits">The unit representing the output unit.</param>
+    /// <param name="node">The value of the output unit, which will be resolved to base units. It is allowed to specify this argument using existing input units.</param>
+    /// <returns>Returns <c>true</c> if the output unit was assigned; otherwise, <c>false</c>.</returns>
+    public bool TryAssignOutputUnit(INode outputUnits, INode node);
+
+    /// <summary>
     /// A method that can be called to post a diagnostic message.
     /// </summary>
     /// <param name="args">The event arguments.</param>
@@ -122,6 +150,18 @@ public interface IWorkspace<T> : IWorkspace where T : struct, IFormattable
     /// Gets the current scope.
     /// </summary>
     public IVariableScope<T> Scope { get; }
+
+    /// <summary>
+    /// Gets the input units defined in the workspace. The key represents the
+    /// unit that should be mapped to base units.
+    /// </summary>
+    public new IObservableDictionary<string, Quantity<T>> InputUnits { get; }
+
+    /// <summary>
+    /// Gets the output units defined in the workspace. The key represents a set of
+    /// base units and output units.
+    /// </summary>
+    public new IObservableDictionary<OutputUnitKey, T> OutputUnits { get; }
 
     /// <summary>
     /// Tries to resolve a node to its result.
@@ -147,14 +187,6 @@ public interface IWorkspace<T> : IWorkspace where T : struct, IFormattable
     /// <param name="result">The result.</param>
     /// <returns>Returns <c>true</c> if a naming was found; otherwise, <c>false</c>.</returns>
     public bool TryResolveOutputUnits(Quantity<T> quantity, out Quantity<T> result);
-
-    /// <summary>
-    /// Tries to get a unit from a name.
-    /// </summary>
-    /// <param name="name">The name.</param>
-    /// <param name="quantity">The quantity.</param>
-    /// <returns>Returns <c>true</c> if the unit could be found; otherwise, <c>false</c>.</returns>
-    public bool TryGetUnit(string name, out Quantity<T> quantity);
 
     /// <summary>
     /// A delegate for built-in functions.

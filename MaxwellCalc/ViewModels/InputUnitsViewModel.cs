@@ -3,22 +3,24 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers;
-using MaxwellCalc.Parsers.Nodes;
+using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
-using MaxwellCalc.Units;
-using System.Collections.Generic;
 
 namespace MaxwellCalc.ViewModels
 {
-    public partial class InputUnitsViewModel : FilteredCollectionViewModel<InputUnitViewModel, string, Quantity<INode>>
+    public partial class InputUnitsViewModel : FilteredCollectionViewModel<InputUnitViewModel, string, Quantity<string>>
     {
         [ObservableProperty]
         private string? _inputUnit;
 
         [ObservableProperty]
         private string? _expression;
+
+        [ObservableProperty]
+        private ObservableCollection<string> _diagnostics = [];
 
         /// <summary>
         /// Creates a new <see cref="InputUnitsViewModel"/>.
@@ -53,23 +55,19 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IReadonlyObservableDictionary<string, Quantity<INode>> GetCollection(IWorkspace workspace)
-            => workspace.InputUnits.AsReadOnly();
+        protected override IReadOnlyObservableDictionary<string, Quantity<string>> GetCollection(IWorkspace workspace)
+            => workspace.InputUnits;
 
         /// <inheritdoc />
-        protected override void UpdateModel(InputUnitViewModel model, string key, Quantity<INode> value)
+        protected override void UpdateModel(InputUnitViewModel model, string key, Quantity<string> value)
         {
             model.Name = key;
-            model.Value = new(value.Scalar.Content.ToString(), value.Unit);
+            model.Value = value;
         }
 
         /// <inheritdoc />
         protected override void RemoveItem(string key)
-        {
-            if (Shared.Workspace is null)
-                return;
-            Shared.Workspace.InputUnits.Remove(key);
-        }
+            => Shared.Workspace?.TryRemoveInputUnit(key);
 
         [RelayCommand]
         private void AddInputUnit()
@@ -77,38 +75,44 @@ namespace MaxwellCalc.ViewModels
             if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
                 return;
 
-            bool oldResolveInputUnits = Shared.Workspace.ResolveInputUnits;
-            bool oldResolveOutputUnits = Shared.Workspace.ResolveOutputUnits;
-            bool oldAllowVariables = Shared.Workspace.AllowVariables;
-            Shared.Workspace.AllowVariables = false;
-            Shared.Workspace.ResolveInputUnits = false;
-            Shared.Workspace.ResolveOutputUnits = false;
+            // Deal with diagnostic messages
+            Diagnostics.Clear();
+            void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
+                => Diagnostics.Add(args.Message);
+            Shared.Workspace.DiagnosticMessagePosted += AddDiagnosticMessage;
 
-            // Try to evaluate the expression
-            string expression = Expression.Trim();
-            var lexer = new Lexer(Expression);
-            var baseUnits = Parser.Parse(lexer, Shared.Workspace);
-            if (baseUnits is null)
-                return;
-            if (!Shared.Workspace.TryResolveAndFormat(baseUnits, "g", System.Globalization.CultureInfo.InvariantCulture, out var result))
-                return;
+            var oldState = Shared.Workspace.Restrict(false, false, true, false, false);
+            try
+            {
+                // Try to evaluate the expression
+                string expression = Expression.Trim();
+                var lexer = new Lexer(Expression);
+                var baseUnits = Parser.Parse(lexer, Shared.Workspace);
+                if (baseUnits is null)
+                    return;
+                if (!Shared.Workspace.TryResolveAndFormat(baseUnits, "g", System.Globalization.CultureInfo.InvariantCulture, out var result))
+                    return;
 
-            // Evaluate the name
-            string unit = InputUnit.Trim();
-            if (string.IsNullOrEmpty(unit)) // Should be non-empty
-                return;
-            if (!unit.All(char.IsLetter)) // Require all letters
-                return;
+                // Evaluate the name
+                string unit = InputUnit.Trim();
+                if (string.IsNullOrEmpty(unit)) // Should be non-empty
+                    return;
+                if (!unit.All(char.IsLetter)) // Require all letters
+                    return;
 
-            // Pass them on to the workspace
-            Shared.Workspace.InputUnits[unit] = new(new ScalarNode(result.Scalar.AsMemory()), result.Unit);
-
-            // Reset
-            Shared.Workspace.ResolveInputUnits = oldResolveInputUnits;
-            Shared.Workspace.ResolveOutputUnits = oldResolveOutputUnits;
-            Shared.Workspace.AllowVariables = oldAllowVariables;
-            InputUnit = string.Empty;
-            Expression = string.Empty;
+                // Pass them on to the workspace
+                if (Shared.Workspace.TryAssignInputUnit(unit, baseUnits))
+                {
+                    // Reset
+                    InputUnit = string.Empty;
+                    Expression = string.Empty;
+                }
+            }
+            finally
+            {
+                Shared.Workspace.Restore(oldState);
+                Shared.Workspace.DiagnosticMessagePosted -= AddDiagnosticMessage;
+            }
         }
     }
 }

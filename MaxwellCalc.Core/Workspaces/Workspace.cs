@@ -13,11 +13,12 @@ namespace MaxwellCalc.Workspaces;
 /// <typeparam name="T">The domain type.</typeparam>
 public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
 {
-    private readonly Dictionary<string, Quantity<T>> _inputUnits = [];
     private readonly Dictionary<Unit, Dictionary<Unit, T>> _outputUnits = [];
     private readonly IVariableScope<T> _constantScope, _variableScope;
     private readonly Stack<IVariableScope<T>> _scopes = new();
     private readonly Dictionary<string, IWorkspace<T>.BuiltInFunctionDelegate> _builtInFunctions = [];
+    private readonly IReadOnlyObservableDictionary<string, Quantity<string>> _mappedInputUnits;
+    private readonly IReadOnlyObservableDictionary<OutputUnitKey, string> _mappedOutputUnits;
 
     /// <inheritdoc />
     public bool AllowUnits { get; set; } = true;
@@ -53,10 +54,16 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
     public event EventHandler<DiagnosticMessagePostedEventArgs>? DiagnosticMessagePosted;
 
     /// <inheritdoc />
-    public IObservableDictionary<string, Quantity<INode>> InputUnits { get; } = new ObservableDictionary<string, Quantity<INode>>();
+    public IObservableDictionary<string, Quantity<T>> InputUnits { get; } = new ObservableDictionary<string, Quantity<T>>();
 
     /// <inheritdoc />
-    public IObservableDictionary<OutputUnitKey, INode> OutputUnits { get; } = new ObservableDictionary<OutputUnitKey, INode>();
+    public IObservableDictionary<OutputUnitKey, T> OutputUnits { get; } = new ObservableDictionary<OutputUnitKey, T>();
+
+    /// <inheritdoc />
+    IReadOnlyObservableDictionary<string, Quantity<string>> IWorkspace.InputUnits => _mappedInputUnits;
+
+    /// <inheritdoc />
+    IReadOnlyObservableDictionary<OutputUnitKey, string> IWorkspace.OutputUnits => _mappedOutputUnits;
 
     /// <inheritdoc />
     public IObservableDictionary<UserFunctionKey, UserFunction> UserFunctions { get; } = new ObservableDictionary<UserFunctionKey, UserFunction>();
@@ -76,37 +83,30 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         _scopes.Push(_variableScope);
 
         // Register to our own dictionaries
-        InputUnits.DictionaryChanged += InputUnitsChanged;
+        _mappedInputUnits = new MappedObservableDictionary<string, Quantity<string>, Quantity<T>>(InputUnits, MapInputUnits);
+        _mappedOutputUnits = new MappedObservableDictionary<OutputUnitKey, string, T>(OutputUnits, MapOutputUnits);
         OutputUnits.DictionaryChanged += OutputUnitsChanged;
         BuiltInFunctions.DictionaryChanged += BuiltInFunctionsChanged;
     }
 
-    private void InputUnitsChanged(object sender, DictionaryChangedEventArgs<string, Quantity<INode>> e)
+    private Quantity<string> MapInputUnits(Quantity<T> quantity)
     {
-        var oldAllowUnits = AllowUnits;
-        AllowUnits = false;
-
-        switch (e.Action)
-        {
-            case DictionaryChangeAction.Add:
-            case DictionaryChangeAction.Replace:
-                foreach (var item in e.Items)
-                {
-                    if (TryResolve(item.Value.Scalar, out var result))
-                        _inputUnits[item.Key] = new(result.Scalar, item.Value.Unit);
-                }
-                break;
-
-            case DictionaryChangeAction.Remove:
-                foreach (var item in e.Items)
-                    _inputUnits.Remove(item.Key);
-                break;
-        }
-
-        AllowUnits = oldAllowUnits;
+        if (Resolver.TryFormat(quantity, null, null, out var formatted))
+            return formatted;
+        return default;
     }
 
-    private void OutputUnitsChanged(object sender, DictionaryChangedEventArgs<OutputUnitKey, INode> e)
+    private string MapOutputUnits(T scalar)
+    {
+        if (Resolver.TryFormat(new(scalar, Unit.UnitNone), null, null, out var formatted))
+            return formatted.Scalar;
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// This method keeps our internal dictionary in sync with the definitions of the output units.
+    /// </summary>
+    private void OutputUnitsChanged(object sender, DictionaryChangedEventArgs<OutputUnitKey, T> e)
     {
         var oldAllowUnits = AllowUnits;
         AllowUnits = false;
@@ -117,8 +117,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                 foreach (var item in e.Items)
                 {
                     // Invert the scalar
-                    if (TryResolve(item.Value, out var result) &&
-                        Resolver.TryInvert(result, this, out var inverted))
+                    if (Resolver.TryInvert(new(item.Value, Unit.UnitNone), this, out var inverted))
                     {
                         if (!_outputUnits.TryGetValue(item.Key.BaseUnit, out var dict))
                         {
@@ -134,8 +133,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                 foreach (var item in e.Items)
                 {
                     // Invert the scalar
-                    if (TryResolve(item.Value, out var result) &&
-                        Resolver.TryInvert(result, this, out var inverted))
+                    if (Resolver.TryInvert(new(item.Value, Unit.UnitNone), this, out var inverted))
                     {
                         // Replace the output unit
                         _outputUnits[item.Key.BaseUnit][item.Key.OutputUnit] = inverted.Scalar;
@@ -414,6 +412,57 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
     }
 
     /// <inheritdoc />
-    public bool TryGetUnit(string name, out Quantity<T> quantity)
-        => _inputUnits.TryGetValue(name, out quantity);
+    public bool TryRemoveInputUnit(string key) => InputUnits.Remove(key);
+
+    /// <inheritdoc />
+    public bool TryRemoveOutputUnit(OutputUnitKey key) => OutputUnits.Remove(key);
+
+    /// <inheritdoc />
+    public bool TryAssignInputUnit(string key, INode node)
+    {
+        // Let's just make sure that we resolve input units
+        bool oldResolveInputUnits = ResolveInputUnits;
+        ResolveInputUnits = true;
+
+        // Evaluate the node and assign the result
+        try
+        {
+            if (!TryResolve(node, out var result))
+                return false;
+            InputUnits[key] = result;
+            return true;
+        }
+        finally
+        {
+            ResolveInputUnits = oldResolveInputUnits;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool TryAssignOutputUnit(INode outputUnits, INode node)
+    {
+        bool oldResolveInputUnits = ResolveInputUnits;
+        try
+        {
+            // Resolve the output units
+            ResolveInputUnits = false;
+            if (!TryResolve(outputUnits, out var outputResult))
+                return false;
+
+            // Resolve the same in input units
+            ResolveInputUnits = true;
+            if (!TryResolve(node, out var baseResult) ||
+                !Resolver.TryDivide(baseResult, outputResult, this, out var division))
+                return false;
+
+            // Assign
+            var key = new OutputUnitKey(outputResult.Unit, baseResult.Unit);
+            OutputUnits[key] = division.Scalar;
+            return true;
+        }
+        finally
+        {
+            ResolveInputUnits = oldResolveInputUnits;
+        }
+    }
 }

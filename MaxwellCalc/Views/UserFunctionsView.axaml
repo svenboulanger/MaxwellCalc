@@ -24,7 +24,7 @@
 
 		<material:Card DockPanel.Dock="Bottom"
 					   Margin="5">
-			<Grid ColumnDefinitions="*, *, Auto">
+			<Grid ColumnDefinitions="*, 3*, Auto">
 				<TextBox Text="{Binding Signature}"
 						 Watermark="Signature"
 						 Margin="5"

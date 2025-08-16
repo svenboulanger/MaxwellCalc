@@ -6,6 +6,7 @@ using MaxwellCalc.Parsers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;
 using System;
+using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -19,6 +20,9 @@ namespace MaxwellCalc.ViewModels
 
         [ObservableProperty]
         private string _description = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<string> _diagnostics = [];
 
         /// <summary>
         /// Creates a new <see cref="ConstantsViewModel"/>.
@@ -56,7 +60,7 @@ namespace MaxwellCalc.ViewModels
             => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
         /// <inheritdoc />
-        protected override IReadonlyObservableDictionary<string, Variable<string>> GetCollection(IWorkspace workspace)
+        protected override IReadOnlyObservableDictionary<string, Variable<string>> GetCollection(IWorkspace workspace)
             => workspace.Constants.Local;
 
         protected override void UpdateModel(UserVariableViewModel model, string key, Variable<string> value)
@@ -82,16 +86,30 @@ namespace MaxwellCalc.ViewModels
             if (Shared.Workspace is null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(expression))
                 return;
 
-            // Evaluate the expression
-            var lexer = new Lexer(expression);
-            var node = Parser.Parse(lexer, Shared.Workspace);
-            if (node is null)
-                return;
+            // Deal with diagnostic messages
+            Diagnostics.Clear();
+            void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
+                => Diagnostics.Add(args.Message);
+            Shared.Workspace.DiagnosticMessagePosted += AddDiagnosticMessage;
+            try
+            {
+                // Evaluate the expression
+                var lexer = new Lexer(expression);
+                var node = Parser.Parse(lexer, Shared.Workspace);
+                if (node is null)
+                    return;
 
-            // Shared.Workspace.Constants.Local[name] = node;
-            // Shared.Workspace.Constants.TrySetDescription(name, Description);
-            ConstantName = string.Empty;
-            Expression = string.Empty;
+                if (Shared.Workspace.Constants.TryAssignVariable(name, node, Description))
+                {
+                    ConstantName = string.Empty;
+                    Expression = string.Empty;
+                    Description = string.Empty;
+                }
+            }
+            finally
+            {
+                Shared.Workspace.DiagnosticMessagePosted -= AddDiagnosticMessage;
+            }
         }
     }
 }

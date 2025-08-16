@@ -29,6 +29,18 @@
 
 		<material:Card DockPanel.Dock="Bottom"
 					   Margin="5">
+			<FlyoutBase.AttachedFlyout>
+				<Flyout ShowMode="Transient">
+					<ItemsControl ItemsSource="{Binding Diagnostics}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding}"
+										   Foreground="Red" />
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Flyout>
+			</FlyoutBase.AttachedFlyout>
 			<Grid ColumnDefinitions="250, *, Auto">
 				<TextBox Text="{Binding Unit}"
 						 Watermark="Output units"

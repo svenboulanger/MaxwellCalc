@@ -28,7 +28,20 @@
 		</material:Card>
 		
 		<material:Card DockPanel.Dock="Bottom"
+					   Name="Input"
 					   Margin="5">
+			<FlyoutBase.AttachedFlyout>
+				<Flyout ShowMode="Transient">
+					<ItemsControl ItemsSource="{Binding Diagnostics}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding}"
+										   Foreground="Red" />
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Flyout>
+			</FlyoutBase.AttachedFlyout>
 			<Grid ColumnDefinitions="*, *, Auto">
 				<TextBox Text="{Binding InputUnit}"
 						 Watermark="Input unit (the word)"
