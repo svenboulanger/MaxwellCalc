@@ -1,15 +1,12 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using MaxwellCalc.Domains;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.ViewModels;
-using MaxwellCalc.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
 using System.Numerics;
-using System.Text.Json;
 
 namespace MaxwellCalc
 {
@@ -52,16 +49,6 @@ namespace MaxwellCalc
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        private static IWorkspace BuildDefaultWorkspace()
-        {
-            var workspace = new Workspace<Complex>(new ComplexDomain());
-            workspace.RegisterBuiltInMethods(typeof(ComplexMathHelper));
-            workspace.RegisterConstants(typeof(ComplexMathHelper));
-            UnitHelper.RegisterCommonUnits(workspace);
-            UnitHelper.RegisterCommonElectronicsUnits(workspace);
-            return workspace;
         }
     }
 }

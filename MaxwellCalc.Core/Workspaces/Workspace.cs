@@ -1,13 +1,12 @@
 ﻿using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Parsers.Nodes;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces.Variables;
-using MaxwellCalc.Domains;
-using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces;
 
 /// <summary>
 /// A workspace for a certain domain type.

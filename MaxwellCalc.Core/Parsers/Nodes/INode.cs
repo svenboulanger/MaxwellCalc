@@ -1,9 +1,9 @@
-﻿using MaxwellCalc.Domains;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+﻿using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
 
-namespace MaxwellCalc.Parsers.Nodes
+namespace MaxwellCalc.Core.Parsers.Nodes
 {
     /// <summary>
     /// Represents a node in the abstract syntax tree.

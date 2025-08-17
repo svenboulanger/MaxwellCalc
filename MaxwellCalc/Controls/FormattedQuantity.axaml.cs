@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Units;
 using System.Linq;
 
 namespace MaxwellCalc.Controls

@@ -2,9 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Parsers;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;

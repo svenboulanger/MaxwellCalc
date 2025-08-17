@@ -124,12 +124,6 @@
 
 			<material:Card Margin="10">
 				<Grid ColumnDefinitions="*, *, *">
-					<Button Grid.Column="0"
-							Grid.Row="0"
-							Margin="5"
-							Command="{Binding Shared.ClearWorkspaceCommand}">
-						<TextBlock TextWrapping="Wrap">Reset workspace</TextBlock>
-					</Button>
 					<Button Grid.Column="1"
 							Grid.Row="4"
 							Margin="5"

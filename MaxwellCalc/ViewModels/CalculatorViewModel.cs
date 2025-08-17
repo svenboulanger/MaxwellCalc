@@ -1,9 +1,9 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MaxwellCalc.Parsers;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;

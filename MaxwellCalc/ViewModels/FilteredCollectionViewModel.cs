@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;

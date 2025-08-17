@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces;
 
 /// <summary>
 /// The description for a built-in function.

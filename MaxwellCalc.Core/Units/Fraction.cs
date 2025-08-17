@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MaxwellCalc.Units
+namespace MaxwellCalc.Core.Units
 {
     /// <summary>
     /// A fraction.

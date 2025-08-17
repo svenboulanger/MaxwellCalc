@@ -1,14 +1,13 @@
 ﻿using MaxwellCalc.Core.Attributes;
 using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces.Variables;
-using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces;
 
 /// <summary>
 /// Helper methods for workspaces.

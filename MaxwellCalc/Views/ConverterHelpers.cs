@@ -1,6 +1,6 @@
 ﻿using Avalonia.Data.Converters;
 using Material.Colors;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Units;
 using System.Collections.ObjectModel;
 
 namespace MaxwellCalc.Views

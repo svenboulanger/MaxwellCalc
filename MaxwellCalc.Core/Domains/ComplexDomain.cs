@@ -1,12 +1,12 @@
-﻿using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+﻿using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace MaxwellCalc.Domains
+namespace MaxwellCalc.Core.Domains
 {
     /// <summary>
     /// Describes the complex domain for doubles.
@@ -15,6 +15,9 @@ namespace MaxwellCalc.Domains
     {
         /// <inheritdoc />
         public Quantity<Complex> Default { get; } = new Quantity<Complex>(0.0, Unit.UnitNone);
+
+        /// <inheritdoc />
+        public JsonConverter<Complex> Converter { get; } = new ComplexJsonConverter();
 
         /// <inheritdoc />
         public bool TryScalar(string scalar, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
@@ -464,7 +467,7 @@ namespace MaxwellCalc.Domains
         }
 
         /// <inheritdoc />
-        public void ToJSON(Complex value, Utf8JsonWriter writer, JsonWriterOptions options)
+        public void WriteToJSON(Complex value, Utf8JsonWriter writer, JsonWriterOptions options)
         {
             if (value.Imaginary.Equals(0.0))
             {
@@ -480,7 +483,7 @@ namespace MaxwellCalc.Domains
         }
 
         /// <inheritdoc />
-        public Complex FromJSON(ref Utf8JsonReader reader, JsonReaderOptions options)
+        public Complex ReadFromJSON(ref Utf8JsonReader reader, JsonReaderOptions options)
         {
             switch (reader.TokenType)
             {

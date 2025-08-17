@@ -1,7 +1,5 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Markup.Xaml;
 using MaxwellCalc.ViewModels;
 using System;
 using System.Collections.Specialized;

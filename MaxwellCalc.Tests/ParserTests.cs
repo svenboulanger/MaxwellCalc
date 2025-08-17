@@ -1,8 +1,4 @@
-﻿using MaxwellCalc.Domains;
-using MaxwellCalc.Parsers;
-using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+﻿using MaxwellCalc.Core.Parsers;
 
 namespace MaxwellCalc.Tests
 {

@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Units;
 
 namespace MaxwellCalc.ViewModels
 {

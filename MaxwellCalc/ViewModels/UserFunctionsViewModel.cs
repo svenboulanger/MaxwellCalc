@@ -2,14 +2,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Parsers;
-using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Parsers.Nodes;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 namespace MaxwellCalc.ViewModels
 {

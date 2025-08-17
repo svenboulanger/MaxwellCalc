@@ -1,12 +1,7 @@
-﻿using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Workspaces;
+﻿using MaxwellCalc.Core.Parsers.Nodes;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MaxwellCalc.Parsers
+namespace MaxwellCalc.Core.Parsers
 {
     public static class QuantityParser
     {

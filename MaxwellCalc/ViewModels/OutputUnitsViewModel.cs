@@ -2,9 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Parsers;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.ObjectModel;
 
@@ -30,7 +30,7 @@ namespace MaxwellCalc.ViewModels
             {
                 if (Shared.Workspace is IWorkspace<double> workspace)
                 {
-                    workspace.OutputUnits[new(new(("cm", 1)), Units.Unit.UnitMeter)] = 0.01;
+                    workspace.OutputUnits[new(new(("cm", 1)), Core.Units.Unit.UnitMeter)] = 0.01;
                 }
             }
         }

@@ -1,11 +1,9 @@
 ﻿using MaxwellCalc.Core.Parsers.Nodes;
-using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
 
-namespace MaxwellCalc.Parsers
+namespace MaxwellCalc.Core.Parsers
 {
     /// <summary>
     /// The parser.
@@ -279,7 +277,7 @@ namespace MaxwellCalc.Parsers
                     TokenTypes.GreaterThanOrEqual => BinaryOperatorTypes.GreaterThanOrEqual,
                     TokenTypes.LessThan => BinaryOperatorTypes.LessThan,
                     TokenTypes.LessThanOrEqual => BinaryOperatorTypes.LessThanOrEqual,
-                    _ => throw new System.Exception()
+                    _ => throw new Exception()
                 };
                 lexer.Next();
 
@@ -397,6 +395,9 @@ namespace MaxwellCalc.Parsers
                             // Units are right-associative multiplication
                             var unitStart = lexer.Index;
                             b = ParseExponentiation(lexer, workspace);
+                            if (b is null)
+                                return null;
+
                             while (RecognizeUnit(lexer.Content, workspace))
                             {
                                 var next = ParseExponentiation(lexer, workspace);

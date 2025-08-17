@@ -1,10 +1,10 @@
 ﻿using MaxwellCalc.Core.Attributes;
-using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;
 using MaxwellCalc.Core.Workspaces.SpecialFunctions;
+using MaxwellCalc.Core.Units;
 
-namespace MaxwellCalc.Workspaces
+namespace MaxwellCalc.Core.Workspaces
 {
     /// <summary>
     /// Defines common functions for math involving real numbers.
@@ -770,7 +770,7 @@ namespace MaxwellCalc.Workspaces
         [CalculatorName("Ei"), CalculatorDescription("Calculates the exponential integral Ei(x). The argument is expected to not have units.")]
         public static bool Expi(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
-            if (!SingleNonUnitArgument(args, workspace, "Ei", out result))
+            if (!args.SingleNonUnitArgument(workspace, "Ei", out result))
                 return false;
             result = new Quantity<double>(ExponentialIntegralFunctions.ExpI(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -786,7 +786,7 @@ namespace MaxwellCalc.Workspaces
         [CalculatorName("expEi"), CalculatorDescription("Calculates exp(-x) * Ei(x). This function converges for very large arguments. The argument is expected to not have units.")]
         public static bool ExpiExp(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
         {
-            if (!SingleNonUnitArgument(args, workspace, "expEi", out result))
+            if (!args.SingleNonUnitArgument(workspace, "expEi", out result))
                 return false;
             result = new Quantity<double>(ExponentialIntegralFunctions.ExpExpI(args[0].Scalar), Unit.UnitNone);
             return true;

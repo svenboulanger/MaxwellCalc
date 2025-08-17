@@ -1,4 +1,4 @@
-﻿namespace MaxwellCalc.Workspaces;
+﻿namespace MaxwellCalc.Core.Workspaces;
 
 /// <summary>
 /// A key that can be used to describe user functions.

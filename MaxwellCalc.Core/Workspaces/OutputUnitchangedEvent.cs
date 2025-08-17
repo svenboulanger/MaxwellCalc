@@ -1,7 +1,7 @@
-﻿using MaxwellCalc.Units;
+﻿using MaxwellCalc.Core.Units;
 using System;
 
-namespace MaxwellCalc.Workspaces
+namespace MaxwellCalc.Core.Workspaces
 {
     /// <summary>
     /// Event arguments for when an output unit changes.

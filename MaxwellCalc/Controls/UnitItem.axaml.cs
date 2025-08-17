@@ -4,7 +4,7 @@ using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Units;
 using System;
 
 namespace MaxwellCalc.Controls;

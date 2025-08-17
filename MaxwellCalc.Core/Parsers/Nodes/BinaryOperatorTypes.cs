@@ -1,4 +1,4 @@
-﻿namespace MaxwellCalc.Parsers.Nodes
+﻿namespace MaxwellCalc.Core.Parsers.Nodes
 {
     /// <summary>
     /// Possible binary operator types.

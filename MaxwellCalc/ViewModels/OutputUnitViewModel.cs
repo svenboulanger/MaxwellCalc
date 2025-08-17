@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 
 namespace MaxwellCalc.ViewModels
 {

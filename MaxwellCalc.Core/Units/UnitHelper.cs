@@ -1,9 +1,9 @@
-﻿using MaxwellCalc.Parsers;
-using MaxwellCalc.Workspaces;
+﻿using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Linq;
 
-namespace MaxwellCalc.Units
+namespace MaxwellCalc.Core.Units
 {
     /// <summary>
     /// Helper methods for units.

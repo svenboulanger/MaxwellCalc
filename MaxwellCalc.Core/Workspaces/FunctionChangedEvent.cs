@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace MaxwellCalc.Workspaces
+namespace MaxwellCalc.Core.Workspaces
 {
     /// <summary>
     /// Event arguments used when a function changes.

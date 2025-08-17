@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxwellCalc.Domains;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 
-namespace MaxwellCalc.Parsers.Nodes
+namespace MaxwellCalc.Core.Parsers.Nodes
 {
     /// <summary>
     /// A binary node.

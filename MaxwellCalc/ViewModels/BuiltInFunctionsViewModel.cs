@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.Generic;
 

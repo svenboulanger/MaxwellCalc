@@ -1,8 +1,6 @@
 ﻿using MaxwellCalc.Core.Dictionaries;
-using MaxwellCalc.Core.Workspaces;
-using MaxwellCalc.Parsers.Nodes;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Parsers.Nodes;
+using MaxwellCalc.Core.Units;
 using System;
 using System.Collections.Generic;
 

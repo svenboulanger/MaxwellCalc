@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using MaxwellCalc.Units;
+using MaxwellCalc.Core.Units;
 
 namespace MaxwellCalc.Controls
 {

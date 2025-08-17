@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MaxwellCalc.Parsers
+namespace MaxwellCalc.Core.Parsers
 {
     /// <summary>
     /// A lexer.

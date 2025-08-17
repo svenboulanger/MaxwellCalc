@@ -1,11 +1,7 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
-using MaxwellCalc.Units;
-using System;
-using System.Collections.Generic;
+using MaxwellCalc.Core.Units;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MaxwellCalc.Controls
 {

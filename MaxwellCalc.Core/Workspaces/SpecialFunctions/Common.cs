@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
+﻿namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
 {
     public static class Common
     {

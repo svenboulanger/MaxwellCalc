@@ -1,6 +1,6 @@
-﻿using MaxwellCalc.Units;
+﻿using MaxwellCalc.Core.Units;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces;
 
 /// <summary>
 /// A structure that represents an output unit.

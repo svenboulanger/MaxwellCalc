@@ -1,9 +1,9 @@
-﻿using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+﻿using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
-using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace MaxwellCalc.Domains
+namespace MaxwellCalc.Core.Domains
 {
     /// <summary>
     /// A resolver for quantities with using doubles as scalars.
@@ -12,6 +12,9 @@ namespace MaxwellCalc.Domains
     {
         /// <inheritdoc />
         public Quantity<double> Default { get; } = new Quantity<double>(0.0, Unit.UnitNone);
+
+        /// <inheritdoc />
+        public JsonConverter<double> Converter { get; } = new DoubleJsonConverter();
 
         /// <inheritdoc />
         public bool TryScalar(string scalar, IWorkspace<double>? workspace, out Quantity<double> result)
@@ -433,18 +436,6 @@ namespace MaxwellCalc.Domains
             }
             result = new(left && right ? 1.0 : 0.0, Unit.UnitNone);
             return true;
-        }
-
-        /// <inheritdoc />
-        public void ToJSON(double value, Utf8JsonWriter writer, JsonWriterOptions options)
-            => writer.WriteNumberValue(value);
-
-        /// <inheritdoc />
-        public double FromJSON(ref Utf8JsonReader reader, JsonReaderOptions options)
-        {
-            if (reader.TokenType == JsonTokenType.Number)
-                return reader.GetDouble();
-            throw new JsonException("Expected a double in JSON, but could not read it.");
         }
     }
 }

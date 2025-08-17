@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace MaxwellCalc.Units
+namespace MaxwellCalc.Core.Units
 {
     /// <summary>
     /// A JSON converter for units.

@@ -1,5 +1,4 @@
-﻿using MaxwellCalc.Parsers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace MaxwellCalc.Units
+namespace MaxwellCalc.Core.Units
 {
     /// <summary>
     /// Creates a new <see cref="Unit"/>.
@@ -115,7 +114,7 @@ namespace MaxwellCalc.Units
         {
             int hash = 0;
             foreach (var item in Dimension)
-                hash ^= (item.Key.GetHashCode() * 1021) ^ item.Value.GetHashCode();
+                hash ^= item.Key.GetHashCode() * 1021 ^ item.Value.GetHashCode();
             return hash;
         }
 

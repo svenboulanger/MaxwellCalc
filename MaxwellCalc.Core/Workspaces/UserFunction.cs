@@ -1,7 +1,7 @@
-﻿using MaxwellCalc.Parsers.Nodes;
+﻿using MaxwellCalc.Core.Parsers.Nodes;
 using System.Text.Json.Serialization;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces;
 
 /// <summary>
 /// A user-defined function.

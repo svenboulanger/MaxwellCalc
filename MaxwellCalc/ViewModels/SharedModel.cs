@@ -1,14 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MaxwellCalc.Domains;
-using MaxwellCalc.Units;
-using MaxwellCalc.Workspaces;
+using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -101,21 +100,10 @@ namespace MaxwellCalc.ViewModels
         }
 
         [RelayCommand]
-        public void ClearWorkspace()
-        {
-            if (Workspace is not null)
-            {
-                // Workspace.Variables.Variables.Clear();
-                Workspace.UserFunctions.Clear();
-            }
-        }
-
-        [RelayCommand]
         public void LoadWorkspace()
         {   
             if (Workspace is not null && !string.IsNullOrEmpty(WorkspaceFile))
             {
-                ClearWorkspace();
                 if (!File.Exists(WorkspaceFile))
                     return;
                 var content = File.ReadAllText(WorkspaceFile);

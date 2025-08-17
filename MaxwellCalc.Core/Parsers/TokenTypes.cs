@@ -1,4 +1,4 @@
-﻿namespace MaxwellCalc.Parsers
+﻿namespace MaxwellCalc.Core.Parsers
 {
     /// <summary>
     /// The token types used for the lexer.
