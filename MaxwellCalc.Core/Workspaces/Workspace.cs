@@ -1,4 +1,6 @@
-﻿using MaxwellCalc.Core.Workspaces;
+﻿using MaxwellCalc.Core.Dictionaries;
+using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Core.Workspaces.Variables;
 using MaxwellCalc.Domains;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;

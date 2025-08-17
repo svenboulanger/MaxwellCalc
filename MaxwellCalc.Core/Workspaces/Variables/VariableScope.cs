@@ -1,10 +1,12 @@
-﻿using MaxwellCalc.Core.Workspaces;
+﻿using MaxwellCalc.Core.Dictionaries;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
+using MaxwellCalc.Workspaces;
 using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces.Variables;
 
 /// <summary>
 /// An implementation for a variable scope.

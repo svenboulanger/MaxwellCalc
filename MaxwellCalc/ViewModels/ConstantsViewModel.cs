@@ -1,7 +1,8 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Core.Dictionaries;
+using MaxwellCalc.Core.Workspaces.Variables;
 using MaxwellCalc.Parsers;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;

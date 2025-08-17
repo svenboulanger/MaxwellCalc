@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
-using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Core.Dictionaries;
+using MaxwellCalc.Core.Workspaces.Variables;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 using MaxwellCalc.Workspaces;

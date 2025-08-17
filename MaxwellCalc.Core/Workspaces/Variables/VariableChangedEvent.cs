@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MaxwellCalc.Workspaces
+namespace MaxwellCalc.Core.Workspaces.Variables
 {
     /// <summary>
     /// Event arguments for when a variable changes value.

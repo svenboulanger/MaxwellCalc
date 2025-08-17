@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.Core.Workspaces
+namespace MaxwellCalc.Core.Dictionaries
 {
     /// <summary>
     /// Describes a dictionary that can be registered to when items are added/removed or changed.

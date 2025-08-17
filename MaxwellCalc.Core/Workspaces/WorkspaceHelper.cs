@@ -1,5 +1,7 @@
 ﻿using MaxwellCalc.Core.Attributes;
+using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Core.Workspaces.Variables;
 using MaxwellCalc.Units;
 using System;
 using System.Collections.Generic;

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MaxwellCalc.Core.Workspaces
+namespace MaxwellCalc.Core.Dictionaries
 {
     /// <summary>
     /// An implementation of <see cref="IObservableDictionary{TKey, TValue}"/>.

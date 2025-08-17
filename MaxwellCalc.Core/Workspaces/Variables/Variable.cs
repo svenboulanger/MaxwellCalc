@@ -1,6 +1,6 @@
 ﻿using MaxwellCalc.Units;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces.Variables;
 
 /// <summary>
 /// A variable information.

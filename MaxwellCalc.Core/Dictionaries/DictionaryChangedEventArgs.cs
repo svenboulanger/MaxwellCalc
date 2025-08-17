@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.Core.Workspaces
+namespace MaxwellCalc.Core.Dictionaries
 {
     /// <summary>
     /// Event arguments that are used when a <see cref="IObservableDictionary{TKey, TValue}"/> changed.

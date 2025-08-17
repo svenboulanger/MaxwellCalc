@@ -1,8 +1,8 @@
-﻿using MaxwellCalc.Core.Workspaces;
+﻿using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Parsers.Nodes;
 using MaxwellCalc.Units;
 
-namespace MaxwellCalc.Workspaces;
+namespace MaxwellCalc.Core.Workspaces.Variables;
 
 /// <summary>
 /// Represents a scope of variables.
