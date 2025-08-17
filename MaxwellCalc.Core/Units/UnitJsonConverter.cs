@@ -14,80 +14,136 @@ namespace MaxwellCalc.Core.Units
         /// <inheritdoc />
         public override Unit Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            int depth = reader.CurrentDepth;
-            if (reader.TokenType != JsonTokenType.StartArray ||
-                !reader.Read())
+            switch (reader.TokenType)
             {
-                reader.Skip();
-                return default;
+                case JsonTokenType.StartArray:
+                    {
+                        reader.Read();
+                        var dict = new Dictionary<string, Fraction>();
+                        while (reader.TokenType != JsonTokenType.EndArray)
+                        {
+                            switch (reader.TokenType)
+                            {
+                                case JsonTokenType.String:
+                                    {
+                                        // Single unit case
+                                        string unit = reader.GetString() ?? throw new JsonException("Expected a unit name");
+                                        reader.Read();
+
+                                        // Optional numerator
+                                        Fraction fraction = 1;
+                                        if (reader.TokenType == JsonTokenType.Number)
+                                        {
+                                            int numerator = reader.GetInt32();
+                                            int denominator = 1;
+                                            reader.Read();
+
+                                            // Optional denominator
+                                            if (reader.TokenType == JsonTokenType.Number)
+                                            {
+                                                denominator = reader.GetInt32();
+                                                reader.Read();
+                                            }
+                                            dict[unit] = new(numerator, denominator);
+                                        }
+                                        else
+                                            dict[unit] = 1;
+
+                                        if (reader.TokenType != JsonTokenType.EndArray)
+                                            throw new JsonException("Expected up to 3 elements for a unit dimension");
+                                    }
+                                    break;
+
+                                case JsonTokenType.StartArray:
+                                    {
+                                        reader.Read();
+
+                                        // Read the unit
+                                        string unit = reader.GetString() ?? throw new JsonException("Expected a unit name");
+                                        reader.Read();
+
+                                        // Optional numerator
+                                        Fraction fraction = 1;
+                                        if (reader.TokenType == JsonTokenType.Number)
+                                        {
+                                            int numerator = reader.GetInt32();
+                                            int denominator = 1;
+                                            reader.Read();
+
+                                            // Optional denominator
+                                            if (reader.TokenType == JsonTokenType.Number)
+                                            {
+                                                denominator = reader.GetInt32();
+                                                reader.Read();
+                                            }
+                                            dict[unit] = new(numerator, denominator);
+                                        }
+                                        else
+                                            dict[unit] = 1;
+
+                                        if (reader.TokenType != JsonTokenType.EndArray)
+                                            throw new JsonException("Expected up to 3 elements for a unit dimension");
+                                        reader.Read();
+                                    }
+                                    break;
+
+                                default:
+                                    throw new JsonException("Unrecognized token for a unit");
+                            }
+                        }
+
+                        return new([.. dict.Select(p => (p.Key, p.Value))]);
+                    }
+
+                case JsonTokenType.String:
+                    {
+                        // Simple unit
+                        string unit = reader.GetString() ?? throw new JsonException("Expected a unit");
+                        return new Unit((unit, 1));
+                    }
+
+                default:
+                    throw new JsonException("");
             }
-
-            var dict = new Dictionary<string, Fraction>();
-            while (reader.TokenType != JsonTokenType.EndArray)
-            {
-                if (reader.TokenType != JsonTokenType.StartArray ||
-                    !reader.Read())
-                {
-                    reader.Skip();
-                    return default;
-                }
-
-                // Read the dimension
-                if (reader.TokenType != JsonTokenType.String)
-                {
-                    reader.Skip();
-                    return default;
-                }
-                var dimension = reader.GetString();
-                if (!reader.Read())
-                    return default;
-
-                // Numerator
-                int numerator = 1;
-                if (reader.TokenType == JsonTokenType.Number)
-                {
-                    numerator = reader.GetInt32();
-                    if (!reader.Read())
-                        return default;
-                }
-
-                // Denominator
-                int denominator = 1;
-                if (reader.TokenType == JsonTokenType.Number)
-                {
-                    denominator = reader.GetInt32();
-                    if (!reader.Read())
-                        return default;
-                }
-
-                if (dimension is not null)
-                    dict[dimension] = new(numerator, denominator);
-
-                // Skip the rest of the array
-                while (reader.TokenType != JsonTokenType.EndArray)
-                {
-                    if (!reader.Read())
-                        return default;
-                }
-                reader.Read();
-            }
-
-            // Finish
-            while (reader.TokenType != JsonTokenType.EndArray && reader.CurrentDepth > depth)
-                reader.Read();
-            return new(dict.Select(p => (p.Key, p.Value)).ToArray());
         }
 
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, Unit value, JsonSerializerOptions options)
         {
-            writer.WriteStartArray();
-            foreach (var pair in value.Dimension)
+            // Shorthand notation for a simple unit
+            if (value.Dimension.Count == 1)
             {
+                var pair = value.Dimension.First();
+                if (pair.Value.Numerator == 1 && pair.Value.Denominator == 1)
+                {
+                    // Simple unit name
+                    writer.WriteStringValue(pair.Key);
+                    return;
+                }
+
+                // Simple array instead of nested
                 writer.WriteStartArray();
                 writer.WriteStringValue(pair.Key);
                 writer.WriteNumberValue(pair.Value.Numerator);
-                writer.WriteNumberValue(pair.Value.Denominator);
+                if (pair.Value.Denominator != 1)
+                    writer.WriteNumberValue(pair.Value.Denominator);
+                writer.WriteEndArray();
+                return;
+            }
+
+            // Combinations of multiple units
+            writer.WriteStartArray();
+            foreach (var pair in value.Dimension)
+            {
+                // Always write an array to distinguish with the 1-dimensional case
+                writer.WriteStartArray();
+                writer.WriteStringValue(pair.Key);
+                if (pair.Value.Numerator != 1 || pair.Value.Denominator != 1)
+                {
+                    writer.WriteNumberValue(pair.Value.Numerator);
+                    if (pair.Value.Denominator != 1)
+                        writer.WriteNumberValue(pair.Value.Denominator);
+                }
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();

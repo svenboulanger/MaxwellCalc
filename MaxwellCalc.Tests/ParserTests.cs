@@ -1,4 +1,6 @@
-﻿using MaxwellCalc.Core.Parsers;
+﻿using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Workspaces;
 
 namespace MaxwellCalc.Tests
 {
@@ -9,7 +11,6 @@ namespace MaxwellCalc.Tests
         public void When_Expression_Expect_Reference(string expression)
         {
             var dws = new Workspace<double>(new DoubleDomain());
-
 
             var lexer = new Lexer(expression);
             var node = Parser.Parse(lexer, dws);
