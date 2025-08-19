@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using MaxwellCalc.ViewModels;
 
 namespace MaxwellCalc
 {
@@ -8,6 +9,12 @@ namespace MaxwellCalc
         {
             InitializeComponent();
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        }
+
+        public void OnClosing(object? sender, WindowClosingEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel model)
+                model.Close();
         }
     }
 }

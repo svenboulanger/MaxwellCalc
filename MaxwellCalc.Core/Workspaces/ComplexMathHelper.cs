@@ -10,6 +10,7 @@ namespace MaxwellCalc.Core.Workspaces
     /// <summary>
     /// Methods for complex math.
     /// </summary>
+    [CalculatorHelper(typeof(IWorkspace<Complex>))]
     public static class ComplexMathHelper
     {
         private static readonly Quantity<Complex> _invalid = new(new Complex(double.NaN, double.NaN), Unit.UnitNone);

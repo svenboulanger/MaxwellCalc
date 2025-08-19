@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Core.Workspaces;
+using System.Text.Json.Serialization;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -23,6 +24,7 @@ namespace MaxwellCalc.ViewModels
         /// <summary>
         /// Gets the format string that is specified by the workspace.
         /// </summary>
+        [JsonIgnore]
         public string OutputFormat
         {
             get
@@ -43,7 +45,6 @@ namespace MaxwellCalc.ViewModels
         /// </summary>
         public WorkspaceViewModel()
         {
-            Name = "Hello world";
         }
     }
 }

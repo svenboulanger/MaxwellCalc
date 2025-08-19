@@ -22,6 +22,9 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
     private readonly IReadOnlyObservableDictionary<OutputUnitKey, string> _mappedOutputUnits;
 
     /// <inheritdoc />
+    public Type ScalarType => typeof(T);
+
+    /// <inheritdoc />
     public bool AllowUnits { get; set; } = true;
 
     /// <inheritdoc />

@@ -40,18 +40,8 @@ namespace MaxwellCalc
 
             // Workspaces
             var jsonSerializerOptions = new JsonSerializerOptions() { WriteIndented = true };
-            jsonSerializerOptions.Converters.Add(new WorkspaceJsonConverter<double>(() =>
-            {
-                var ws = new Workspace<double>(new DoubleDomain());
-                ws.RegisterBuiltInMethods(typeof(DoubleMathHelper));
-                return ws;
-            }));
-            jsonSerializerOptions.Converters.Add(new WorkspaceJsonConverter<Complex>(() =>
-            {
-                var ws = new Workspace<Complex>(new ComplexDomain());
-                ws.RegisterBuiltInMethods(typeof(ComplexMathHelper));
-                return ws;
-            }));
+            jsonSerializerOptions.Converters.Add(new WorkspaceJsonConverter()); // This will handle IWorkspace conversion
+            jsonSerializerOptions.Converters.Add(new WorkspaceJsonConverterFactory()); // This will handle IWorkspace<T> conversion.
             services.AddSingleton(jsonSerializerOptions);
 
             var serviceProvider = services.BuildServiceProvider();

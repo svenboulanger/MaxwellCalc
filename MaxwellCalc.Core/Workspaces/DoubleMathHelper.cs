@@ -9,6 +9,7 @@ namespace MaxwellCalc.Core.Workspaces
     /// <summary>
     /// Defines common functions for math involving real numbers.
     /// </summary>
+    [CalculatorHelper(typeof(IWorkspace<double>))]
     public static class DoubleMathHelper
     {
         private static readonly Quantity<double> _invalid = new(double.NaN, Unit.UnitNone);

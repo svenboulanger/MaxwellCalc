@@ -68,12 +68,12 @@ namespace MaxwellCalc.ViewModels
 
         /// <inheritdoc />
         protected override void RemoveItem(string key)
-            => Shared.Workspace.Key?.TryRemoveInputUnit(key);
+            => Shared.Workspace?.Key?.TryRemoveInputUnit(key);
 
         [RelayCommand]
         private void AddInputUnit()
         {
-            if (Shared.Workspace.Key is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
+            if (Shared.Workspace?.Key is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
                 return;
 
             // Deal with diagnostic messages

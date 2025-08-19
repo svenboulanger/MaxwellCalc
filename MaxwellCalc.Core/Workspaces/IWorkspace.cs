@@ -19,6 +19,12 @@ public interface IWorkspace
     public event EventHandler<DiagnosticMessagePostedEventArgs>? DiagnosticMessagePosted;
 
     /// <summary>
+    /// Gets the scalar type for the workspace. The workspace should also implement the <see cref="IWorkspace{T}"/> interface
+    /// with this type being the scalar type.
+    /// </summary>
+    public Type ScalarType { get; }
+
+    /// <summary>
     /// Gets or sets whether the workspace allows units to be used in expressions.
     /// </summary>
     public bool AllowUnits { get; set; }

@@ -113,8 +113,11 @@ public readonly struct Unit(params (string, Fraction)[] dimension)
     public override int GetHashCode()
     {
         int hash = 0;
-        foreach (var item in Dimension)
-            hash ^= item.Key.GetHashCode() * 1021 ^ item.Value.GetHashCode();
+        if (Dimension is not null)
+        {
+            foreach (var item in Dimension)
+                hash ^= item.Key.GetHashCode() * 1021 ^ item.Value.GetHashCode();
+        }
         return hash;
     }
 
