@@ -1,6 +1,10 @@
-﻿using MaxwellCalc.Core.Units;
+﻿using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Parsers.Nodes;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces.Variables;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -55,6 +59,10 @@ namespace MaxwellCalc.Core.Workspaces
 
                     case "variables":
                         ReadVariables((IVariableScope<T>)workspace.Variables, ref reader, subOptions);
+                        break;
+
+                    case "user_functions":
+                        ReadUserFunctions(workspace, ref reader, subOptions);
                         break;
 
                     default:
@@ -158,6 +166,77 @@ namespace MaxwellCalc.Core.Workspaces
             }
         }
 
+        private void ReadUserFunctions(IWorkspace workspace, ref Utf8JsonReader reader, JsonSerializerOptions options)
+        {
+            if (reader.TokenType != JsonTokenType.StartArray)
+                throw new JsonException("Expected an array for the user functions");
+            reader.Read();
+
+            while (reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (reader.TokenType != JsonTokenType.StartObject)
+                    throw new JsonException("Expected an object for a user function");
+                reader.Read();
+
+                string? name = null;
+                string[]? parameters = null;
+                INode?[]? body = null;
+                while (reader.TokenType != JsonTokenType.EndObject)
+                {
+                    // Property name
+                    if (reader.TokenType != JsonTokenType.PropertyName)
+                        throw new JsonException("Expected a property name");
+                    string propertyName = reader.GetString() ?? throw new JsonException("Expected a property name");
+                    reader.Read();
+
+                    // Value
+                    switch (propertyName)
+                    {
+                        case "n": // Name
+                            name = reader.GetString();
+                            break;
+
+                        case "arg": // Arguments
+                            parameters = JsonSerializer.Deserialize<string[]>(ref reader, options);
+                            break;
+
+                        case "b": // Body
+                            switch (reader.TokenType)
+                            {
+                                case JsonTokenType.StartArray:
+                                    body = JsonSerializer.Deserialize<List<string>>(ref reader, options)?
+                                        .Select(line =>
+                                        {
+                                            var lexer = new Lexer(line);
+                                            return Parser.Parse(lexer, workspace);
+                                        })?
+                                        .ToArray();
+                                    break;
+
+                                case JsonTokenType.String:
+                                    {
+                                        var lexer = new Lexer(reader.GetString() ?? string.Empty);
+                                        body = [Parser.Parse(lexer, workspace)];
+                                    }
+                                    break;
+
+                                default:
+                                    throw new JsonException("Expected a string or a list of strings for a user function body");
+                            }
+                            break;
+
+                        default:
+                            throw new JsonException($"Could not recognize the property '{propertyName}' for a user function");
+                    }
+                    reader.Read();
+                }
+                if (name is not null && parameters is not null && body is not null &&
+                    body.Length > 0 && body.All(b => b is not null))
+                    workspace.UserFunctions[new(name, parameters.Length)] = new(parameters, [.. body.Cast<INode>()]);
+                reader.Read();
+            }
+        }
+
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, IWorkspace<T> value, JsonSerializerOptions options)
         {
@@ -219,6 +298,37 @@ namespace MaxwellCalc.Core.Workspaces
                 JsonSerializer.Serialize(writer, pair.Value, subOptions);
             }
             writer.WriteEndObject();
+
+            // Write user-defined functions
+            writer.WriteStartArray("user_functions");
+            foreach (var pair in value.UserFunctions)
+            {
+                if (pair.Value.Body.Length == 0)
+                    continue;
+                writer.WriteStartObject();
+
+                // Name
+                writer.WriteString("n", pair.Key.Name);
+
+                // Arguments
+                writer.WriteStartArray("arg");
+                foreach (var p in pair.Value.Parameters)
+                    writer.WriteStringValue(p);
+                writer.WriteEndArray();
+
+                // Body
+                if (pair.Value.Body.Length > 1)
+                {
+                    writer.WriteStartArray("b");
+                    foreach (var line in pair.Value.Body)
+                        writer.WriteStringValue(line.Content.ToString());
+                    writer.WriteEndArray();
+                }
+                else
+                    writer.WriteString("b", pair.Value.Body[0].Content.ToString());
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
 
             writer.WriteEndObject();
         }

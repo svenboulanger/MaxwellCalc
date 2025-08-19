@@ -1,4 +1,6 @@
 ﻿using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Parsers.Nodes;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Core.Workspaces.Variables;
@@ -42,6 +44,16 @@ namespace MaxwellCalc.Tests
             ((IVariableScope<double>)workspace.Variables).Local["a"] = new(new(2.0, Unit.UnitMeter), null);
             ((IVariableScope<double>)workspace.Variables).Local["b"] = new(new(10.5, Unit.UnitNone), null);
 
+            // Add a few user functions
+            var lexer = new Lexer("a * 2");
+            var body = new[] { Parser.Parse(lexer, workspace) };
+            workspace.UserFunctions[new("uf", 1)] = new(["a"], [.. body.Cast<INode>()]);
+            lexer = new Lexer("z = floor(x / 10) + floor(y / 10)");
+            var node1 = Parser.Parse(lexer, workspace) ?? throw new ArgumentNullException();
+            lexer = new Lexer("z * 10");
+            body = [node1, Parser.Parse(lexer, workspace)];
+            workspace.UserFunctions[new("other", 2)] = new(["x", "y"], [.. body.Cast<INode>()]);
+
             // Serialize and deserialize
             string json = JsonSerializer.Serialize<IWorkspace<double>>(workspace, _options);
             var newWorkspace = JsonSerializer.Deserialize<IWorkspace<double>>(json, _options) ?? throw new ArgumentNullException();
@@ -50,34 +62,33 @@ namespace MaxwellCalc.Tests
             Assert.Equal(workspace.InputUnits.Count, newWorkspace.InputUnits.Count);
             foreach (var pair in workspace.InputUnits)
             {
-                if (!newWorkspace.InputUnits.TryGetValue(pair.Key, out var reference))
-                    throw new ArgumentException();
-                if (!reference.Equals(pair.Value))
-                    throw new ArgumentException();
+                Assert.True(newWorkspace.InputUnits.TryGetValue(pair.Key, out var actual));
+                Assert.Equal(pair.Value, actual);
             }
             Assert.Equal(workspace.OutputUnits.Count, newWorkspace.OutputUnits.Count);
             foreach (var pair in workspace.OutputUnits)
             {
-                if (!newWorkspace.OutputUnits.TryGetValue(pair.Key, out var reference))
-                    throw new ArgumentException();
-                if (!reference.Equals(pair.Value))
-                    throw new ArgumentException();
+                Assert.True(newWorkspace.OutputUnits.TryGetValue(pair.Key, out var actual));
+                Assert.Equal(pair.Value, actual);
             }
             Assert.Equal(workspace.Constants.Local.Count, newWorkspace.Constants.Local.Count);
             foreach (var pair in ((IVariableScope<double>)workspace.Constants).Local)
             {
-                if (!((IVariableScope<double>)newWorkspace.Constants).Local.TryGetValue(pair.Key, out var reference))
-                    throw new ArgumentException();
-                if (!reference.Equals(pair.Value))
-                    throw new ArgumentException();
+                Assert.True(((IVariableScope<double>)newWorkspace.Constants).Local.TryGetValue(pair.Key, out var actual));
+                Assert.Equal(pair.Value, actual);
             }
             Assert.Equal(workspace.Variables.Local.Count, newWorkspace.Variables.Local.Count);
             foreach (var pair in ((IVariableScope<double>)workspace.Variables).Local)
             {
-                if (!((IVariableScope<double>)newWorkspace.Variables).Local.TryGetValue(pair.Key, out var reference))
-                    throw new ArgumentException();
-                if (!reference.Equals(pair.Value))
-                    throw new ArgumentException();
+                Assert.True(((IVariableScope<double>)newWorkspace.Variables).Local.TryGetValue(pair.Key, out var actual));
+                Assert.Equal(pair.Value, actual);
+            }
+            Assert.Equal(workspace.UserFunctions.Count, newWorkspace.UserFunctions.Count);
+            foreach (var pair in workspace.UserFunctions)
+            {
+                Assert.True(newWorkspace.UserFunctions.TryGetValue(pair.Key, out var actual));
+                Assert.Equal(actual.Parameters, pair.Value.Parameters);
+                Assert.Equal(actual.Body.Select(b => b.Content.ToString()), pair.Value.Body.Select(b => b.Content.ToString()));
             }
         }
     }
