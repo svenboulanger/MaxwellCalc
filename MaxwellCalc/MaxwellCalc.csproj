@@ -44,6 +44,9 @@
     <Compile Update="Views\UserVariablesView.axaml.cs">
       <DependentUpon>UserVariablesView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\WorkspaceView.axaml.cs">
+      <DependentUpon>WorkspaceView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 

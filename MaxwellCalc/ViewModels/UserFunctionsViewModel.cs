@@ -66,20 +66,20 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override void RemoveItem(UserFunctionKey key)
         {
-            if (Shared.Workspace is null)
+            if (Shared.Workspace.Key is null)
                 return;
-            Shared.Workspace.UserFunctions.Remove(key);
+            Shared.Workspace.Key.UserFunctions.Remove(key);
         }
 
         [RelayCommand]
         private void AddUserFunction()
         {
-            if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Signature) || string.IsNullOrWhiteSpace(Expression))
+            if (Shared.Workspace.Key is null || string.IsNullOrWhiteSpace(Signature) || string.IsNullOrWhiteSpace(Expression))
                 return;
 
             // The name
             var lexer = new Lexer(Signature);
-            var node = Parser.Parse(lexer, Shared.Workspace);
+            var node = Parser.Parse(lexer, Shared.Workspace.Key);
             if (node is not FunctionNode fn)
                 return;
             var args = new string[fn.Arguments.Count];
@@ -96,13 +96,13 @@ namespace MaxwellCalc.ViewModels
             foreach (var line in lines)
             {
                 lexer = new Lexer(line);
-                node = Parser.Parse(lexer, Shared.Workspace);
+                node = Parser.Parse(lexer, Shared.Workspace.Key);
                 if (node is null)
                     return;
                 nodes.Add(node);
             }
 
-            Shared.Workspace.UserFunctions[new(fn.Name, args.Length)] = new(args, nodes.ToArray());
+            Shared.Workspace.Key.UserFunctions[new(fn.Name, args.Length)] = new(args, nodes.ToArray());
             Signature = string.Empty;
             Expression = string.Empty;
         }

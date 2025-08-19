@@ -72,7 +72,7 @@
 						<MenuItem Header="Remove selected items" Command="{Binding RemoveSelectedItemsCommand}" />
 						<MenuItem Header="Remove all items" Command="{Binding RemoveAllItemsCommand}" />
 						<Separator />
-						<MenuItem Header="Add common constants" Command="{Binding Shared.AddCommonConstantsCommand}" />
+						<MenuItem Header="Add common constants" Command="{Binding AddCommonConstantsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"

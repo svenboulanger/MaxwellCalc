@@ -74,9 +74,9 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override void RemoveItem(string key)
         {
-            if (Shared.Workspace is null)
+            if (Shared.Workspace.Key is null)
                 return;
-            Shared.Workspace.Constants.TryRemoveVariable(key);
+            Shared.Workspace.Key.Constants.TryRemoveVariable(key);
         }
 
         [RelayCommand]
@@ -84,23 +84,23 @@ namespace MaxwellCalc.ViewModels
         {
             string name = ConstantName.Trim();
             string expression = Expression.Trim();
-            if (Shared.Workspace is null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(expression))
+            if (Shared.Workspace.Key is null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(expression))
                 return;
 
             // Deal with diagnostic messages
             Diagnostics.Clear();
             void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
                 => Diagnostics.Add(args.Message);
-            Shared.Workspace.DiagnosticMessagePosted += AddDiagnosticMessage;
+            Shared.Workspace.Key.DiagnosticMessagePosted += AddDiagnosticMessage;
             try
             {
                 // Evaluate the expression
                 var lexer = new Lexer(expression);
-                var node = Parser.Parse(lexer, Shared.Workspace);
+                var node = Parser.Parse(lexer, Shared.Workspace.Key);
                 if (node is null)
                     return;
 
-                if (Shared.Workspace.Constants.TryAssignVariable(name, node, Description))
+                if (Shared.Workspace.Key.Constants.TryAssignVariable(name, node, Description))
                 {
                     ConstantName = string.Empty;
                     Expression = string.Empty;
@@ -109,7 +109,25 @@ namespace MaxwellCalc.ViewModels
             }
             finally
             {
-                Shared.Workspace.DiagnosticMessagePosted -= AddDiagnosticMessage;
+                Shared.Workspace.Key.DiagnosticMessagePosted -= AddDiagnosticMessage;
+            }
+        }
+
+        [RelayCommand]
+        private void AddCommonConstants()
+        {
+            if (Shared.Workspace.Key is null)
+                return;
+
+            switch (Shared.Workspace.DomainType)
+            {
+                case DomainTypes.Double:
+                    Shared.Workspace.Key.RegisterConstants(typeof(DoubleMathHelper));
+                    break;
+
+                case DomainTypes.Complex:
+                    Shared.Workspace.Key.RegisterConstants(typeof(ComplexMathHelper));
+                    break;
             }
         }
     }

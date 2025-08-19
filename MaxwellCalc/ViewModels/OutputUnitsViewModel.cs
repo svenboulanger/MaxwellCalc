@@ -7,6 +7,7 @@ using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.ObjectModel;
+using System.Numerics;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -25,10 +26,11 @@ namespace MaxwellCalc.ViewModels
         /// Creates a new <see cref="OutputUnitsViewModel"/>.
         /// </summary>
         public OutputUnitsViewModel()
+            : base()
         {
             if (Design.IsDesignMode)
             {
-                if (Shared.Workspace is IWorkspace<double> workspace)
+                if (Shared.Workspace.Key is IWorkspace<double> workspace)
                 {
                     workspace.OutputUnits[new(new(("cm", 1)), Core.Units.Unit.UnitMeter)] = 0.01;
                 }
@@ -79,39 +81,39 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override void RemoveItem(OutputUnitKey key)
         {
-            if (Shared.Workspace is null)
+            if (Shared.Workspace.Key is null)
                 return;
-            Shared.Workspace.TryRemoveOutputUnit(key);
+            Shared.Workspace.Key.TryRemoveOutputUnit(key);
         }
 
         [RelayCommand]
         private void AddOutputUnit()
         {
-            if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Unit) || string.IsNullOrWhiteSpace(Expression))
+            if (Shared.Workspace.Key is null || string.IsNullOrWhiteSpace(Unit) || string.IsNullOrWhiteSpace(Expression))
                 return;
 
             // Deal with diagnostic messages
             Diagnostics.Clear();
             void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
                 => Diagnostics.Add(args.Message);
-            Shared.Workspace.DiagnosticMessagePosted += AddDiagnosticMessage;
+            Shared.Workspace.Key.DiagnosticMessagePosted += AddDiagnosticMessage;
 
-            var oldState = Shared.Workspace.Restrict(false, false, true, false, false);
+            var oldState = Shared.Workspace.Key.Restrict(false, false, true, false, false);
             try
             {
                 // Try to evaluate the output unit
                 var lexer = new Lexer(Unit);
-                var outputUnitsNode = Parser.Parse(lexer, Shared.Workspace);
+                var outputUnitsNode = Parser.Parse(lexer, Shared.Workspace.Key);
                 if (outputUnitsNode is null)
                     return;
 
                 // Try to evaluate the expression to get to the input units
                 lexer = new Lexer(Expression);
-                var baseUnitsNode = Parser.Parse(lexer, Shared.Workspace);
+                var baseUnitsNode = Parser.Parse(lexer, Shared.Workspace.Key);
                 if (baseUnitsNode is null)
                     return;
 
-                if (Shared.Workspace.TryAssignOutputUnit(outputUnitsNode, baseUnitsNode))
+                if (Shared.Workspace.Key.TryAssignOutputUnit(outputUnitsNode, baseUnitsNode))
                 {
                     // Reset
                     Unit = string.Empty;
@@ -120,8 +122,43 @@ namespace MaxwellCalc.ViewModels
             }
             finally
             {
-                Shared.Workspace.Restore(oldState);
-                Shared.Workspace.DiagnosticMessagePosted -= AddDiagnosticMessage;
+                Shared.Workspace.Key.Restore(oldState);
+                Shared.Workspace.Key.DiagnosticMessagePosted -= AddDiagnosticMessage;
+            }
+        }
+
+
+        [RelayCommand]
+        private void AddCommonUnits()
+        {
+            if (Shared.Workspace.Key is null)
+                return;
+            switch (Shared.Workspace.Key)
+            {
+                case IWorkspace<double> dblWorkspace:
+                    dblWorkspace.RegisterCommonUnits();
+                    break;
+
+                case IWorkspace<Complex> cplxWorkspace:
+                    cplxWorkspace.RegisterCommonUnits();
+                    break;
+            }
+        }
+
+        [RelayCommand]
+        private void AddCommonElectronicsUnits()
+        {
+            if (Shared.Workspace.Key is null)
+                return;
+            switch (Shared.Workspace.Key)
+            {
+                case IWorkspace<double> dblWorkspace:
+                    UnitHelper.RegisterCommonElectronicsUnits(dblWorkspace);
+                    break;
+
+                case IWorkspace<Complex> cplxWorkspace:
+                    UnitHelper.RegisterCommonElectronicsUnits(cplxWorkspace);
+                    break;
             }
         }
     }

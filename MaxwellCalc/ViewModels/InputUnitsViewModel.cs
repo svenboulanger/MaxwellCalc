@@ -8,6 +8,7 @@ using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Numerics;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -67,30 +68,30 @@ namespace MaxwellCalc.ViewModels
 
         /// <inheritdoc />
         protected override void RemoveItem(string key)
-            => Shared.Workspace?.TryRemoveInputUnit(key);
+            => Shared.Workspace.Key?.TryRemoveInputUnit(key);
 
         [RelayCommand]
         private void AddInputUnit()
         {
-            if (Shared.Workspace is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
+            if (Shared.Workspace.Key is null || string.IsNullOrWhiteSpace(Expression) || string.IsNullOrWhiteSpace(InputUnit))
                 return;
 
             // Deal with diagnostic messages
             Diagnostics.Clear();
             void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
                 => Diagnostics.Add(args.Message);
-            Shared.Workspace.DiagnosticMessagePosted += AddDiagnosticMessage;
+            Shared.Workspace.Key.DiagnosticMessagePosted += AddDiagnosticMessage;
 
-            var oldState = Shared.Workspace.Restrict(false, false, true, false, false);
+            var oldState = Shared.Workspace.Key.Restrict(false, false, true, false, false);
             try
             {
                 // Try to evaluate the expression
                 string expression = Expression.Trim();
                 var lexer = new Lexer(Expression);
-                var baseUnits = Parser.Parse(lexer, Shared.Workspace);
+                var baseUnits = Parser.Parse(lexer, Shared.Workspace.Key);
                 if (baseUnits is null)
                     return;
-                if (!Shared.Workspace.TryResolveAndFormat(baseUnits, "g", System.Globalization.CultureInfo.InvariantCulture, out var result))
+                if (!Shared.Workspace.Key.TryResolveAndFormat(baseUnits, "g", System.Globalization.CultureInfo.InvariantCulture, out var result))
                     return;
 
                 // Evaluate the name
@@ -101,7 +102,7 @@ namespace MaxwellCalc.ViewModels
                     return;
 
                 // Pass them on to the workspace
-                if (Shared.Workspace.TryAssignInputUnit(unit, baseUnits))
+                if (Shared.Workspace.Key.TryAssignInputUnit(unit, baseUnits))
                 {
                     // Reset
                     InputUnit = string.Empty;
@@ -110,8 +111,42 @@ namespace MaxwellCalc.ViewModels
             }
             finally
             {
-                Shared.Workspace.Restore(oldState);
-                Shared.Workspace.DiagnosticMessagePosted -= AddDiagnosticMessage;
+                Shared.Workspace.Key.Restore(oldState);
+                Shared.Workspace.Key.DiagnosticMessagePosted -= AddDiagnosticMessage;
+            }
+        }
+
+        [RelayCommand]
+        private void AddCommonUnits()
+        {
+            if (Shared.Workspace.Key is null)
+                return;
+            switch (Shared.Workspace.Key)
+            {
+                case IWorkspace<double> dblWorkspace:
+                    dblWorkspace.RegisterCommonUnits();
+                    break;
+
+                case IWorkspace<Complex> cplxWorkspace:
+                    cplxWorkspace.RegisterCommonUnits();
+                    break;
+            }
+        }
+
+        [RelayCommand]
+        private void AddCommonElectronicsUnits()
+        {
+            if (Shared.Workspace.Key is null)
+                return;
+            switch (Shared.Workspace.Key)
+            {
+                case IWorkspace<double> dblWorkspace:
+                    UnitHelper.RegisterCommonElectronicsUnits(dblWorkspace);
+                    break;
+
+                case IWorkspace<Complex> cplxWorkspace:
+                    UnitHelper.RegisterCommonElectronicsUnits(cplxWorkspace);
+                    break;
             }
         }
     }

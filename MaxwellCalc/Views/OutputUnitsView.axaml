@@ -68,8 +68,8 @@
 						<MenuItem Header="Remove selected units" Command="{Binding RemoveSelectedItemsCommand}" />
 						<MenuItem Header="Remove all units" Command="{Binding RemoveAllItemsCommand}" />
 						<Separator />
-						<MenuItem Header="Add common input and output units" Command="{Binding Shared.AddCommonUnitsCommand}" />
-						<MenuItem Header="Add electrical input and output units" Command="{Binding Shared.AddElectricalUnitsCommand}" />
+						<MenuItem Header="Add common input and output units" Command="{Binding AddCommonUnitsCommand}" />
+						<MenuItem Header="Add electrical input and output units" Command="{Binding AddCommonElectronicsUnitsCommand}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"

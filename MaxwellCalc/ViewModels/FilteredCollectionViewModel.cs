@@ -47,7 +47,7 @@ namespace MaxwellCalc.ViewModels
             Shared = new();
             Shared.PropertyChanged += SharedPropertyChanged;
 
-            _lastWorkspace = Shared.Workspace;
+            _lastWorkspace = Shared.Workspace.Key;
             if (_lastWorkspace is not null)
             {
                 _dictionary = GetCollection(_lastWorkspace);
@@ -65,7 +65,7 @@ namespace MaxwellCalc.ViewModels
             Shared = sp.GetRequiredService<SharedModel>();
             Shared.PropertyChanged += SharedPropertyChanged;
 
-            _lastWorkspace = Shared.Workspace;
+            _lastWorkspace = Shared.Workspace.Key;
             if (_lastWorkspace is not null)
             {
                 _dictionary = GetCollection(_lastWorkspace);
@@ -80,7 +80,7 @@ namespace MaxwellCalc.ViewModels
             {
                 if (_dictionary is not null)
                     _dictionary.DictionaryChanged -= DictionaryChanged;
-                _lastWorkspace = Shared.Workspace;
+                _lastWorkspace = Shared.Workspace.Key;
                 if (_lastWorkspace is not null)
                 {
                     _dictionary = GetCollection(_lastWorkspace);
@@ -141,9 +141,9 @@ namespace MaxwellCalc.ViewModels
         private void BuildModels()
         {
             Items.Clear();
-            if (Shared.Workspace is null)
+            if (Shared.Workspace.Key is null)
                 return;
-            var dictionary = GetCollection(Shared.Workspace);
+            var dictionary = GetCollection(Shared.Workspace.Key);
             foreach (var pair in dictionary)
             {
                 var model = new M();

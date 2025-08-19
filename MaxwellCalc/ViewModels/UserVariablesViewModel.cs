@@ -53,9 +53,9 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override void RemoveItem(string key)
         {
-            if (Shared.Workspace is null)
+            if (Shared.Workspace.Key is null)
                 return;
-            Shared.Workspace.Variables.TryRemoveVariable(key);
+            Shared.Workspace.Key.Variables.TryRemoveVariable(key);
         }
     }
 }

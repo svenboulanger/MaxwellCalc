@@ -88,25 +88,25 @@ namespace MaxwellCalc.ViewModels
                     break;
 
                 default:
-                    if (Shared.Workspace is null)
+                    if (Shared.Workspace.Key is null)
                         return;
 
                     // Use the current expression to evaluate
                     var diagnostics = new List<string>();
                     void StoreDiagnostic(object? sender, DiagnosticMessagePostedEventArgs args) => diagnostics.Add(args.Message);
-                    Shared.Workspace.DiagnosticMessagePosted += StoreDiagnostic;
+                    Shared.Workspace.Key.DiagnosticMessagePosted += StoreDiagnostic;
                     Quantity<string> result = default;
 
                     try
                     {
                         var lexer = new Lexer(Expression ?? string.Empty);
-                        var node = Parser.Parse(lexer, Shared.Workspace);
+                        var node = Parser.Parse(lexer, Shared.Workspace.Key);
                         if (node is not null)
-                            Shared.Workspace.TryResolveAndFormat(node, Shared.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
+                            Shared.Workspace.Key.TryResolveAndFormat(node, Shared.Workspace.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
                     }
                     finally
                     {
-                        Shared.Workspace.DiagnosticMessagePosted -= StoreDiagnostic;
+                        Shared.Workspace.Key.DiagnosticMessagePosted -= StoreDiagnostic;
                     }
 
                     Results.Add(new ResultViewModel

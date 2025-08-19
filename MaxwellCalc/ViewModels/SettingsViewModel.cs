@@ -3,15 +3,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Material.Colors;
 using Material.Styles.Themes;
+using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -20,6 +24,8 @@ namespace MaxwellCalc.ViewModels
     /// </summary>
     public partial class SettingsViewModel : ViewModelBase
     {
+        private JsonSerializerOptions _jsonSerializerOptions;
+
         /// <summary>
         /// Gets the shared model.
         /// </summary>
@@ -44,10 +50,13 @@ namespace MaxwellCalc.ViewModels
         private SecondaryColor _secondaryColor = SecondaryColor.Indigo;
 
         [ObservableProperty]
-        private int _format = 0;
+        private ObservableCollection<WorkspaceViewModel> _workspaces = [];
 
         [ObservableProperty]
-        private int _digits = 12;
+        private string _newWorkspaceName = string.Empty;
+
+        [ObservableProperty]
+        private int _newWorkspaceType;
 
         /// <summary>
         /// Creates a new <see cref="SettingsViewModel"/>.
@@ -55,7 +64,9 @@ namespace MaxwellCalc.ViewModels
         public SettingsViewModel()
         {
             Shared = new();
-            Shared.DomainType = DomainTypes.Complex;
+            _jsonSerializerOptions = new();
+            Workspaces.Add(new() { Name = "Real workspace", Key = new Workspace<double>(new DoubleDomain()), Selected = true });
+            Workspaces.Add(new() { Name = "Complex workspace", Key = new Workspace<Complex>(new ComplexDomain()) });
         }
 
         /// <summary>
@@ -65,9 +76,12 @@ namespace MaxwellCalc.ViewModels
         public SettingsViewModel(IServiceProvider sp)
         {
             Shared = sp.GetRequiredService<SharedModel>();
-            Shared.DomainType = DomainTypes.Complex;
+            _jsonSerializerOptions = sp.GetRequiredService<JsonSerializerOptions>();
             LoadSettings();
             Shared.LoadWorkspace();
+
+            if (Workspaces.Count == 0)
+                BuildDefaultWorkspace();
         }
 
         partial void OnCurrentThemeChanged(int value)
@@ -100,8 +114,118 @@ namespace MaxwellCalc.ViewModels
             theme.SecondaryColor = value;
             SaveSettings();
         }
-        partial void OnDigitsChanged(int value) => UpdateFormatting();
-        partial void OnFormatChanged(int value) => UpdateFormatting();
+
+        [RelayCommand]
+        private void SelectWorkspace(WorkspaceViewModel model)
+        {
+            if (model is null)
+                return;
+
+            foreach (var item in Workspaces)
+                item.Selected = false;
+            model.Selected = true;
+
+            // Update the shared
+            Shared.Workspace = model;
+        }
+
+        [RelayCommand]
+        private void AddWorkspace()
+        {
+            WorkspaceViewModel model = NewWorkspaceType switch
+            {
+                0 => new()
+                {
+                    Name = NewWorkspaceName,
+                    Key = new Workspace<double>(new DoubleDomain()),
+                    Selected = false
+                },
+                1 => new()
+                {
+                    Name = NewWorkspaceName,
+                    Key = new Workspace<Complex>(new ComplexDomain()),
+                    Selected = false
+                },
+                _ => throw new NotImplementedException(),
+            };
+            Workspaces.Add(model);
+        }
+
+        [RelayCommand]
+        private void DuplicateWorkspace(WorkspaceViewModel model)
+        {
+            string name = model.Name;
+            int index = 1;
+            var m = DuplicatedName().Match(name);
+            if (m.Success)
+            {
+                name = m.Groups["name"].Value;
+                index = int.Parse(m.Groups["index"].Value) + 1;
+            }
+
+            // Find a name that doesn't exist yet
+            while (Workspaces.Any(m => m.Name.Equals($"{name} ({index})")))
+                index++;
+
+            // Let's deserialize and reserialize to capture everything into the new workspace
+            string json = model.Key switch
+            {
+                IWorkspace<double> dblWorkspace => JsonSerializer.Serialize(dblWorkspace, _jsonSerializerOptions),
+                IWorkspace<Complex> cplxWorkspace => JsonSerializer.Serialize(cplxWorkspace, _jsonSerializerOptions),
+                _ => throw new NotImplementedException()
+            };
+            IWorkspace newWorkspace = model.DomainType switch
+            {
+                DomainTypes.Double => JsonSerializer.Deserialize<IWorkspace<double>>(json, _jsonSerializerOptions) ?? throw new ArgumentException(),
+                DomainTypes.Complex => JsonSerializer.Deserialize<IWorkspace<Complex>>(json, _jsonSerializerOptions) ?? throw new ArgumentException(),
+                _ => throw new NotImplementedException(),
+            };
+            var newModel = new WorkspaceViewModel()
+            {
+                Key = newWorkspace,
+                Name = $"{name} ({index})",
+                Selected = false
+            };
+            Workspaces.Add(newModel);
+        }
+
+        [RelayCommand]
+        private void RemoveWorkspace(WorkspaceViewModel model)
+        {
+            if (model is null)
+                return;
+
+            if (Workspaces.Remove(model))
+            {
+                if (model.Selected)
+                {
+                    // Let's select another workspace
+                    if (Workspaces.Count == 0)
+                        BuildDefaultWorkspace();
+                    else
+                    {
+                        Workspaces[0].Selected = true;
+                        Shared.Workspace = Workspaces[0];
+                    }
+                }
+            }
+        }
+
+        private WorkspaceViewModel BuildDefaultWorkspace(bool selected = true)
+        {
+            var workspace = new Workspace<double>(new DoubleDomain());
+            workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
+            var model = new WorkspaceViewModel()
+            {
+                Key = workspace,
+                Name = "Workspace",
+                Selected = selected
+            };
+            Workspaces.Add(model);
+            if (selected)
+                Shared.Workspace = model;
+            return model;
+        }
 
         /// <summary>
         /// Saves the current settings to the settings file.
@@ -156,16 +280,6 @@ namespace MaxwellCalc.ViewModels
                             reader.Read();
                             break;
 
-                        case nameof(Format):
-                            Format = JsonSerializer.Deserialize<int>(ref reader);
-                            reader.Read();
-                            break;
-
-                        case nameof(Digits):
-                            Digits = JsonSerializer.Deserialize<int>(ref reader);
-                            reader.Read();
-                            break;
-
                         default:
                             JsonSerializer.Deserialize<JsonNode>(ref reader);
                             reader.Read();
@@ -175,16 +289,7 @@ namespace MaxwellCalc.ViewModels
             }
         }
 
-        private void UpdateFormatting()
-        {
-            switch (Format)
-            {
-                default:
-                case 0: Shared.OutputFormat = $"g{Digits}"; break;
-                case 1: Shared.OutputFormat = $"e{Digits}"; break;
-                case 2: Shared.OutputFormat = $"f{Digits}"; break;
-            }
-            SaveSettings();
-        }
+        [GeneratedRegex(@"(?<name>.*) \((?<index>\d+)\)")]
+        private static partial Regex DuplicatedName();
     }
 }

@@ -11,6 +11,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MaxwellCalc.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
+		ExtendClientAreaToDecorationsHint="True"
         Title="Maxwell Calculator">
 	<Design.DataContext>
 		<vm:MainWindowViewModel />
@@ -21,9 +22,10 @@
 		</Style>
 	</Window.Styles>
 	<SplitView IsPaneOpen="{Binding IsPaneOpen}"
-				OpenPaneLength="200"
-				CompactPaneLength="40"
-				DisplayMode="CompactInline">
+			   Margin="5 30 5 10"
+			   OpenPaneLength="200"
+			   CompactPaneLength="40"
+			   DisplayMode="CompactInline">
 		<SplitView.Pane>
 			<StackPanel>
 				<StackPanel Orientation="Horizontal">

@@ -19,18 +19,18 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                if (Shared.Workspace is IWorkspace<double>)
+                if (Shared.Workspace.Key is IWorkspace<double>)
                 {
-                    bool Function(IReadOnlyList<Quantity<double>> list, IWorkspace workspace, out Quantity<double> result)
+                    static bool Function(IReadOnlyList<Quantity<double>> list, IWorkspace workspace, out Quantity<double> result)
                     {
                         result = default;
                         return true;
                     }
-                    Shared.Workspace.BuiltInFunctions["sin"] = new("sin", 1, 1, "Calculates the sine of a real number.", Function);
-                    Shared.Workspace.BuiltInFunctions["cos"] = new("cos", 1, 1, "Calculates the cosine of a real number.", Function);
-                    Shared.Workspace.BuiltInFunctions["tan"] = new("tan", 1, 1, "Calculates the tangent of a real number.", Function);
-                    Shared.Workspace.BuiltInFunctions["min"] = new("min", 1, int.MaxValue, "Calculates the mininimum of real arguments.", Function);
-                    Shared.Workspace.BuiltInFunctions["round"] = new("round", 1, 2, "Rounds a number to some precision. If the precision is not given, then it will round to 0 digits after the comma.", Function);
+                    Shared.Workspace.Key.BuiltInFunctions["sin"] = new("sin", 1, 1, "Calculates the sine of a real number.", Function);
+                    Shared.Workspace.Key.BuiltInFunctions["cos"] = new("cos", 1, 1, "Calculates the cosine of a real number.", Function);
+                    Shared.Workspace.Key.BuiltInFunctions["tan"] = new("tan", 1, 1, "Calculates the tangent of a real number.", Function);
+                    Shared.Workspace.Key.BuiltInFunctions["min"] = new("min", 1, int.MaxValue, "Calculates the mininimum of real arguments.", Function);
+                    Shared.Workspace.Key.BuiltInFunctions["round"] = new("round", 1, 2, "Rounds a number to some precision. If the precision is not given, then it will round to 0 digits after the comma.", Function);
                 }
             }
         }
