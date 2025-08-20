@@ -8,6 +8,7 @@ using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Core.Workspaces.Variables;
 using System;
 using System.Collections.ObjectModel;
+using System.Numerics;
 
 namespace MaxwellCalc.ViewModels
 {
@@ -74,7 +75,7 @@ namespace MaxwellCalc.ViewModels
         /// <inheritdoc />
         protected override void RemoveItem(string key)
         {
-            if (Shared.Workspace.Key is null)
+            if (Shared.Workspace?.Key is null)
                 return;
             Shared.Workspace.Key.Constants.TryRemoveVariable(key);
         }
@@ -84,7 +85,7 @@ namespace MaxwellCalc.ViewModels
         {
             string name = ConstantName.Trim();
             string expression = Expression.Trim();
-            if (Shared.Workspace.Key is null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(expression))
+            if (Shared.Workspace?.Key is null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(expression))
                 return;
 
             // Deal with diagnostic messages
@@ -116,19 +117,13 @@ namespace MaxwellCalc.ViewModels
         [RelayCommand]
         private void AddCommonConstants()
         {
-            if (Shared.Workspace.Key is null)
+            if (Shared.Workspace?.Key is null)
                 return;
 
-            switch (Shared.Workspace.DomainType)
-            {
-                case DomainTypes.Double:
-                    Shared.Workspace.Key.RegisterConstants(typeof(DoubleMathHelper));
-                    break;
-
-                case DomainTypes.Complex:
-                    Shared.Workspace.Key.RegisterConstants(typeof(ComplexMathHelper));
-                    break;
-            }
+            if (Shared.Workspace.Key.ScalarType == typeof(double))
+                Shared.Workspace.Key.RegisterConstants(typeof(DoubleMathHelper));
+            if (Shared.Workspace.Key.ScalarType == typeof(Complex))
+                Shared.Workspace.Key.RegisterConstants(typeof(ComplexMathHelper));
         }
     }
 }

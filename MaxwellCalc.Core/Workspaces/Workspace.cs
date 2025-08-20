@@ -290,6 +290,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                 }
 
                 // Evaluate the body
+                result = default;
                 foreach (var node in userFunction.Body)
                 {
                     // Parse the function
@@ -299,6 +300,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
 
                 // Pop the scope with the arguments
                 _scopes.Pop();
+                return true;
             }
         }
 

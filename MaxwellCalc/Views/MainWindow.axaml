@@ -22,43 +22,56 @@
 			<Setter Property="UnitForeground" Value="{DynamicResource MaterialSecondaryMidBrush}" />
 		</Style>
 	</Window.Styles>
-	<SplitView IsPaneOpen="{Binding IsPaneOpen}"
-			   Margin="5 30 5 10"
-			   OpenPaneLength="200"
-			   CompactPaneLength="40"
-			   DisplayMode="CompactInline">
-		<SplitView.Pane>
-			<StackPanel>
-				<StackPanel Orientation="Horizontal">
-					<Button Classes="Flat"
-							Padding="8 5 5 5"
-							Margin="0"
-							Command="{Binding TogglePaneCommand}">
-						<materialIcons:MaterialIcon Kind="Menu"
-									Width="26"
-									Height="26"
-									Margin="0"
-									Padding="0"/>
-					</Button>
-					<TextBlock FontSize="20"
-								VerticalAlignment="Center"
-								Text="" />
+	<Grid RowDefinitions="Auto, *"
+		  ColumnDefinitions="*">
+		<TextBlock Text="MaxwellCalc"
+				   Grid.Row="0"
+				   Grid.Column="0"
+				   Margin="5"
+				   FontWeight="Bold"
+				   IsHitTestVisible="False"
+				   HorizontalAlignment="Center"
+				   />
+		<SplitView IsPaneOpen="{Binding IsPaneOpen}"
+				   Margin="0 0 0 10"
+				   OpenPaneLength="200"
+				   CompactPaneLength="40"
+				   Grid.Column="0"
+				   Grid.Row="1"
+				   DisplayMode="CompactInline">
+			<SplitView.Pane>
+				<StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<Button Classes="Flat"
+								Padding="8 5 5 5"
+								Margin="0"
+								Command="{Binding TogglePaneCommand}">
+							<materialIcons:MaterialIcon Kind="Menu"
+										Width="26"
+										Height="26"
+										Margin="0"
+										Padding="0"/>
+						</Button>
+						<TextBlock FontSize="20"
+									VerticalAlignment="Center"
+									Text="" />
+					</StackPanel>
+					<ListBox ItemsSource="{Binding Panes}"
+								SelectedItem="{Binding SelectedListItem}"
+								SelectedIndex="0"
+								Margin="0"
+								Padding="0">
+						<ListBox.Styles>
+							<Style Selector="ListBoxItem">
+								<Setter Property="Padding" Value="8 5 5 5" />
+							</Style>
+						</ListBox.Styles>
+					</ListBox>
 				</StackPanel>
-				<ListBox ItemsSource="{Binding Panes}"
-							SelectedItem="{Binding SelectedListItem}"
-							SelectedIndex="0"
-							Margin="0"
-							Padding="0">
-					<ListBox.Styles>
-						<Style Selector="ListBoxItem">
-							<Setter Property="Padding" Value="8 5 5 5" />
-						</Style>
-					</ListBox.Styles>
-				</ListBox>
-			</StackPanel>
-		</SplitView.Pane>
-		<SplitView.Content>
-			<TransitioningContentControl Content="{Binding CurrentPage}" />
-		</SplitView.Content>
-	</SplitView>
+			</SplitView.Pane>
+			<SplitView.Content>
+				<TransitioningContentControl Content="{Binding CurrentPage}" />
+			</SplitView.Content>
+		</SplitView>
+	</Grid>
 </Window>

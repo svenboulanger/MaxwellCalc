@@ -36,7 +36,7 @@ public class WorkspaceJsonConverter : JsonConverter<IWorkspace>
         if (reader.TokenType != JsonTokenType.String)
             throw new JsonException("Expected a type name");
         string scalarTypeName = reader.GetString() ?? throw new JsonException("Expected a type name");
-        var scalarType = Type.GetType(scalarTypeName);
+        var scalarType = FindType(scalarTypeName) ?? throw new JsonException("Could not find the scalar type");
         reader.Read();
 
         // The workspace itself
@@ -55,6 +55,21 @@ public class WorkspaceJsonConverter : JsonConverter<IWorkspace>
         if (reader.TokenType != JsonTokenType.EndObject)
             throw new JsonException("Expected end of the workspace");
         return workspace;
+    }
+
+    private static Type FindType(string typeName)
+    {
+        var result = Type.GetType(typeName);
+        if (result is not null)
+            return result;
+
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            result = assembly.GetType(typeName);
+            if (result is not null)
+                return result;
+        }
+        return null;
     }
 
     /// <inheritdoc />

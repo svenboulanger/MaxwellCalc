@@ -58,7 +58,7 @@ public class VariableScope<T> : IVariableScope<T>
     {
         if (Local.TryGetValue(name, out var r))
         {
-            result = default;
+            result = r.Value;
             return true;
         }
 
