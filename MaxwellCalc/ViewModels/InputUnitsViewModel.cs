@@ -30,7 +30,7 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                if (Shared.Workspace is IWorkspace<double> workspace)
+                if (Shared.Workspace?.Key is IWorkspace<double> workspace)
                 {
                     workspace.RegisterCommonUnits();
                 }

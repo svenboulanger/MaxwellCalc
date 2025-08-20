@@ -79,7 +79,7 @@
 						BorderBrush="{DynamicResource MaterialPrimaryLightBrush}"
 						Margin="0,0,0,5"
 						DockPanel.Dock="Top">
-					<Grid ColumnDefinitions="20, 150, 300, *, 50">
+					<Grid ColumnDefinitions="40, 150, 300, *, 50">
 						<CheckBox Margin="5"
 								  VerticalAlignment="Center"
 								  IsChecked="{Binding IsHeaderChecked}" />
@@ -101,10 +101,15 @@
 					</Grid>
 				</Border>
 				<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+					<ScrollViewer.Styles>
+						<Style Selector="ItemsControl ContentPresenter:nth-child(even)">
+							<Setter Property="Background" Value="{DynamicResource MaterialPaperBrush}" />
+						</Style>
+					</ScrollViewer.Styles>
 					<ItemsControl ItemsSource="{Binding Items}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Grid ColumnDefinitions="20, 150, 300, *, 50"
+								<Grid ColumnDefinitions="40, 150, 300, *, 50"
 									  IsVisible="{Binding Visible}">
 									<CheckBox Margin="5"
 											  VerticalAlignment="Center"

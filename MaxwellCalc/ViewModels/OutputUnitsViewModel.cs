@@ -30,9 +30,9 @@ namespace MaxwellCalc.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                if (Shared.Workspace.Key is IWorkspace<double> workspace)
+                if (Shared.Workspace?.Key is IWorkspace<double> workspace)
                 {
-                    workspace.OutputUnits[new(new(("cm", 1)), Core.Units.Unit.UnitMeter)] = 0.01;
+                    workspace.RegisterCommonUnits();
                 }
             }
         }

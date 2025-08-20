@@ -34,7 +34,7 @@ namespace MaxwellCalc.ViewModels
             if (Design.IsDesignMode)
             {
                 // Make up some constants to show what it looks like
-                if (Shared.Workspace is IWorkspace<double> workspace && workspace.Constants is IVariableScope<double> scope)
+                if (Shared.Workspace?.Key is IWorkspace<double> workspace && workspace.Constants is IVariableScope<double> scope)
                 {
                     scope.Local["Sven"] = new(new Quantity<double>(179, Unit.UnitMeter), "Author length.");
                     scope.Local["CheckThis"] = new(new Quantity<double>(123, Unit.UnitAmperes), null);
