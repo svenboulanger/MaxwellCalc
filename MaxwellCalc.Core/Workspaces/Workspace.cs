@@ -279,23 +279,35 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                 // Push a new scope with the arguments
                 var newScope = new VariableScope<T>(this, Scope);
                 _scopes.Push(newScope);
-                for (int i = 0; i < arguments.Count; i++)
-                {
-                    if (!TryResolve(arguments[i], out var arg))
-                    {
-                        result = default;
-                        return false;
-                    }
-                    newScope.Local[userFunction.Parameters[i]] = new(arg, null);
-                }
 
-                // Evaluate the body
-                result = default;
-                foreach (var node in userFunction.Body)
+                // Avoid that our arguments are converted back to output units
+                bool oldResolveOutput = ResolveOutputUnits;
+                ResolveOutputUnits = false;
+
+                try
                 {
-                    // Parse the function
-                    if (!TryResolve(node, out result))
-                        return false;
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        if (!TryResolve(arguments[i], out var arg))
+                        {
+                            result = default;
+                            return false;
+                        }
+                        newScope.Local[userFunction.Parameters[i]] = new(arg, null);
+                    }
+
+                    // Evaluate the body
+                    result = default;
+                    foreach (var node in userFunction.Body)
+                    {
+                        // Parse the function
+                        if (!TryResolve(node, out result))
+                            return false;
+                    }
+                }
+                finally
+                {
+                    ResolveOutputUnits = oldResolveOutput;
                 }
 
                 // Pop the scope with the arguments
@@ -305,22 +317,33 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         }
 
         // If the user-defined function doesn't exist, try to find a built-in function
-        if (AllowBuiltInFunctions)
+        if (AllowBuiltInFunctions && _builtInFunctions.TryGetValue(name, out var function))
         {
+            // Avoid that our arguments are converted back to output units
+            bool oldResolveOutput = ResolveOutputUnits;
+            ResolveOutputUnits = false;
+
             var args = new List<Quantity<T>>();
-            foreach (var arg in arguments)
+            try
             {
-                if (!TryResolve(arg, out var a))
+                foreach (var arg in arguments)
                 {
-                    result = default;
-                    return false;
+                    if (!TryResolve(arg, out var a))
+                    {
+                        result = default;
+                        return false;
+                    }
+                    args.Add(a);
                 }
-                args.Add(a);
+            }
+            finally
+            {
+                ResolveOutputUnits = oldResolveOutput;
             }
 
-            if (_builtInFunctions.TryGetValue(name, out var function))
-                return function(args, this, out result);
+            return function(args, this, out result);
         }
+
         PostDiagnosticMessage(new($"Could not find a function with the name '{name}' and {arguments.Count} argument(s)."));
         result = default;
         return false;
