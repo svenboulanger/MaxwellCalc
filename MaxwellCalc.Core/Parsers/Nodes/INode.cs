@@ -22,6 +22,6 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         /// <param name="resolver">The resolver.</param>
         /// <param name="workspace">The diagnostics message handler.</param>
         /// <returns>Returns the resolved quantity.</returns>
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable;
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable;
     }
 }

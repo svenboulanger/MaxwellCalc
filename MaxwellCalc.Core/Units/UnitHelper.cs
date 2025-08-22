@@ -18,7 +18,7 @@ namespace MaxwellCalc.Core.Units
         /// <param name="inputUnit">The new input unit.</param>
         /// <param name="value">The value in base units to get the input unit.</param>
         public static bool TryRegisterInputOutputUnit<T>(this IWorkspace<T> workspace, string inputUnit, Unit baseUnits, string value)
-            where T : struct, IFormattable
+            where T : IFormattable
         {
             var oldState = workspace.Restrict(false, false, true, false, false);
 
@@ -48,7 +48,7 @@ namespace MaxwellCalc.Core.Units
         /// <param name="baseUnits">The same quantity in base units.</param>
         /// <returns>Returns <c>true</c> if the registration was successfull; otherwise, <c>false</c>.</returns>
         public static bool TryRegisterOutputUnit<T>(this IWorkspace<T> workspace, Unit outputUnit, Quantity<string> baseUnits)
-            where T : struct, IFormattable
+            where T : IFormattable
         {
             bool oldAllowUnits = workspace.AllowUnits;
             bool oldAllowVariables = workspace.AllowVariables;
@@ -100,7 +100,7 @@ namespace MaxwellCalc.Core.Units
             this IWorkspace<T> workspace, string name, Unit baseUnit,
             bool atto = false, bool femto = false, bool pico = false, bool nano = false, bool micro = false,
             bool milli = false, bool centi = false, bool kilo = false, bool mega = false, bool giga = false,
-            bool tera = false, bool peta = false) where T : struct, IFormattable
+            bool tera = false, bool peta = false) where T : IFormattable
         {
             if (atto)
             {
@@ -189,7 +189,7 @@ namespace MaxwellCalc.Core.Units
             Unit outputUnit, Unit baseUnits, string dimension, string modifier = "1",
             bool atto = false, bool femto = false, bool pico = false, bool nano = false,
             bool micro = false, bool milli = false, bool centi = false, bool kilo = false,
-            bool mega = false, bool giga = false, bool tera = false, bool peta = false) where T : struct, IFormattable
+            bool mega = false, bool giga = false, bool tera = false, bool peta = false) where T : IFormattable
         {
             if (outputUnit.Dimension is null || baseUnits.Dimension is null)
                 throw new ArgumentException("Dimension cannot be null", nameof(outputUnit));
@@ -265,7 +265,7 @@ namespace MaxwellCalc.Core.Units
         /// Registers common units.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        public static void RegisterCommonUnits<T>(this IWorkspace<T> workspace) where T : struct, IFormattable
+        public static void RegisterCommonUnits<T>(this IWorkspace<T> workspace) where T : IFormattable
         {
             // Length
             workspace.TryRegisterModifierInputOutputUnits(Unit.Meter, Unit.UnitMeter,
@@ -313,7 +313,7 @@ namespace MaxwellCalc.Core.Units
         /// Registers common units used by electrical/electronics engineers.
         /// </summary>
         /// <param name="workspace">The workspace.</param>
-        public static void RegisterCommonElectronicsUnits<T>(IWorkspace<T> workspace) where T : struct, IFormattable
+        public static void RegisterCommonElectronicsUnits<T>(IWorkspace<T> workspace) where T : IFormattable
         {
             // Coulomb
             workspace.TryRegisterModifierInputOutputUnits("C",

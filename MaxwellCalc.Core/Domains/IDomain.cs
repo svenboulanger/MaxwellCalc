@@ -9,7 +9,7 @@ namespace MaxwellCalc.Core.Domains;
 /// A resolver that allows resolving nodes to a result.
 /// </summary>
 /// <typeparam name="T">The result type.</typeparam>
-public interface IDomain<T> where T : struct, IFormattable
+public interface IDomain<T> where T : IFormattable
 {
     /// <summary>
     /// Gets a default value to return in case of an error.

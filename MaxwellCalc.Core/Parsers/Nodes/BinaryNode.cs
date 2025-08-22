@@ -34,7 +34,7 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         public INode Right { get; } = right;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
         {
             // Assignment is special
             if (Type == BinaryOperatorTypes.Assign)

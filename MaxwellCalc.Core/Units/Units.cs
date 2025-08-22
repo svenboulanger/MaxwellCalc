@@ -104,7 +104,9 @@ public readonly struct Unit(params (string, Fraction)[] dimension)
     /// </remarks>
     public static Unit UnitRadian { get; } = new((Radian, 1));
 
-    /// <inheritdoc />
+    /// <summary>
+    /// The dimensions of the unit.
+    /// </summary>
     public IReadOnlyDictionary<string, Fraction> Dimension { get; } = dimension is null || dimension.Length == 0 ? 
         ImmutableDictionary<string, Fraction>.Empty : 
         dimension.ToImmutableDictionary(k => k.Item1, k => k.Item2);
@@ -116,7 +118,7 @@ public readonly struct Unit(params (string, Fraction)[] dimension)
         if (Dimension is not null)
         {
             foreach (var item in Dimension)
-                hash ^= item.Key.GetHashCode() * 1021 ^ item.Value.GetHashCode();
+                hash ^= (item.Key.GetHashCode() * 1021) ^ item.Value.GetHashCode();
         }
         return hash;
     }
@@ -128,13 +130,9 @@ public readonly struct Unit(params (string, Fraction)[] dimension)
     /// <inheritdoc />
     public bool Equals(Unit other)
     {
-        if (Dimension is null)
-        {
-            if (other.Dimension is null)
-                return true;
-            return false;
-        }
-        else if (other.Dimension is null)
+        if (ReferenceEquals(Dimension, other.Dimension))
+            return true;
+        if (Dimension is null || other.Dimension is null)
             return false;
         if (Dimension.Count != other.Dimension.Count)
             return false;

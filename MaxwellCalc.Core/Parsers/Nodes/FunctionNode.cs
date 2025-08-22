@@ -28,7 +28,7 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         public IReadOnlyList<INode> Arguments { get; } = arguments is not null ? arguments.AsReadOnly() : Array.Empty<INode>();
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
         {
             if (workspace is null)
             {

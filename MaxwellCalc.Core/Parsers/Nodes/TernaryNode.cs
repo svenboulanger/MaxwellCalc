@@ -39,7 +39,7 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         public INode C { get; } = c;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
         {
             switch (Type)
             {

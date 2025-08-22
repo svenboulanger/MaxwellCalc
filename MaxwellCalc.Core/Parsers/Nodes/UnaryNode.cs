@@ -27,7 +27,7 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         public INode Argument { get; } = argument;
 
         /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : struct, IFormattable
+        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
         {
             if (!Argument.TryResolve(resolver, workspace, out var arg))
             {

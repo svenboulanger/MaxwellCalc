@@ -93,6 +93,7 @@ namespace MaxwellCalc.ViewModels
             void AddDiagnosticMessage(object? sender, DiagnosticMessagePostedEventArgs args)
                 => Diagnostics.Add(args.Message);
             Shared.Workspace.Key.DiagnosticMessagePosted += AddDiagnosticMessage;
+            var oldState = Shared.Workspace.Key.Restrict(resolveOutputUnits: false);
             try
             {
                 // Evaluate the expression
@@ -111,6 +112,7 @@ namespace MaxwellCalc.ViewModels
             finally
             {
                 Shared.Workspace.Key.DiagnosticMessagePosted -= AddDiagnosticMessage;
+                Shared.Workspace.Key.Restore(oldState);
             }
         }
 

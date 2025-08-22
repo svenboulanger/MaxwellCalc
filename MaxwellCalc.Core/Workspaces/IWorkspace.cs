@@ -146,7 +146,7 @@ public interface IWorkspace
 /// <summary>
 /// Represents a workspace.
 /// </summary>
-public interface IWorkspace<T> : IWorkspace where T : struct, IFormattable
+public interface IWorkspace<T> : IWorkspace where T : IFormattable
 {
     /// <summary>
     /// Gets the resolver.
