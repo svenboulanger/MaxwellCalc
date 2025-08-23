@@ -3,7 +3,6 @@ using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Numerics;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MaxwellCalc.Core.Domains
@@ -17,15 +16,18 @@ namespace MaxwellCalc.Core.Domains
         public Quantity<Complex> Default { get; } = new Quantity<Complex>(0.0, Unit.UnitNone);
 
         /// <inheritdoc />
+        public Complex One => 1.0;
+
+        /// <inheritdoc />
         public JsonConverter<Complex> Converter { get; } = new ComplexJsonConverter();
 
         /// <inheritdoc />
-        public bool TryScalar(string scalar, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryScalar(string scalar, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // Parse the scalar
             if (!double.TryParse(scalar, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double dbl))
             {
-                workspace?.PostDiagnosticMessage(new($"Could not evaluate the scalar '{scalar}'."));
+                diagnostics?.PostDiagnosticMessage(new($"Could not evaluate the scalar '{scalar}'."));
                 result = Default;
                 return false;
             }
@@ -42,91 +44,35 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryUnit(string unit, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
-        {
-            if (workspace is not null)
-            {
-                if (!workspace.AllowUnits)
-                {
-                    workspace.PostDiagnosticMessage(new("Units are not allowed"));
-                    result = default;
-                    return false;
-                }
-
-                if (workspace.ResolveInputUnits)
-                {
-                    if (workspace.InputUnits.TryGetValue(unit, out result))
-                        return true;
-                    workspace.PostDiagnosticMessage(new($"Could not recognize unit '{unit}'."));
-                    return false;
-                }
-            }
-
-            result = new Quantity<Complex>(1.0, new Unit((unit, 1)));
-            return true;
-        }
-
-        /// <inheritdoc />
-        public bool TryVariable(string variable, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
-        {
-            if (workspace is not null)
-            {
-                // We're not checking here on AllowVariables because it might be user function parameters...
-                if (workspace.Scope.TryGetComputedVariable(variable, out result))
-                    return true;
-                if (variable == "i" || variable == "j")
-                {
-                    result = new Quantity<Complex>(new Complex(0.0, 1.0), Unit.UnitNone);
-                    return true;
-                }
-                workspace.PostDiagnosticMessage(new($"Could not find a variable with the name '{variable}'."));
-                return false;
-            }
-            else
-            {
-                // workspace.ErrorMessage = "Variables are not supported.";
-                result = Default;
-                return false;
-            }
-        }
-
-        /// <inheritdoc />
-        public bool TryPlus(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryPlus(Quantity<Complex> a, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = a;
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryMinus(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryMinus(Quantity<Complex> a, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(-a.Scalar, a.Unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryRemoveUnits(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryFactorial(Quantity<Complex> a, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
-            result = new Quantity<Complex>(a.Scalar, Unit.UnitNone);
-            return true;
-        }
-
-        /// <inheritdoc />
-        public bool TryFactorial(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
-        {
-            if (workspace is not null)
-                return ComplexMathHelper.Factorial([a], workspace, out result);
+            if (diagnostics is not null)
+                return ComplexMathHelper.Factorial([a], diagnostics, out result);
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public bool TryAdd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryAdd(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // Check units
             if (a.Unit != b.Unit)
             {
                 // Units should match!
-                workspace?.PostDiagnosticMessage(new("Units do not match for addition."));
+                diagnostics?.PostDiagnosticMessage(new("Units do not match for addition."));
                 result = Default;
                 return false;
             }
@@ -134,13 +80,13 @@ namespace MaxwellCalc.Core.Domains
             return true;
         }
 
-        public bool TrySubtract(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TrySubtract(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // Check units
             if (a.Unit != b.Unit)
             {
                 // Units should match!
-                workspace?.PostDiagnosticMessage(new("Units do not match for subtraction."));
+                diagnostics?.PostDiagnosticMessage(new("Units do not match for subtraction."));
                 result = Default;
                 return false;
             }
@@ -149,28 +95,28 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryMultiply(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryMultiply(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar * b.Scalar, a.Unit * b.Unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryDivide(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(a.Scalar / b.Scalar, a.Unit / b.Unit);
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryInvert(Quantity<Complex> a, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryInvert(Quantity<Complex> a, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(1.0 / a.Scalar, Unit.Inv(a.Unit));
             return true;
         }
 
         /// <inheritdoc />
-        public bool TryModulo(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryModulo(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(
                 Math.IEEERemainder(a.Scalar.Real, b.Scalar.Real),
@@ -179,7 +125,7 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryIntDivide(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryIntDivide(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             result = new Quantity<Complex>(
                 Math.Truncate(a.Scalar.Real / b.Scalar.Real),
@@ -188,13 +134,13 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryExp(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryPow(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // Exponentiation can only happen with numbers that don't have units
             if (b.Unit != Unit.UnitNone)
             {
                 // Cannot use exponent with units
-                workspace?.PostDiagnosticMessage(new("Cannot raise to a power where the exponent contains units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot raise to a power where the exponent contains units."));
                 result = Default;
                 return false;
             }
@@ -218,7 +164,7 @@ namespace MaxwellCalc.Core.Domains
                 if (!b.Scalar.Imaginary.Equals(0.0))
                 {
                     // Cannot raise units to an imaginary power
-                    workspace?.PostDiagnosticMessage(new("Cannot raise units to a complex power."));
+                    diagnostics?.PostDiagnosticMessage(new("Cannot raise units to a complex power."));
                     result = Default;
                     return false;
                 }
@@ -226,7 +172,7 @@ namespace MaxwellCalc.Core.Domains
                 if (!Fraction.TryConvert(b.Scalar.Real, out var fraction))
                 {
                     // Could not convert to a fraction
-                    workspace?.PostDiagnosticMessage(new("Cannot raise units to a power that is too complex."));
+                    diagnostics?.PostDiagnosticMessage(new("Cannot raise units to a power that is too complex."));
                     result = Default;
                     return false;
                 }
@@ -239,29 +185,13 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryInUnit(Quantity<Complex> a, Quantity<Complex> b, ReadOnlyMemory<char> unit, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
-        {
-            if (a.Unit != b.Unit)
-            {
-                // Should be same units in order to compute
-                workspace?.PostDiagnosticMessage(new("The units do not match."));
-                result = Default;
-                return false;
-            }
-
-            // Don't do anything, formatting is done at the top level
-            result = a;
-            return true;
-        }
-
-        /// <inheritdoc />
-        public bool TryBitwiseOr(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryBitwiseOr(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                workspace?.PostDiagnosticMessage(new("Cannot take a bitwise OR of quantities with units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot take a bitwise OR of quantities with units."));
                 result = Default;
                 return false;
             }
@@ -272,13 +202,13 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryBitwiseAnd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryBitwiseAnd(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                workspace?.PostDiagnosticMessage(new("Cannot take a bitwise AND of quantities with units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot take a bitwise AND of quantities with units."));
                 result = Default;
                 return false;
             }
@@ -289,13 +219,13 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryLeftShift(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryLeftShift(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                workspace?.PostDiagnosticMessage(new("Cannot take shift quantities with units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot take shift quantities with units."));
                 result = Default;
                 return false;
             }
@@ -305,13 +235,13 @@ namespace MaxwellCalc.Core.Domains
             return true;
         }
 
-        public bool TryRightShift(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryRightShift(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             // First convert to integer
             if (a.Unit != Unit.UnitNone || b.Unit != Unit.UnitNone)
             {
                 // Don't know what to do here
-                workspace?.PostDiagnosticMessage(new("Cannot take shift quantities with units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot take shift quantities with units."));
                 result = Default;
                 return false;
             }
@@ -322,12 +252,12 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryGreaterThan(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryGreaterThan(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -336,12 +266,12 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryGreaterThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryGreaterThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -350,12 +280,12 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryLessThan(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryLessThan(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -364,12 +294,12 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryLessThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryLessThanOrEqual(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -378,12 +308,12 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryEquals(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryEquals(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -392,12 +322,12 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryNotEquals(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryNotEquals(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
             if (a.Unit != b.Unit)
             {
                 // Cannot compare quantities with different units
-                workspace?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
+                diagnostics?.PostDiagnosticMessage(new("Cannot compare quantities with different units."));
                 result = Default;
                 return false;
             }
@@ -431,7 +361,7 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryIsTrue(Quantity<Complex> a, IWorkspace<Complex>? workspace, out bool result)
+        public bool TryIsTrue(Quantity<Complex> a, IDiagnosticsHandler? diagnostics, out bool result)
         {
             if (a.Scalar.Real == 0.0 && a.Scalar.Imaginary == 0.0)
                 result = false;
@@ -441,10 +371,10 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryLogicalOr(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryLogicalOr(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
-            if (!TryIsTrue(a, workspace, out bool left) ||
-                !TryIsTrue(b, workspace, out bool right))
+            if (!TryIsTrue(a, diagnostics, out bool left) ||
+                !TryIsTrue(b, diagnostics, out bool right))
             {
                 result = Default;
                 return false;
@@ -454,59 +384,16 @@ namespace MaxwellCalc.Core.Domains
         }
 
         /// <inheritdoc />
-        public bool TryLogicalAnd(Quantity<Complex> a, Quantity<Complex> b, IWorkspace<Complex>? workspace, out Quantity<Complex> result)
+        public bool TryLogicalAnd(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
         {
-            if (!TryIsTrue(a, workspace, out bool left) ||
-                !TryIsTrue(b, workspace, out bool right))
+            if (!TryIsTrue(a, diagnostics, out bool left) ||
+                !TryIsTrue(b, diagnostics, out bool right))
             {
                 result = Default;
                 return false;
             }
             result = new(left && right ? 1.0 : 0.0, Unit.UnitNone);
             return true;
-        }
-
-        /// <inheritdoc />
-        public void WriteToJSON(Complex value, Utf8JsonWriter writer, JsonWriterOptions options)
-        {
-            if (value.Imaginary.Equals(0.0))
-            {
-                writer.WriteNumberValue(value.Real);
-            }
-            else
-            {
-                writer.WriteStartArray();
-                writer.WriteNumberValue(value.Real);
-                writer.WriteNumberValue(value.Imaginary);
-                writer.WriteEndArray();
-            }
-        }
-
-        /// <inheritdoc />
-        public Complex ReadFromJSON(ref Utf8JsonReader reader, JsonReaderOptions options)
-        {
-            switch (reader.TokenType)
-            {
-                case JsonTokenType.Number:
-                    return reader.GetDouble();
-
-                case JsonTokenType.StartArray:
-                    reader.Read();
-                    if (reader.TokenType != JsonTokenType.Number)
-                        throw new JsonException("Expected a number for the real part of a complex number.");
-                    double real = reader.GetDouble();
-                    reader.Read();
-                    if (reader.TokenType != JsonTokenType.Number)
-                        throw new JsonException("Expected a number for the imaginary part of a complex number.");
-                    double imaginary = reader.GetDouble();
-                    reader.Read();
-                    if (reader.TokenType != JsonTokenType.EndArray)
-                        throw new JsonException("Expected only 2 numbers for a complex number.");
-                    return new Complex(real, imaginary);
-
-                default:
-                    throw new JsonException("Expected a number or a 2-number array for a complex number.");
-            }
         }
     }
 }

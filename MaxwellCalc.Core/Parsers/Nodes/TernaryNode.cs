@@ -37,35 +37,5 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         /// Gets the third argument.
         /// </summary>
         public INode C { get; } = c;
-
-        /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
-        {
-            switch (Type)
-            {
-                case TernaryNodeTypes.Condition:
-                    if (!A.TryResolve(resolver, workspace, out var condition) ||
-                        !resolver.TryIsTrue(condition, workspace, out bool conditionResult))
-                    {
-                        result = resolver.Default;
-                        return false;
-                    }
-
-                    if (conditionResult)
-                    {
-                        if (!B.TryResolve(resolver, workspace, out result))
-                            return false;
-                    }
-                    else
-                    {
-                        if (!C.TryResolve(resolver, workspace, out result))
-                            return false;
-                    }
-                    return true;
-
-                default:
-                    throw new NotImplementedException();
-            }
-        }
     }
 }

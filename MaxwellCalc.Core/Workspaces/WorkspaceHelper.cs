@@ -102,7 +102,7 @@ public static class WorkspaceHelper
                 continue;
             if (parameters[0].ParameterType != argType)
                 continue;
-            if (parameters[1].ParameterType != typeof(IWorkspace))
+            if (parameters[1].ParameterType != typeof(IDiagnosticsHandler))
                 continue;
             if (!parameters[2].IsOut || parameters[2].ParameterType.GetElementType() != quantityType)
                 continue;

@@ -11,13 +11,8 @@ namespace MaxwellCalc.Core.Workspaces;
 /// <summary>
 /// Represents a workspace.
 /// </summary>
-public interface IWorkspace
+public interface IWorkspace : IDiagnosticsHandler
 {
-    /// <summary>
-    /// An event that is called when a diagnostic message is posted.
-    /// </summary>
-    public event EventHandler<DiagnosticMessagePostedEventArgs>? DiagnosticMessagePosted;
-
     /// <summary>
     /// Gets the scalar type for the workspace. The workspace should also implement the <see cref="IWorkspace{T}"/> interface
     /// with this type being the scalar type.
@@ -135,12 +130,6 @@ public interface IWorkspace
     /// <param name="node">The value of the output unit, which will be resolved to base units. It is allowed to specify this argument using existing input units.</param>
     /// <returns>Returns <c>true</c> if the output unit was assigned; otherwise, <c>false</c>.</returns>
     public bool TryAssignOutputUnit(INode outputUnits, INode node);
-
-    /// <summary>
-    /// A method that can be called to post a diagnostic message.
-    /// </summary>
-    /// <param name="args">The event arguments.</param>
-    public void PostDiagnosticMessage(DiagnosticMessagePostedEventArgs args);
 }
 
 /// <summary>
@@ -179,15 +168,6 @@ public interface IWorkspace<T> : IWorkspace where T : IFormattable
     public bool TryResolve(INode node, out Quantity<T> result);
 
     /// <summary>
-    /// Tries to evaluate a function for the given arguments.
-    /// </summary>
-    /// <param name="name">The name.</param>
-    /// <param name="arguments">The arguments.</param>
-    /// <param name="result">The result.</param>
-    /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-    public bool TryCalculateFunction(string name, IReadOnlyList<INode> arguments, out Quantity<T> result);
-
-    /// <summary>
     /// Tries to resolve the output units.
     /// </summary>
     /// <param name="quantity">The quantity.</param>
@@ -202,5 +182,5 @@ public interface IWorkspace<T> : IWorkspace where T : IFormattable
     /// <param name="workspace">The workspace.</param>
     /// <param name="result">The result.</param>
     /// <returns>Returns <c>true</c> if the function was evaluated correctly; otherwise, <c>false</c>.</returns>
-    public delegate bool BuiltInFunctionDelegate(IReadOnlyList<Quantity<T>> list, IWorkspace workspace, out Quantity<T> result);
+    public delegate bool BuiltInFunctionDelegate(IReadOnlyList<Quantity<T>> list, IDiagnosticsHandler? workspace, out Quantity<T> result);
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using MaxwellCalc.Core.Domains;
-using MaxwellCalc.Core.Units;
-using MaxwellCalc.Core.Workspaces;
 
 namespace MaxwellCalc.Core.Parsers.Nodes
 {
@@ -25,49 +22,5 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         /// Gets the argument.
         /// </summary>
         public INode Argument { get; } = argument;
-
-        /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
-        {
-            if (!Argument.TryResolve(resolver, workspace, out var arg))
-            {
-                result = resolver.Default;
-                return false;
-            }
-
-            // If the argument is requested from something in different units, then let's convert it now!
-            if (Type == UnaryOperatorTypes.RemoveUnits && Argument is BinaryNode bn && bn.Type == BinaryOperatorTypes.InUnit)
-            {
-                if (!bn.Right.TryResolve(resolver, workspace, out var unit) ||
-                    !bn.Left.TryResolve(resolver, workspace, out var value))
-                {
-                    result = resolver.Default;
-                    return false;
-                }
-                else if (unit.Unit != value.Unit)
-                {
-                    if (workspace is not null)
-                        workspace.PostDiagnosticMessage(new("Cannot convert units as units don't match."));
-                    result = resolver.Default;
-                    return false;
-                }
-                else
-                {
-                    if (!resolver.TryDivide(value, unit, workspace, out result))
-                        return false;
-                    result = new Quantity<T>(result.Scalar, Unit.UnitNone);
-                    return true;
-                }
-            }
-
-            return Type switch
-            {
-                UnaryOperatorTypes.Plus => resolver.TryPlus(arg, workspace, out result),
-                UnaryOperatorTypes.Minus => resolver.TryMinus(arg, workspace, out result),
-                UnaryOperatorTypes.Factorial => resolver.TryFactorial(arg, workspace, out result),
-                UnaryOperatorTypes.RemoveUnits => resolver.TryRemoveUnits(arg, workspace, out result),
-                _ => throw new NotImplementedException(),
-            };
-        }
     }
 }

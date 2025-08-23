@@ -5,6 +5,7 @@ using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces.Variables;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace MaxwellCalc.Core.Workspaces;
 
@@ -201,8 +202,8 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                             return false;
                         }
 
-                        if (!bn.Left.TryResolve(Resolver, this, out var left) ||
-                            !bn.Right.TryResolve(Resolver, this, out var right))
+                        if (!TryResolveNode(bn.Left, out var left) ||
+                            !TryResolveNode(bn.Right, out var right))
                         {
                             result = default;
                             return false;
@@ -221,59 +222,122 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                                 return false;
                             }
                             result = new Quantity<T>(intermediary.Scalar, new((bn.Right.Content.ToString(), 1)));
+                            return true;
                         }
                     }
-                    break;
-
-                case BinaryOperatorTypes.Assign:
-                    if (!bn.TryResolve(Resolver, this, out result))
-                    {
-                        result = default;
-                        return false;
-                    }
-                    if (bn.Left is FunctionNode fn)
-                    {
-                        result = default;
-                        PostDiagnosticMessage(new($"Stored function '{fn.Name}'."));
-                        return true;
-                    }
-                    break;
-
-                default:
-                    if (!bn.TryResolve(Resolver, this, out result))
-                    {
-                        result = default;
-                        return false;
-                    }
-
-                    // Resolve output unit
-                    if (AllowUnits && ResolveOutputUnits)
-                        TryResolveOutputUnits(result, out result);
-                    break;
             }
         }
-        else
-        {
-            if (!node.TryResolve(Resolver, this, out result))
-            {
-                result = default;
-                return false;
-            }
 
-            // Resolve output unit
-            if (AllowUnits && ResolveOutputUnits)
-                TryResolveOutputUnits(result, out result);
-        }
+        // Resolve the nodes
+        if (!TryResolveNode(node, out result))
+            return false;
+
+        // Resolve output units
+        if (AllowUnits && ResolveOutputUnits)
+            TryResolveOutputUnits(result, out result);
         return true;
     }
 
-    /// <inheritdoc />
-    public bool TryCalculateFunction(string name, IReadOnlyList<INode> arguments, out Quantity<T> result)
+    private bool TryResolveNode(INode node, out Quantity<T> result)
+    {
+        return node switch
+        {
+            BinaryNode binary => TryResolveNode(binary, out result),
+            ScalarNode scalar => TryResolveNode(scalar, out result),
+            FunctionNode function => TryResolveNode(function, out result),
+            VariableNode variable => TryResolveNode(variable, out result),
+            UnaryNode unary => TryResolveNode(unary, out result),
+            TernaryNode ternary => TryResolveNode(ternary, out result),
+            UnitNode unit => TryResolveNode(unit, out result),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
+    private bool TryResolveNode(BinaryNode binary, out Quantity<T> result)
+    {
+        switch (binary.Type)
+        {
+            case BinaryOperatorTypes.Assign:
+                {
+                    if (binary.Left is VariableNode variableNode)
+                    {
+                        if (!TryResolveNode(binary.Right, out result))
+                        {
+                            result = Resolver.Default;
+                            return false;
+                        }
+                        string name = variableNode.Content.ToString();
+                        Scope.Local[name] = new(result, null);
+                        return true;
+                    }
+                    else if (binary.Left is FunctionNode function)
+                    {
+                        var args = new List<string>();
+                        for (int i = 0; i < function.Arguments.Count; i++)
+                        {
+                            if (function.Arguments[i] is not VariableNode argNode)
+                            {
+                                PostDiagnosticMessage(new($"Function argument has to be a simple variable"));
+                                result = Resolver.Default;
+                                return false;
+                            }
+                        }
+                        UserFunctions[new(function.Name, args.Count)] = new([.. args], [binary.Right]);
+                        result = Resolver.Default;
+                        return true;
+                    }
+                    else
+                    {
+                        PostDiagnosticMessage(new($"Can only assign to variables or user functions"));
+                        result = Resolver.Default;
+                        return false;
+                    }
+                }
+
+            default:
+                {
+                    // Should be a regular operator
+                    if (!TryResolveNode(binary.Left, out var left) ||
+                        !TryResolveNode(binary.Right, out var right))
+                    {
+                        result = Resolver.Default;
+                        return false;
+                    }
+
+                    return binary.Type switch
+                    {
+                        BinaryOperatorTypes.Add => Resolver.TryAdd(left, right, this, out result),
+                        BinaryOperatorTypes.Subtract => Resolver.TrySubtract(left, right, this, out result),
+                        BinaryOperatorTypes.Multiply => Resolver.TryMultiply(left, right, this, out result),
+                        BinaryOperatorTypes.Divide => Resolver.TryDivide(left, right, this, out result),
+                        BinaryOperatorTypes.IntDivide => Resolver.TryIntDivide(left, right, this, out result),
+                        BinaryOperatorTypes.Modulo => Resolver.TryModulo(left, right, this, out result),
+                        BinaryOperatorTypes.LeftShift => Resolver.TryLeftShift(left, right, this, out result),
+                        BinaryOperatorTypes.RightShift => Resolver.TryRightShift(left, right, this, out result),
+                        BinaryOperatorTypes.BitwiseAnd => Resolver.TryBitwiseAnd(left, right, this, out result),
+                        BinaryOperatorTypes.BitwiseOr => Resolver.TryBitwiseOr(left, right, this, out result),
+                        BinaryOperatorTypes.Exponent => Resolver.TryPow(left, right, this, out result),
+                        BinaryOperatorTypes.GreaterThan => Resolver.TryGreaterThan(left, right, this, out result),
+                        BinaryOperatorTypes.GreaterThanOrEqual => Resolver.TryGreaterThanOrEqual(left, right, this, out result),
+                        BinaryOperatorTypes.LessThan => Resolver.TryLessThan(left, right, this, out result),
+                        BinaryOperatorTypes.LessThanOrEqual => Resolver.TryLessThanOrEqual(left, right, this, out result),
+                        BinaryOperatorTypes.Equal => Resolver.TryEquals(left, right, this, out result),
+                        BinaryOperatorTypes.NotEqual => Resolver.TryNotEquals(left, right, this, out result),
+                        // BinaryOperatorTypes.InUnit => Resolver.TryInUnit(left, right, binary.Right.Content, this, out result),
+                        BinaryOperatorTypes.LogicalAnd => Resolver.TryLogicalAnd(left, right, this, out result),
+                        BinaryOperatorTypes.LogicalOr => Resolver.TryLogicalOr(left, right, this, out result),
+                        _ => throw new NotImplementedException()
+                    };
+                }
+        }
+    }
+
+    private bool TryResolveNode(FunctionNode function, out Quantity<T> result)
     {
         // First we try to apply a user-defined function
         if (AllowUserFunctions)
         {
-            var key = new UserFunctionKey(name, arguments.Count);
+            var key = new UserFunctionKey(function.Name, function.Arguments.Count);
             if (UserFunctions.TryGetValue(key, out var userFunction))
             {
                 // Push a new scope with the arguments
@@ -286,9 +350,9 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
 
                 try
                 {
-                    for (int i = 0; i < arguments.Count; i++)
+                    for (int i = 0; i < function.Arguments.Count; i++)
                     {
-                        if (!TryResolve(arguments[i], out var arg))
+                        if (!TryResolveNode(function.Arguments[i], out var arg))
                         {
                             result = default;
                             return false;
@@ -301,7 +365,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                     foreach (var node in userFunction.Body)
                     {
                         // Parse the function
-                        if (!TryResolve(node, out result))
+                        if (!TryResolveNode(node, out result))
                             return false;
                     }
                 }
@@ -317,7 +381,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         }
 
         // If the user-defined function doesn't exist, try to find a built-in function
-        if (AllowBuiltInFunctions && _builtInFunctions.TryGetValue(name, out var function))
+        if (AllowBuiltInFunctions && _builtInFunctions.TryGetValue(function.Name, out var builtInFunction))
         {
             // Avoid that our arguments are converted back to output units
             bool oldResolveOutput = ResolveOutputUnits;
@@ -326,9 +390,9 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
             var args = new List<Quantity<T>>();
             try
             {
-                foreach (var arg in arguments)
+                foreach (var arg in function.Arguments)
                 {
-                    if (!TryResolve(arg, out var a))
+                    if (!TryResolveNode(arg, out var a))
                     {
                         result = default;
                         return false;
@@ -341,11 +405,119 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                 ResolveOutputUnits = oldResolveOutput;
             }
 
-            return function(args, this, out result);
+            return builtInFunction(args, this, out result);
         }
 
-        PostDiagnosticMessage(new($"Could not find a function with the name '{name}' and {arguments.Count} argument(s)."));
+        PostDiagnosticMessage(new($"Could not find a function with the name '{function.Name}' and {function.Arguments.Count} argument(s)."));
         result = default;
+        return false;
+    }
+
+    private bool TryResolveNode(ScalarNode scalar, out Quantity<T> result)
+        => Resolver.TryScalar(scalar.Content.ToString(), this, out result);
+
+    private bool TryResolveNode(TernaryNode ternary, out Quantity<T> result)
+    {
+        switch (ternary.Type)
+        {
+            case TernaryNodeTypes.Condition:
+                if (!TryResolveNode(ternary.A, out var condition) ||
+                    !Resolver.TryIsTrue(condition, this, out bool conditionResult))
+                {
+                    result = Resolver.Default;
+                    return false;
+                }
+
+                if (conditionResult)
+                {
+                    if (!TryResolveNode(ternary.B, out result))
+                        return false;
+                }
+                else
+                {
+                    if (!TryResolveNode(ternary.C, out result))
+                        return false;
+                }
+                return true;
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private bool TryResolveNode(UnaryNode unary, out Quantity<T> result)
+    {
+        switch (unary.Type)
+        {
+            case UnaryOperatorTypes.RemoveUnits:
+                if (unary.Argument is BinaryNode binary && binary.Type == BinaryOperatorTypes.InUnit)
+                {
+                    if (!TryResolveNode(binary.Left, out var value) ||
+                        !TryResolveNode(binary.Right, out var unit))
+                    {
+                        result = Resolver.Default;
+                        return false;
+                    }
+                    if (unit.Unit != value.Unit)
+                    {
+                        PostDiagnosticMessage(new($"Cannot convert units as they don't match"));
+                        result = Resolver.Default;
+                        return false;
+                    }
+                    else
+                    {
+                        if (!Resolver.TryDivide(value, unit, this, out result))
+                            return false;
+                        result = new Quantity<T>(result.Scalar, Unit.UnitNone);
+                        return true;
+                    }
+                }
+
+                if (!TryResolveNode(unary.Argument, out result))
+                    return false;
+                result = new Quantity<T>(result.Scalar, Unit.UnitNone);
+                return true;
+
+            case UnaryOperatorTypes.Plus:
+                return TryResolveNode(unary.Argument, out result) && Resolver.TryPlus(result, this, out result);
+
+            case UnaryOperatorTypes.Minus:
+                return TryResolveNode(unary.Argument, out result) && Resolver.TryMinus(result, this, out result);
+
+            case UnaryOperatorTypes.Factorial:
+                return TryResolveNode(unary.Argument, out result) && Resolver.TryFactorial(result, this, out result);
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private bool TryResolveNode(UnitNode unit, out Quantity<T> result)
+    {
+        if (!AllowUnits)
+        {
+            PostDiagnosticMessage(new("Units are not allowed"));
+            result = default;
+            return false;
+        }
+
+        if (ResolveInputUnits)
+        {
+            if (InputUnits.TryGetValue(unit.Content.ToString(), out result))
+                return true;
+            PostDiagnosticMessage(new($"Could not recognize unit '{unit}'."));
+            return false;
+        }
+
+        result = new Quantity<T>(Resolver.One, new Unit((unit.Content.ToString(), 1)));
+        return true;
+    }
+
+    private bool TryResolveNode(VariableNode variable, out Quantity<T> result)
+    {
+        if (Scope.TryGetComputedVariable(variable.Content.ToString(), out result))
+            return true;
+        PostDiagnosticMessage(new($"Could not find a variable with the name '{variable.Content}'"));
         return false;
     }
 
@@ -456,7 +628,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         // Evaluate the node and assign the result
         try
         {
-            if (!TryResolve(node, out var result))
+            if (!TryResolveNode(node, out var result))
                 return false;
             InputUnits[key] = result;
             return true;
@@ -475,12 +647,12 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         {
             // Resolve the output units
             ResolveInputUnits = false;
-            if (!TryResolve(outputUnits, out var outputResult))
+            if (!TryResolveNode(outputUnits, out var outputResult))
                 return false;
 
             // Resolve the same in input units
             ResolveInputUnits = true;
-            if (!TryResolve(node, out var baseResult) ||
+            if (!TryResolveNode(node, out var baseResult) ||
                 !Resolver.TryDivide(baseResult, outputResult, this, out var division))
                 return false;
 

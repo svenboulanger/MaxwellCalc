@@ -1,7 +1,4 @@
-﻿using MaxwellCalc.Core.Domains;
-using MaxwellCalc.Core.Units;
-using MaxwellCalc.Core.Workspaces;
-using System;
+﻿using System;
 
 namespace MaxwellCalc.Core.Parsers.Nodes
 {
@@ -13,9 +10,5 @@ namespace MaxwellCalc.Core.Parsers.Nodes
     {
         /// <inheritdoc />
         public ReadOnlyMemory<char> Content { get; } = content;
-
-        /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
-            => resolver.TryScalar(Content.ToString(), workspace, out result);
     }
 }

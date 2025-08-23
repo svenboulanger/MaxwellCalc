@@ -26,18 +26,5 @@ namespace MaxwellCalc.Core.Parsers.Nodes
         /// Gets the arguments of the function.
         /// </summary>
         public IReadOnlyList<INode> Arguments { get; } = arguments is not null ? arguments.AsReadOnly() : Array.Empty<INode>();
-
-        /// <inheritdoc />
-        public bool TryResolve<T>(IDomain<T> resolver, IWorkspace<T>? workspace, out Quantity<T> result) where T : IFormattable
-        {
-            if (workspace is null)
-            {
-                // No support for functions
-                result = default;
-                return false;
-            }
-
-            return workspace.TryCalculateFunction(Name, Arguments, out result);
-        }
     }
 }

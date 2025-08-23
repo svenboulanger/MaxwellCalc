@@ -168,16 +168,16 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the absolute value of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the absolute value of a real number. The result has the same units as the argument.")]
-        public static bool Abs(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Abs(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 1)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a single argument for {nameof(Abs)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a single argument for {nameof(Abs)}()."));
                 return false;
             }
             result = new Quantity<double>(Math.Abs(args[0].Scalar), args[0].Unit);
@@ -188,13 +188,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the sine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the sine of a real number. The argument is expected to be in radians, or without units.")]
-        public static bool Sin(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Sin(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleGivenUnitArgument(Unit.UnitRadian, workspace, nameof(Sin), out result))
+            if (!args.SingleGivenUnitArgument(Unit.UnitRadian, diagnostics, nameof(Sin), out result))
                 return false;
             result = new Quantity<double>(Math.Sin(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -204,13 +204,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the cosine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the cosine of a real number. The argument is expected to be in radians, or without units.")]
-        public static bool Cos(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Cos(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleGivenUnitArgument(Unit.UnitRadian, workspace, nameof(Cos), out result))
+            if (!args.SingleGivenUnitArgument(Unit.UnitRadian, diagnostics, nameof(Cos), out result))
                 return false;
             result = new Quantity<double>(Math.Cos(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -220,13 +220,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the tangent of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the tangent of a real number. The argument is expected to be in radians, or without units.")]
-        public static bool Tan(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Tan(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleGivenUnitArgument(Unit.UnitRadian, workspace, nameof(Tan), out result))
+            if (!args.SingleGivenUnitArgument(Unit.UnitRadian, diagnostics, nameof(Tan), out result))
                 return false;
             result = new Quantity<double>(Math.Tan(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -236,13 +236,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the hyperbolic sine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the hyperbolic sine of a real number.")]
-        public static bool Sinh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Sinh(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Sinh), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Sinh), out result))
                 return false;
             result = new Quantity<double>(Math.Sinh(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -252,13 +252,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the hyperbolic cosine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the hyperbolic cosine of a real number. The argument is expected to have no units.")]
-        public static bool Cosh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Cosh(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Cosh), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Cosh), out result))
                 return false;
             result = new Quantity<double>(Math.Cosh(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -268,13 +268,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the hyperbolic tangent of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the hyperbolic tangent of a real number. The argument is expected to have no units.")]
-        public static bool Tanh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Tanh(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Tanh), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Tanh), out result))
                 return false;
             result = new Quantity<double>(Math.Tanh(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -284,13 +284,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the exponential of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the exponential of a real number. The argument is expected to have no units.")]
-        public static bool Exp(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Exp(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Exp), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Exp), out result))
                 return false;
             result = new Quantity<double>(Math.Exp(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -300,13 +300,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the natural logarithm of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the natural logarithm of a real number. The argument is expected to be positive and to have no units.")]
-        public static bool Ln(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Ln(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Ln), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Ln), out result))
                 return false;
             result = new Quantity<double>(Math.Log(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -316,13 +316,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the base-10 logarithm of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculate the base-10 logarithm of a real number. The argument is expected to be positive and to have no units.")]
-        public static bool Log10(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Log10(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Log10), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Log10), out result))
                 return false;
             result = new Quantity<double>(Math.Log10(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -332,13 +332,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the base-2 logarithm of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the base-2 logarithm of a real number. The argument is expected to be positive and to have no units.")]
-        public static bool Log2(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Log2(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Log2), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Log2), out result))
                 return false;
             result = new Quantity<double>(Math.Log(args[0].Scalar) / Math.Log(2), Unit.UnitNone);
             return true;
@@ -348,23 +348,23 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the square root of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the square root of a real number. The argument is expected to be positive and to have no units.")]
-        public static bool Sqrt(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Sqrt(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a single argument for {nameof(Sqrt)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a single argument for {nameof(Sqrt)}()."));
                 return false;
             }
             if (args[0].Scalar < 0.0)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Cannot calculate the square root of a negative number. If this was intended, please us a complex domain."));
+                diagnostics?.PostDiagnosticMessage(new($"Cannot calculate the square root of a negative number. If this was intended, please us a complex domain."));
                 return false;
             }
             var arg = args[0];
@@ -378,18 +378,18 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the arcsine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the arcsine of a real number. The argument is expected to be between -1 and 1, and to have no units.")]
-        public static bool Asin(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Asin(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Asin), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Asin), out result))
                 return false;
             if (args[0].Scalar < -1.0 || args[0].Scalar > 1.0)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"The argument for {nameof(Asin)}() is out of range [-1, 1]."));
+                diagnostics?.PostDiagnosticMessage(new($"The argument for {nameof(Asin)}() is out of range [-1, 1]."));
                 return false;
             }
             result = new Quantity<double>(Math.Asin(args[0].Scalar), Unit.UnitNone);
@@ -400,18 +400,18 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the arccosine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the arccosine of a real number. The argument is expected to be between -1 and 1, and to have no units.")]
-        public static bool Acos(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Acos(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Acos), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Acos), out result))
                 return false;
             if (args[0].Scalar < -1.0 || args[0].Scalar > 1.0)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new("The argument for acos() is out of range [-1, 1]."));
+                diagnostics?.PostDiagnosticMessage(new("The argument for acos() is out of range [-1, 1]."));
                 return false;
             }
             result = new Quantity<double>(Math.Acos(args[0].Scalar), Unit.UnitNone);
@@ -422,13 +422,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the arctangent of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the arctangent of a real number. The argument is expected to have no units.")]
-        public static bool Atan(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Atan(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Atan), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Atan), out result))
                 return false;
             result = new Quantity<double>(Math.Atan(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -438,13 +438,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the hyperbolic arcsine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the hyperbolic arcsine of a real number. The argument is expected to have no units.")]
-        public static bool Asinh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Asinh(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Asinh), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Asinh), out result))
                 return false;
             result = new Quantity<double>(Math.Asinh(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -454,13 +454,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the hyperbolic arccosine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the hyperbolic arccosine of a real number. The argument is expected to have no units.")]
-        public static bool Acosh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Acosh(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Acosh), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Acosh), out result))
                 return false;
             result = new Quantity<double>(Math.Acosh(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -470,13 +470,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the hyperbolic arctangent of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the hyperbolic arctangent of a real number. The argument is expected to have no units.")]
-        public static bool Atanh(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Atanh(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Atanh), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Atanh), out result))
                 return false;
             result = new Quantity<double>(Math.Atanh(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -486,24 +486,24 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the arcsine of a quantity.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the full arctangent of a real number where the first argument is the Y-coordinate and the second is the X-coordinate. Both arguments need to have the same units.")]
         [MinArg(2), MaxArg(2)]
-        public static bool Atan2(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Atan2(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 2)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a two arguments for {nameof(Atan2)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a two arguments for {nameof(Atan2)}()."));
                 return false;
             }
             if (args[0].Unit != args[1].Unit)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected the two arguments to have the same units for {nameof(Atan2)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected the two arguments to have the same units for {nameof(Atan2)}()."));
                 return false;
             }
             result = new Quantity<double>(Math.Atan2(args[0].Scalar, args[1].Scalar), Unit.UnitNone);
@@ -514,16 +514,16 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the maximum of a number of arguments.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the maximum of a number of arguments. All arguments need to have the same units."), MinArg(1), MaxArg(int.MaxValue)]
-        public static bool Max(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Max(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count < 1)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected at least 1 argument for {nameof(Max)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected at least 1 argument for {nameof(Max)}()."));
                 return false;
             }
 
@@ -534,7 +534,7 @@ namespace MaxwellCalc.Core.Workspaces
                 if (!unit.Equals(args[i].Unit))
                 {
                     result = _invalid;
-                    workspace.PostDiagnosticMessage(new($"The units of the arguments do not match for {nameof(Max)}()."));
+                    diagnostics?.PostDiagnosticMessage(new($"The units of the arguments do not match for {nameof(Max)}()."));
                     return false;
                 }
                 value = Math.Max(value, args[i].Scalar);
@@ -549,16 +549,16 @@ namespace MaxwellCalc.Core.Workspaces
         /// Computes the minimum of a number of arguments.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the minimum of a number of arguments. All arguments need to have the same units."), MinArg(1), MaxArg(int.MaxValue)]
-        public static bool Min(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Min(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count < 1)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected at least 1 argument for {nameof(Min)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected at least 1 argument for {nameof(Min)}()."));
                 return false;
             }
 
@@ -569,7 +569,7 @@ namespace MaxwellCalc.Core.Workspaces
                 if (!unit.Equals(args[i].Unit))
                 {
                     result = _invalid;
-                    workspace.PostDiagnosticMessage(new($"The units of the arguments do not match for {nameof(Min)}()."));
+                    diagnostics?.PostDiagnosticMessage(new($"The units of the arguments do not match for {nameof(Min)}()."));
                     return false;
                 }
                 value = Math.Min(value, args[i].Scalar);
@@ -584,17 +584,17 @@ namespace MaxwellCalc.Core.Workspaces
         /// Rounds a number.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Rounds a number to some precision. The optional second argument should not have any units, and should be an integer. If the second argument for precision is not specified, a precision of 0 digits after the comma is assumed.")]
         [MinArg(1), MaxArg(2)]
-        public static bool Round(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Round(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 1 && args.Count != 2)
             {
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected 1 or 2 arguments for {nameof(Round)}()"));
+                diagnostics?.PostDiagnosticMessage(new($"Expected 1 or 2 arguments for {nameof(Round)}()"));
                 return false;
             }
 
@@ -606,7 +606,7 @@ namespace MaxwellCalc.Core.Workspaces
                 {
                     // Cannot deal with units
                     result = _invalid;
-                    workspace.PostDiagnosticMessage(new($"Expected the second argument to not have units units for {nameof(Round)}()."));
+                    diagnostics?.PostDiagnosticMessage(new($"Expected the second argument to not have units units for {nameof(Round)}()."));
                     return false;
                 }
 
@@ -620,13 +620,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the factorial of a number.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the factorial of a number. The argument is expected to be a positive integer, and to have no units. The argument is expected to have no units.")]
-        public static bool Factorial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Factorial(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, nameof(Factorial), out result))
+            if (!args.SingleNonUnitArgument(diagnostics, nameof(Factorial), out result))
                 return false;
             int value = (int)args[0].Scalar;
             result = new Quantity<double>(FactorialFunctions.Factorial(value), Unit.UnitNone);
@@ -637,17 +637,17 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the natural logarithm of a number.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the natural logarithm of the factorial of a number. The argument is expected to be a positive integer, and to have no units. The argument is expected to have no units.")]
-        public static bool FactorialLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool FactorialLn(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a single argument for {nameof(FactorialLn)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a single argument for {nameof(FactorialLn)}()."));
                 return false;
             }
             var arg = args[0];
@@ -655,7 +655,7 @@ namespace MaxwellCalc.Core.Workspaces
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected an argument without units for {nameof(FactorialLn)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected an argument without units for {nameof(FactorialLn)}()."));
                 return false;
             }
             int value = (int)arg.Scalar;
@@ -667,25 +667,25 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the binomial of two numbers.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("B"), CalculatorDescription("Calculates the binomial of two numbers. The arguments are expected to be positive integers, and to not have any units.")]
         [MinArg(2), MaxArg(2)]
-        public static bool Binomial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Binomial(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 2)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected two argument for {nameof(Binomial)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected two argument for {nameof(Binomial)}()."));
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected an arguments without units for {nameof(Binomial)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected an arguments without units for {nameof(Binomial)}()."));
                 return false;
             }
             var a = (int)args[0].Scalar;
@@ -698,25 +698,25 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the natural logarithm of two numbers.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("BLn"), CalculatorDescription("Calculates the natural logarithm of the binomial of two numbers. The arguments are expected to be positive integers, and to not have any units.")]
         [MinArg(2), MaxArg(2)]
-        public static bool BinomialLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool BinomialLn(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 2)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected two arguments for {nameof(BinomialLn)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected two arguments for {nameof(BinomialLn)}()."));
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected an arguments without units for {nameof(BinomialLn)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected an arguments without units for {nameof(BinomialLn)}()."));
                 return false;
             }
             var a = (int)args[0].Scalar;
@@ -729,17 +729,17 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the multinomial of multiple numbers.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The result.</param>
+        /// <param name="diagnostics">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorDescription("Calculates the multinomial of a number of arguments. The first is n, the others are the k's in the denominator. The arguments are expected to be positive integers, and to have no units.")]
-        public static bool Multinomial(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Multinomial(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count < 2)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected at least two argument for {nameof(Multinomial)}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected at least two argument for {nameof(Multinomial)}()."));
                 return false;
             }
             int n = 0;
@@ -749,7 +749,7 @@ namespace MaxwellCalc.Core.Workspaces
                 if (args[0].Unit != Unit.UnitNone)
                 {
                     result = _invalid;
-                    workspace.PostDiagnosticMessage(new($"Expected all arguments without units for {nameof(Multinomial)}()."));
+                    diagnostics?.PostDiagnosticMessage(new($"Expected all arguments without units for {nameof(Multinomial)}()."));
                     return false;
                 }
                 if (i == 0)
@@ -765,13 +765,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the exponential integral of a number.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("Ei"), CalculatorDescription("Calculates the exponential integral Ei(x). The argument is expected to not have units.")]
-        public static bool Expi(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Expi(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, "Ei", out result))
+            if (!args.SingleNonUnitArgument(diagnostics, "Ei", out result))
                 return false;
             result = new Quantity<double>(ExponentialIntegralFunctions.ExpI(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -781,13 +781,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the exp(-x) * Ei(x).
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("expEi"), CalculatorDescription("Calculates exp(-x) * Ei(x). This function converges for very large arguments. The argument is expected to not have units.")]
-        public static bool ExpiExp(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool ExpiExp(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, "expEi", out result))
+            if (!args.SingleNonUnitArgument(diagnostics, "expEi", out result))
                 return false;
             result = new Quantity<double>(ExponentialIntegralFunctions.ExpExpI(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -797,13 +797,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the exponential integral of a number.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The result.</param>
+        /// <param name="diagnostics">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("E1"), CalculatorDescription("Calculates the generalized exponential integral of a number with n=1. The argument is expected to not have units.")]
-        public static bool Exp1(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Exp1(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, "E1", out result))
+            if (!args.SingleNonUnitArgument(diagnostics, "E1", out result))
                 return false;
             result = new Quantity<double>(ExponentialIntegralFunctions.Exp1(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -813,13 +813,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates exp(x) * E1(x).
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The result.</param>
+        /// <param name="diagnostics">The result.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("expE1"), CalculatorDescription("Calculates exp(x) * E1(x). This function converges for very large arguments. The argument is expected to be positive, and to not have units.")]
-        public static bool Exp1Exp(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Exp1Exp(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, "expE1", out result))
+            if (!args.SingleNonUnitArgument(diagnostics, "expE1", out result))
                 return false;
             result = new Quantity<double>(ExponentialIntegralFunctions.ExpExp1(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -829,25 +829,25 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the generalized exponential integral of a number.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("En"), CalculatorDescription("Calculates the generalized exponential integral of a number, with the second argument representing n. The arguments is expected to not have units.")]
         [MinArg(2), MaxArg(2)]
-        public static bool Expn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Expn(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
             if (args.Count != 2)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a single argument for En()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a single argument for En()."));
                 return false;
             }
             if (args[0].Unit != Unit.UnitNone || args[1].Unit != Unit.UnitNone)
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected all arguments to not have units for En()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected all arguments to not have units for En()."));
                 return false;
             }
             int n = (int)args[1].Scalar;
@@ -859,13 +859,13 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the Gamma function.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("Gamma"), CalculatorDescription("Calculates the Gamma function. The argument is expected to not have units.")]
-        public static bool Gamma(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool Gamma(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, "Gamma", out result))
+            if (!args.SingleNonUnitArgument(diagnostics, "Gamma", out result))
                 return false;
             result = new Quantity<double>(GammaFunctions.Gamma(args[0].Scalar), Unit.UnitNone);
             return true;
@@ -875,25 +875,25 @@ namespace MaxwellCalc.Core.Workspaces
         /// Calculates the natural logarithm of the Gamma function.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        /// <param name="workspace">The workspace.</param>
+        /// <param name="diagnostics">The diagnostics.</param>
         /// <param name="result">The result.</param>
         /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
         [CalculatorName("GammaLn"), CalculatorDescription("Calculates the natural logarithm of the Gamma function. The argument is expected to not have units.")]
-        public static bool GammaLn(IReadOnlyList<Quantity<double>> args, IWorkspace workspace, out Quantity<double> result)
+        public static bool GammaLn(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
         {
-            if (!args.SingleNonUnitArgument(workspace, "GammaLn", out result))
+            if (!args.SingleNonUnitArgument(diagnostics, "GammaLn", out result))
                 return false;
             result = new Quantity<double>(GammaFunctions.GammaLn(args[0].Scalar), Unit.UnitNone);
             return true;
         }
 
-        private static bool SingleGivenUnitArgument(this IReadOnlyList<Quantity<double>> args, Unit unit, IWorkspace workspace, string name, out Quantity<double> result)
+        private static bool SingleGivenUnitArgument(this IReadOnlyList<Quantity<double>> args, Unit unit, IDiagnosticsHandler? diagnostics, string name, out Quantity<double> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
                 return false;
             }
             var arg = args[0];
@@ -901,20 +901,20 @@ namespace MaxwellCalc.Core.Workspaces
             {
                 // Cannot 
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected an argument without units, or in radians for {name}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected an argument without units, or in radians for {name}()."));
                 return false;
             }
             result = default;
             return true;
         }
 
-        private static bool SingleNonUnitArgument(this IReadOnlyList<Quantity<double>> args, IWorkspace workspace, string name, out Quantity<double> result)
+        private static bool SingleNonUnitArgument(this IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, string name, out Quantity<double> result)
         {
             if (args.Count != 1)
             {
                 // Only one argument allowed
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected a single argument for {name}()."));
                 return false;
             }
             var arg = args[0];
@@ -922,7 +922,7 @@ namespace MaxwellCalc.Core.Workspaces
             {
                 // Cannot deal with units
                 result = _invalid;
-                workspace.PostDiagnosticMessage(new($"Expected an argument without units for {name}()."));
+                diagnostics?.PostDiagnosticMessage(new($"Expected an argument without units for {name}()."));
                 return false;
             }
             result = default;
