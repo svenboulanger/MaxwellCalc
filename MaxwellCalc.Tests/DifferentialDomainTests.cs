@@ -3,11 +3,6 @@ using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Core.Workspaces.Variables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MaxwellCalc.Tests
 {

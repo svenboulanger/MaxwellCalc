@@ -118,7 +118,7 @@ namespace MaxwellCalc.Controls
                 var run = new Run()
                 {
                     Text = " " + p.Key,
-                    Foreground = UnitForeground
+                    Foreground = UnitForeground,
                 };
                 _output.Inlines.Add(run);
 
@@ -128,7 +128,7 @@ namespace MaxwellCalc.Controls
                     run = new Run()
                     {
                         Text = p.Value.ToString(),
-                        BaselineAlignment = BaselineAlignment.Top,
+                        BaselineAlignment = BaselineAlignment.Superscript,
                         Foreground = UnitForeground,
                         FontSize = exponentFontSize,
                     };

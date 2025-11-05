@@ -114,7 +114,7 @@
 																Margin="5"
 																VerticalAlignment="Center"
 																Grid.Column="1" />
-									<controls:FormattedQuantity Value="{Binding Value}}"
+									<controls:FormattedQuantity Value="{Binding Value}"
 																VerticalAlignment="Center"
 																Margin="5"
 																Grid.Column="2" />
