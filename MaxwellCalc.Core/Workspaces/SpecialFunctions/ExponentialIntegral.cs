@@ -69,7 +69,7 @@ namespace MaxwellCalc.Core.Workspaces.SpecialFunctions
                     if (Math.Abs(r) <= Math.Abs(e1) * 1e-15)
                         break;
                 }
-                return -ga - Math.Log(x) + x * e1;
+                return Math.Exp(x) * (-ga - Math.Log(x) + x * e1);
             }
             m = 20 + (int)(80.0 / x);
             t0 = 0.0;
