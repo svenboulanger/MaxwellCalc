@@ -15,7 +15,7 @@
             
             <SelectableTextBlock
               Name ="DescriptionBlock"
-              Foreground="{TemplateBinding UnitForeground}"
+              Foreground="{TemplateBinding UnitForeground, Mode=OneWay}"
               VerticalAlignment="Center"
               FontWeight="Bold"
               Grid.Column="0" />
@@ -25,8 +25,8 @@
 					Margin="5 0 0 0"
 					Padding="5"
 					Name="RemoveButton">
-              <PathIcon Width="{TemplateBinding FontSize}" 
-						Height="{TemplateBinding FontSize}" 
+              <PathIcon Width="{TemplateBinding FontSize, Mode=OneWay}" 
+						Height="{TemplateBinding FontSize, Mode=OneWay}" 
 						Data="{StaticResource trash}"/>
             </Button>
           </Grid>

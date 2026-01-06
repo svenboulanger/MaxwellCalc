@@ -19,7 +19,7 @@
 					   Padding="5">
 			<TextBox Watermark="Search"
 					 Height="20"
-					 Text="{Binding Filter}" />
+					 Text="{Binding Filter, Mode=OneWayToSource}" />
 		</material:Card>
 
 		<material:Card DockPanel.Dock="Bottom"
@@ -27,10 +27,10 @@
 					   Margin="5">
 			<FlyoutBase.AttachedFlyout>
 				<Flyout ShowMode="Transient">
-					<ItemsControl ItemsSource="{Binding Diagnostics}">
+					<ItemsControl ItemsSource="{Binding Diagnostics, Mode=OneWay}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<TextBlock Text="{Binding}"
+								<TextBlock Text="{Binding, Mode=OneWay}"
 										   Foreground="Red" />
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>
@@ -47,7 +47,7 @@
 						 Margin="5"
 						 Grid.Column="1">
 					<TextBox.KeyBindings>
-						<KeyBinding Command="{Binding AddConstantCommand}" Gesture="Enter" />
+						<KeyBinding Command="{Binding AddConstantCommand, Mode=OneTime}" Gesture="Enter" />
 					</TextBox.KeyBindings>
 				</TextBox>
 				<TextBox Text="{Binding Description}"
@@ -55,12 +55,12 @@
 						 Margin="5"
 						 Grid.Column="2">
 					<TextBox.KeyBindings>
-						<KeyBinding Command="{Binding AddConstantCommand}" Gesture="Enter" />
+						<KeyBinding Command="{Binding AddConstantCommand, Mode=OneTime}" Gesture="Enter" />
 					</TextBox.KeyBindings>
 				</TextBox>
 				<Button Content="{materialIcons:MaterialIconExt Kind=Add}"
 						VerticalAlignment="Center"
-						Command="{Binding AddConstantCommand}"
+						Command="{Binding AddConstantCommand, Mode=OneTime}"
 						Grid.Column="3" />
 			</Grid>
 		</material:Card>
@@ -69,10 +69,10 @@
 			<DockPanel>
 				<DockPanel.ContextMenu>
 					<ContextMenu>
-						<MenuItem Header="Remove selected items" Command="{Binding RemoveSelectedItemsCommand}" />
-						<MenuItem Header="Remove all items" Command="{Binding RemoveAllItemsCommand}" />
+						<MenuItem Header="Remove selected items" Command="{Binding RemoveSelectedItemsCommand, Mode=OneTime}" />
+						<MenuItem Header="Remove all items" Command="{Binding RemoveAllItemsCommand, Mode=OneTime}" />
 						<Separator />
-						<MenuItem Header="Add common constants" Command="{Binding AddCommonConstantsCommand}" />
+						<MenuItem Header="Add common constants" Command="{Binding AddCommonConstantsCommand, Mode=OneTime}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
@@ -106,7 +106,12 @@
 							<Setter Property="Background" Value="{DynamicResource MaterialPaperBrush}" />
 						</Style>
 					</ScrollViewer.Styles>
-					<ItemsControl ItemsSource="{Binding Items}">
+					<ItemsControl ItemsSource="{Binding Items, Mode=OneWay}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<VirtualizingStackPanel/>
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
 								<Grid ColumnDefinitions="40, 150, 300, *, 50"
@@ -114,16 +119,16 @@
 									<CheckBox Margin="5"
 											  VerticalAlignment="Center"
 											  IsChecked="{Binding Selected}" />
-									<SelectableTextBlock Text="{Binding Name}"
+									<SelectableTextBlock Text="{Binding Name, Mode=OneWay}"
 														 FontWeight="Bold"
 														 Margin="5"
 														 VerticalAlignment="Center"
 														 Grid.Column="1"/>
-									<controls:CopyableQuantity Value="{Binding Value}"
+									<controls:CopyableQuantity Value="{Binding Value, Mode=OneWay}"
 															   Margin="5"
 															   Grid.Column="2"
 															   VerticalAlignment="Center"/>
-									<SelectableTextBlock Text="{Binding Description}"
+									<SelectableTextBlock Text="{Binding Description, Mode=OneWay}"
 														 Margin="5"
 														 VerticalAlignment="Center"
 														 Grid.Column="3" />
@@ -133,8 +138,8 @@
 											Padding="3"
 											Margin="5 5 20 5"
 											Classes="Outline"
-											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
-											CommandParameter="{Binding}"/>
+											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand, Mode=OneWay}"
+											CommandParameter="{Binding, Mode=OneWay}"/>
 								</Grid>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>

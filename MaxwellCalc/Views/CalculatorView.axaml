@@ -29,20 +29,26 @@
 						 VerticalAlignment="Center"
 						 Name="InputExpressionTextBox">
 					<TextBox.KeyBindings>
-						<KeyBinding Command="{Binding EvaluateCommand}" Gesture="Enter" />
-						<KeyBinding Command="{Binding TrackHistoryUpCommand}" Gesture="Up" />
-						<KeyBinding Command="{Binding TrackHistoryDownCommand}" Gesture="Down" />
+						<KeyBinding Command="{Binding EvaluateCommand, Mode=OneWay}" Gesture="Enter" />
+						<KeyBinding Command="{Binding TrackHistoryUpCommand, Mode=OneWay}" Gesture="Up" />
+						<KeyBinding Command="{Binding TrackHistoryDownCommand, Mode=OneWay}" Gesture="Down" />
 					</TextBox.KeyBindings>
 				</TextBox>
 				<Button Grid.Column="1"
 						Margin="5"
 						VerticalAlignment="Center"
-						Command="{Binding EvaluateCommand}"
+						Command="{Binding EvaluateCommand, Mode=OneWay}"
 						Content="{materialIcons:MaterialIconExt Kind=KeyboardReturn}" />
 			</Grid>
 		</material:Card>
 		<ScrollViewer behaviors:ScrollViewerBehavior.AutoScrollToEnd="True">
-			<ItemsControl ItemsSource="{Binding Results}" />
+			<ItemsControl ItemsSource="{Binding Results, Mode=OneWay}">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<VirtualizingStackPanel/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+			</ItemsControl>
 		</ScrollViewer>
 	</DockPanel>
 </UserControl>

@@ -14,25 +14,25 @@
 	</Design.DataContext>
 	<material:Card Margin="5">
 		<StackPanel Orientation="Vertical">
-			<SelectableTextBlock Text="{Binding Expression}"
+			<SelectableTextBlock Text="{Binding Expression, Mode=OneWay}"
 								 Margin="0 0 0 5"
 								 Foreground="{DynamicResource MaterialBodyLightBrush}"/>
 			<StackPanel Orientation="Horizontal"
-						IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+						IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}, Mode=OneWay}">
 				<materialIcon:MaterialIcon Kind="AlertCircle"
 										   VerticalAlignment="Center"
 										   FontSize="20"
 										   Foreground="Red"/>
-				<SelectableTextBlock Text="{Binding ErrorMessage}"
+				<SelectableTextBlock Text="{Binding ErrorMessage, Mode=OneWay}"
 									 Margin="5"
 									 VerticalAlignment="Center"
 									 FontSize="20"
 									 Foreground="Red" />
 			</StackPanel>
 			<controls:CopyableQuantity VerticalAlignment="Center"
-									   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+									   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}, Mode=OneWay}"
 									   Margin="3"
-									   Value="{Binding Quantity}"
+									   Value="{Binding Quantity, Mode=OneWay}"
 									   Padding="0"
 									   FontSize="20"
 									   x:Name="quantity" />

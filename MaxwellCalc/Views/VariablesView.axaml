@@ -25,7 +25,7 @@
 			</ListBox>
 		</SplitView.Pane>
 		<SplitView.Content>
-			<TransitioningContentControl Content="{Binding CurrentPage}" />
+			<TransitioningContentControl Content="{Binding CurrentPage, Mode=OneWay}" />
 		</SplitView.Content>
 	</SplitView>
 </UserControl>

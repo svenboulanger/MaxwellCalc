@@ -24,17 +24,17 @@
 					   Padding="5">
 			<TextBox Watermark="Search"
 					 Height="20"
-					 Text="{Binding Filter}" />
+					 Text="{Binding Filter, Mode=OneWayToSource}" />
 		</material:Card>
 
 		<material:Card DockPanel.Dock="Bottom"
 					   Margin="5">
 			<FlyoutBase.AttachedFlyout>
 				<Flyout ShowMode="Transient">
-					<ItemsControl ItemsSource="{Binding Diagnostics}">
+					<ItemsControl ItemsSource="{Binding Diagnostics, Mode=OneWay}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<TextBlock Text="{Binding}"
+								<TextBlock Text="{Binding, Mode=OneWay}"
 										   Foreground="Red" />
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>
@@ -51,12 +51,12 @@
 						 Margin="5"
 						 Grid.Column="1">
 					<TextBox.KeyBindings>
-						<KeyBinding Command="{Binding AddOutputUnitCommand}" Gesture="Enter" />
+						<KeyBinding Command="{Binding AddOutputUnitCommand, Mode=OneTime}" Gesture="Enter" />
 					</TextBox.KeyBindings>
 				</TextBox>
 				<Button Content="{materialIcons:MaterialIconExt Kind=Add}"
 						VerticalAlignment="Center"
-						Command="{Binding AddOutputUnitCommand}"
+						Command="{Binding AddOutputUnitCommand, Mode=OneTime}"
 						Grid.Column="2" />
 			</Grid>
 		</material:Card>
@@ -65,11 +65,11 @@
 			<DockPanel>
 				<DockPanel.ContextMenu>
 					<ContextMenu>
-						<MenuItem Header="Remove selected units" Command="{Binding RemoveSelectedItemsCommand}" />
-						<MenuItem Header="Remove all units" Command="{Binding RemoveAllItemsCommand}" />
+						<MenuItem Header="Remove selected units" Command="{Binding RemoveSelectedItemsCommand, Mode=OneTime}" />
+						<MenuItem Header="Remove all units" Command="{Binding RemoveAllItemsCommand, Mode=OneTime}" />
 						<Separator />
-						<MenuItem Header="Add common input and output units" Command="{Binding AddCommonUnitsCommand}" />
-						<MenuItem Header="Add electrical input and output units" Command="{Binding AddCommonElectronicsUnitsCommand}" />
+						<MenuItem Header="Add common input and output units" Command="{Binding AddCommonUnitsCommand, Mode=OneTime}" />
+						<MenuItem Header="Add electrical input and output units" Command="{Binding AddCommonElectronicsUnitsCommand, Mode=OneTime}" />
 					</ContextMenu>
 				</DockPanel.ContextMenu>
 				<Border BorderThickness="0,0,0,1"
@@ -100,7 +100,12 @@
 							<Setter Property="Background" Value="{DynamicResource MaterialPaperBrush}" />
 						</Style>
 					</ScrollViewer.Styles>
-					<ItemsControl ItemsSource="{Binding Items}">
+					<ItemsControl ItemsSource="{Binding Items, Mode=OneWay}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<VirtualizingStackPanel/>
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
 						<ItemsControl.ItemTemplate>
 							<DataTemplate x:DataType="vm:OutputUnitViewModel">
 								<Grid ColumnDefinitions="40, 150, *, Auto"
@@ -109,12 +114,12 @@
 											  VerticalAlignment="Center"
 											  Margin="5"
 											  Grid.Column="0" />
-									<controls:FormattedQuantity Value="{Binding Unit, Converter={x:Static my:ConverterHelpers.UnitToQuantityConverter}}"
+									<controls:FormattedQuantity Value="{Binding Unit, Converter={x:Static my:ConverterHelpers.UnitToQuantityConverter}, Mode=OneWay}"
 																FontWeight="Bold"
 																Margin="5"
 																VerticalAlignment="Center"
 																Grid.Column="1" />
-									<controls:FormattedQuantity Value="{Binding Value}"
+									<controls:FormattedQuantity Value="{Binding Value, Mode=OneWay}"
 																VerticalAlignment="Center"
 																Margin="5"
 																Grid.Column="2" />
@@ -124,8 +129,8 @@
 											Padding="3"
 											Margin="5 5 20 5"
 											Classes="Outline"
-											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand}"
-											CommandParameter="{Binding}"/>
+											Command="{Binding $parent[ItemsControl].DataContext.RemoveItemCommand, Mode=OneWay}"
+											CommandParameter="{Binding, Mode=OneWay}"/>
 								</Grid>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>
