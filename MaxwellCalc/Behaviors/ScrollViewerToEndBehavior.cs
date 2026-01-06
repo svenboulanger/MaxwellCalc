@@ -39,7 +39,7 @@ namespace MaxwellCalc.Behaviors
                 notifyCollection.CollectionChanged += (sender, args) =>
                 {
                     // Scroll to the end if we were already scrolled to the end before
-                    if (scrollViewer.Offset.Y >= scrollViewer.Extent.Height - scrollViewer.Viewport.Height - 1.0)
+                    if (scrollViewer.Offset.Y >= scrollViewer.Extent.Height - scrollViewer.Viewport.Height - 20.0)
                         scrollViewer.ScrollToEnd();
                 };
             }
