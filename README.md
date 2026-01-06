@@ -4,6 +4,8 @@ MaxwellCalc is a calculator application that has support for scientific units. T
 
 The project uses the .NET framework with Avalonia for the UI.
 
+![Screenshot](screenshot.png)
+
 ## Differences with SpeedCrunch
 
 - Implicit multiplication has precedence over regular division. This means that `1V/1A` will result in `1Ohm`, while SpeedCrunch would have returned `1 watt`.
