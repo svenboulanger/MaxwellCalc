@@ -6,11 +6,8 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <ApplicationIcon>calculator_icon.ico</ApplicationIcon>
+    <ApplicationIcon>maxwell_calc.ico</ApplicationIcon>
   </PropertyGroup>
-  <ItemGroup>
-    <Content Include="calculator_icon.ico" />
-  </ItemGroup>
 
 
   <ItemGroup>
@@ -56,5 +53,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MaxwellCalc.Core\MaxwellCalc.Core.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <AvaloniaResource Remove="maxwell_calc.ico" />
   </ItemGroup>
 </Project>

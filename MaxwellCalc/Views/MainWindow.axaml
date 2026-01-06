@@ -33,7 +33,7 @@
 				   IsHitTestVisible="False"
 				   HorizontalAlignment="Center"
 				   />
-		<SplitView IsPaneOpen="{Binding IsPaneOpen}"
+		<SplitView IsPaneOpen="{Binding IsPaneOpen, Mode=OneWay}"
 				   Margin="0 0 0 10"
 				   OpenPaneLength="200"
 				   CompactPaneLength="40"
@@ -46,7 +46,7 @@
 						<Button Classes="Flat"
 								Padding="8 5 5 5"
 								Margin="0"
-								Command="{Binding TogglePaneCommand}">
+								Command="{Binding TogglePaneCommand, Mode=OneTime}">
 							<materialIcons:MaterialIcon Kind="Menu"
 										Width="26"
 										Height="26"
@@ -57,7 +57,7 @@
 									VerticalAlignment="Center"
 									Text="" />
 					</StackPanel>
-					<ListBox ItemsSource="{Binding Panes}"
+					<ListBox ItemsSource="{Binding Panes, Mode=OneWay}"
 								SelectedItem="{Binding SelectedListItem}"
 								SelectedIndex="0"
 								Margin="0"
@@ -71,7 +71,7 @@
 				</StackPanel>
 			</SplitView.Pane>
 			<SplitView.Content>
-				<TransitioningContentControl Content="{Binding CurrentPage}" />
+				<TransitioningContentControl Content="{Binding CurrentPage, Mode=OneWay}" />
 			</SplitView.Content>
 		</SplitView>
 	</Grid>
