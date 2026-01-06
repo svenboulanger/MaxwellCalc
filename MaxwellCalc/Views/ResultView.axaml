@@ -10,25 +10,31 @@
 			 x:DataType="vm:ResultViewModel"
              x:Class="MaxwellCalc.Views.ResultView">
 	<Design.DataContext>
-		<vm:ResultViewModel />
+		<vm:ResultViewModel ErrorMessage="Hello" />
 	</Design.DataContext>
 	<material:Card Margin="5">
 		<StackPanel Orientation="Vertical">
 			<SelectableTextBlock Text="{Binding Expression, Mode=OneWay}"
 								 Margin="0 0 0 5"
 								 Foreground="{DynamicResource MaterialBodyLightBrush}"/>
-			<StackPanel Orientation="Horizontal"
-						IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}, Mode=OneWay}">
-				<materialIcon:MaterialIcon Kind="AlertCircle"
-										   VerticalAlignment="Center"
-										   FontSize="20"
-										   Foreground="Red"/>
-				<SelectableTextBlock Text="{Binding ErrorMessage, Mode=OneWay}"
-									 Margin="5"
-									 VerticalAlignment="Center"
-									 FontSize="20"
-									 Foreground="Red" />
-			</StackPanel>
+			<Border BorderBrush="#f5c6cb"
+					BorderThickness="1"
+					Background="#f8d7da"
+					CornerRadius="3"
+					Padding="5 0 0 0"
+					IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}, Mode=OneWay}">
+				<StackPanel Orientation="Horizontal">
+					<materialIcon:MaterialIcon Kind="AlertCircle"
+											   VerticalAlignment="Center"
+											   FontSize="16"
+											   Foreground="#721c24"/>
+					<SelectableTextBlock Text="{Binding ErrorMessage, Mode=OneWay}"
+										 Margin="5"
+										 VerticalAlignment="Center"
+										 FontSize="16"
+										 Foreground="#721c24" />
+				</StackPanel>
+			</Border>
 			<controls:CopyableQuantity VerticalAlignment="Center"
 									   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}, Mode=OneWay}"
 									   Margin="3"
