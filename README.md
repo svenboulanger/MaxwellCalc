@@ -4,7 +4,7 @@ MaxwellCalc is a calculator application that has support for scientific units. T
 
 The project uses the .NET framework with Avalonia for the UI.
 
-![Screenshot](screenshot.png)
+<p align="center"><img src="screenshot.png" /></p>
 
 ## Differences with SpeedCrunch
 

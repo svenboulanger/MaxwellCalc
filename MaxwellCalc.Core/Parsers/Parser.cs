@@ -349,92 +349,22 @@ namespace MaxwellCalc.Core.Parsers
 
             while (lexer.Type == TokenTypes.Multiply ||
                 lexer.Type == TokenTypes.Divide ||
-                lexer.Type == TokenTypes.OpenParenthesis ||
-                lexer.Type == TokenTypes.Modulo ||
-                lexer.Type == TokenTypes.Word && lexer.Content.ToString() != "in")
+                lexer.Type == TokenTypes.Modulo)
             {
-                INode? b;
-                switch (lexer.Type)
+                var operatorType = lexer.Type switch
                 {
-                    case TokenTypes.Multiply:
-                        lexer.Next();
+                    TokenTypes.Multiply => BinaryOperatorTypes.Multiply,
+                    TokenTypes.Divide => BinaryOperatorTypes.Divide,
+                    TokenTypes.Modulo => BinaryOperatorTypes.Modulo,
+                    _ => throw new NotImplementedException()
+                };
+                lexer.Next();
 
-                        // Right argument
-                        b = ParseIntegerDivision(lexer, workspace);
-                        if (b is null)
-                            return null;
-
-                        result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
-                        break;
-
-                    case TokenTypes.Divide:
-                        lexer.Next();
-
-                        // Right argument
-                        b = ParseIntegerDivision(lexer, workspace);
-                        if (b is null)
-                            return null;
-
-                        result = new BinaryNode(BinaryOperatorTypes.Divide, result, b, lexer.Track(start));
-                        break;
-
-                    case TokenTypes.Modulo:
-                        lexer.Next();
-                        // Right argument
-                        b = ParseIntegerDivision(lexer, workspace);
-                        if (b is null)
-                            return null;
-
-                        result = new BinaryNode(BinaryOperatorTypes.Modulo, result, b, lexer.Track(start));
-                        break;
-
-                    case TokenTypes.Word:
-                        // Implicit multiplication
-                        if (RecognizeUnit(lexer.Content, workspace))
-                        {
-                            // Units are right-associative multiplication
-                            var unitStart = lexer.Index;
-                            b = ParseExponentiation(lexer, workspace);
-                            if (b is null)
-                                return null;
-
-                            while (RecognizeUnit(lexer.Content, workspace))
-                            {
-                                var next = ParseExponentiation(lexer, workspace);
-                                if (next is null)
-                                    return null;
-                                b = new BinaryNode(BinaryOperatorTypes.Multiply, b, next, lexer.Track(unitStart));
-                            }
-                        }
-                        else
-                            b = ParseIntegerDivision(lexer, workspace);
-                        if (b is null)
-                            return null;
-                        result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
-                        break;
-
-                    case TokenTypes.OpenParenthesis:
-                        // Implicit multiplication
-                        lexer.Next();
-                        
-                        // Right argument
-                        b = ParseAssignment(lexer, workspace);
-                        if (b is null)
-                            return null;
-
-                        if (lexer.Type != TokenTypes.CloseParenthesis)
-                        {
-                            workspace.PostDiagnosticMessage(new($"Bracket mismatch. Closing parenthesis expected at column {lexer.Index + 1}."));
-                            return null;
-                        }
-                        lexer.Next();
-                        result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
-                        break;
-
-                    default:
-                        workspace.PostDiagnosticMessage(new($"Unrecognized token at column {lexer.Index + 1}."));
-                        return null;
-                }
+                // Right argument
+                var b = ParseIntegerDivision(lexer, workspace);
+                if (b is null)
+                    return null;
+                result = new BinaryNode(operatorType, result, b, lexer.Track(start));
             }
             return result;
         }
@@ -444,7 +374,7 @@ namespace MaxwellCalc.Core.Parsers
             int start = lexer.Index;
 
             // Left argument
-            var result = ParseUnary(lexer, workspace);
+            var result = ParseImplicitMultiplication(lexer, workspace);
             if (result is null)
                 return null;
 
@@ -453,10 +383,32 @@ namespace MaxwellCalc.Core.Parsers
                 lexer.Next();
             
                 // Right argument
-                var b = ParseUnary(lexer, workspace);
+                var b = ParseImplicitMultiplication(lexer, workspace);
                 if (b is null)
                     return null;
                 result = new BinaryNode(BinaryOperatorTypes.IntDivide, result, b, lexer.Track(start));
+            }
+            return result;
+        }
+
+        private static INode? ParseImplicitMultiplication(Lexer lexer, IWorkspace workspace)
+        {
+            int start = lexer.Index;
+
+            // Left argument
+            var result = ParseUnary(lexer, workspace);
+            if (result is null)
+                return null;
+
+            while (lexer.Type == TokenTypes.Word && lexer.Content.ToString() != "in" ||
+                lexer.Type == TokenTypes.OpenParenthesis ||
+                lexer.Type == TokenTypes.Scalar)
+            {
+                // Right argument
+                var b = ParseUnary(lexer, workspace);
+                if (b is null)
+                    return null;
+                result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
             }
             return result;
         }
@@ -561,15 +513,6 @@ namespace MaxwellCalc.Core.Parsers
                 int start = lexer.Index;
                 INode result = new ScalarNode(lexer.Content);
                 lexer.Next();
-
-                // If there is a unit right after it, then we will give it precedence
-                while (lexer.Type == TokenTypes.Word && workspace.InputUnits.ContainsKey(lexer.Content.ToString()))
-                {
-                    var b = ParseExponentiation(lexer, workspace);
-                    if (b is null)
-                        return null;
-                    result = new BinaryNode(BinaryOperatorTypes.Multiply, result, b, lexer.Track(start));
-                }
                 return result;
             }
 

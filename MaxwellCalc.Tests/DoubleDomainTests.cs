@@ -2,8 +2,7 @@
 
 public class DoubleDomainTests
 {
-    [Fact]
-    public void Test1()
+    public void When_Expression_Expect_Reference(string expression, double expected)
     {
 
     }
