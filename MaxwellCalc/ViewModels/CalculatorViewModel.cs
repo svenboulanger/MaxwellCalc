@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Parsers;
+using MaxwellCalc.Core.Parsers.Nodes;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,25 +114,27 @@ public partial class CalculatorViewModel : ViewModelBase
             default:
                 if (Shared.Workspace?.Key is null)
                     return;
+                var workspace = Shared.Workspace.Key;
 
                 // Use the current expression to evaluate
                 var diagnostics = new List<string>();
                 void StoreDiagnostic(object? sender, DiagnosticMessagePostedEventArgs args) => diagnostics.Add(args.Message);
-                Shared.Workspace.Key.DiagnosticMessagePosted += StoreDiagnostic;
+                workspace.DiagnosticMessagePosted += StoreDiagnostic;
                 Quantity<string> result = default;
 
                 try
                 {
                     var lexer = new Lexer(Expression ?? string.Empty);
-                    var node = Parser.Parse(lexer, Shared.Workspace.Key);
+                    var node = Parser.Parse(lexer, workspace);
                     if (node is not null)
                     {
-                        Shared.Workspace.Key.TryResolveAndFormat(node, Shared.Workspace.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
+                        node = new BinaryNode(BinaryOperatorTypes.Assign, new VariableNode("ans".AsMemory()), node, default);
+                        workspace.TryResolveAndFormat(node, Shared.Workspace.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
                     }
                 }
                 finally
                 {
-                    Shared.Workspace.Key.DiagnosticMessagePosted -= StoreDiagnostic;
+                    workspace.DiagnosticMessagePosted -= StoreDiagnostic;
                 }
 
                 Results.Add(new ResultViewModel
