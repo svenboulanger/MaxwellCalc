@@ -1,13 +1,12 @@
-﻿namespace MaxwellCalc.Core.Parsers.Nodes
+﻿namespace MaxwellCalc.Core.Parsers.Nodes;
+
+/// <summary>
+/// The possible types of ternary nodes.
+/// </summary>
+public enum TernaryNodeTypes
 {
     /// <summary>
-    /// The possible types of ternary nodes.
+    /// A conditional expression.
     /// </summary>
-    public enum TernaryNodeTypes
-    {
-        /// <summary>
-        /// A conditional expression.
-        /// </summary>
-        Condition
-    }
+    Condition
 }

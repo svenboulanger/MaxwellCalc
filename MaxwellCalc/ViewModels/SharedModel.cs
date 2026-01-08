@@ -3,33 +3,32 @@ using MaxwellCalc.Core.Domains;
 using MaxwellCalc.Core.Workspaces;
 using System;
 
-namespace MaxwellCalc.ViewModels
+namespace MaxwellCalc.ViewModels;
+
+/// <summary>
+/// A model that contains settings and data that should be shared between different ViewModels.
+/// </summary>
+public partial class SharedModel : ViewModelBase
 {
+    [ObservableProperty]
+    private WorkspaceViewModel? _workspace;
+
     /// <summary>
-    /// A model that contains settings and data that should be shared between different ViewModels.
+    /// Creates a new <see cref="SharedModel"/>.
     /// </summary>
-    public partial class SharedModel : ViewModelBase
+    public SharedModel()
     {
-        [ObservableProperty]
-        private WorkspaceViewModel? _workspace;
-
-        /// <summary>
-        /// Creates a new <see cref="SharedModel"/>.
-        /// </summary>
-        public SharedModel()
+        Workspace = new()
         {
-            Workspace = new()
-            {
-                Key = new Workspace<double>(new DoubleDomain())
-            };
-        }
+            Key = new Workspace<double>(new DoubleDomain())
+        };
+    }
 
-        /// <summary>
-        /// Creates a new <see cref="SharedModel"/>.
-        /// </summary>
-        /// <param name="sp">The service provider.</param>
-        public SharedModel(IServiceProvider sp)
-        {
-        }
+    /// <summary>
+    /// Creates a new <see cref="SharedModel"/>.
+    /// </summary>
+    /// <param name="sp">The service provider.</param>
+    public SharedModel(IServiceProvider sp)
+    {
     }
 }

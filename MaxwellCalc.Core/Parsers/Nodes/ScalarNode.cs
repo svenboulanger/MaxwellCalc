@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace MaxwellCalc.Core.Parsers.Nodes
+namespace MaxwellCalc.Core.Parsers.Nodes;
+
+/// <summary>
+/// Creates a new <see cref="ScalarNode"/>.
+/// </summary>
+/// <param name="content">The content node.</param>
+public class ScalarNode(ReadOnlyMemory<char> content) : INode
 {
-    /// <summary>
-    /// Creates a new <see cref="ScalarNode"/>.
-    /// </summary>
-    /// <param name="content">The content node.</param>
-    public class ScalarNode(ReadOnlyMemory<char> content) : INode
-    {
-        /// <inheritdoc />
-        public ReadOnlyMemory<char> Content { get; } = content;
-    }
+    /// <inheritdoc />
+    public ReadOnlyMemory<char> Content { get; } = content;
 }

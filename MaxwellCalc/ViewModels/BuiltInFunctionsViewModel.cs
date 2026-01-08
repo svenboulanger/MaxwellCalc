@@ -5,66 +5,65 @@ using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.Generic;
 
-namespace MaxwellCalc.ViewModels
+namespace MaxwellCalc.ViewModels;
+
+/// <summary>
+/// A view model for the built-in function list.
+/// </summary>
+public partial class BuiltInFunctionsViewModel : FilteredCollectionViewModel<BuiltInFunctionViewModel, string, BuiltInFunction>
 {
     /// <summary>
-    /// A view model for the built-in function list.
+    /// Creates a new <see cref="BuiltInFunctionViewModel"/>.
     /// </summary>
-    public partial class BuiltInFunctionsViewModel : FilteredCollectionViewModel<BuiltInFunctionViewModel, string, BuiltInFunction>
+    public BuiltInFunctionsViewModel()
     {
-        /// <summary>
-        /// Creates a new <see cref="BuiltInFunctionViewModel"/>.
-        /// </summary>
-        public BuiltInFunctionsViewModel()
+        if (Design.IsDesignMode)
         {
-            if (Design.IsDesignMode)
+            if (Shared.Workspace.Key is IWorkspace<double>)
             {
-                if (Shared.Workspace.Key is IWorkspace<double>)
+                static bool Function(IReadOnlyList<Quantity<double>> list, IWorkspace workspace, out Quantity<double> result)
                 {
-                    static bool Function(IReadOnlyList<Quantity<double>> list, IWorkspace workspace, out Quantity<double> result)
-                    {
-                        result = default;
-                        return true;
-                    }
-                    Shared.Workspace.Key.BuiltInFunctions["sin"] = new("sin", 1, 1, "Calculates the sine of a real number.", Function);
-                    Shared.Workspace.Key.BuiltInFunctions["cos"] = new("cos", 1, 1, "Calculates the cosine of a real number.", Function);
-                    Shared.Workspace.Key.BuiltInFunctions["tan"] = new("tan", 1, 1, "Calculates the tangent of a real number.", Function);
-                    Shared.Workspace.Key.BuiltInFunctions["min"] = new("min", 1, int.MaxValue, "Calculates the mininimum of real arguments.", Function);
-                    Shared.Workspace.Key.BuiltInFunctions["round"] = new("round", 1, 2, "Rounds a number to some precision. If the precision is not given, then it will round to 0 digits after the comma.", Function);
+                    result = default;
+                    return true;
                 }
+                Shared.Workspace.Key.BuiltInFunctions["sin"] = new("sin", 1, 1, "Calculates the sine of a real number.", Function);
+                Shared.Workspace.Key.BuiltInFunctions["cos"] = new("cos", 1, 1, "Calculates the cosine of a real number.", Function);
+                Shared.Workspace.Key.BuiltInFunctions["tan"] = new("tan", 1, 1, "Calculates the tangent of a real number.", Function);
+                Shared.Workspace.Key.BuiltInFunctions["min"] = new("min", 1, int.MaxValue, "Calculates the mininimum of real arguments.", Function);
+                Shared.Workspace.Key.BuiltInFunctions["round"] = new("round", 1, 2, "Rounds a number to some precision. If the precision is not given, then it will round to 0 digits after the comma.", Function);
             }
         }
+    }
 
-        /// <summary>
-        /// Creates a new <see cref="BuiltInFunctionsViewModel"/>.
-        /// </summary>
-        /// <param name="sp">The service provider.</param>
-        public BuiltInFunctionsViewModel(IServiceProvider sp)
-            : base(sp)
-        {
-        }
+    /// <summary>
+    /// Creates a new <see cref="BuiltInFunctionsViewModel"/>.
+    /// </summary>
+    /// <param name="sp">The service provider.</param>
+    public BuiltInFunctionsViewModel(IServiceProvider sp)
+        : base(sp)
+    {
+    }
 
-        /// <inheritdoc />
-        protected override bool MatchesFilter(BuiltInFunctionViewModel model)
-            => string.IsNullOrWhiteSpace(Filter) ||
-            (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (model.Description?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
+    /// <inheritdoc />
+    protected override bool MatchesFilter(BuiltInFunctionViewModel model)
+        => string.IsNullOrWhiteSpace(Filter) ||
+        (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (model.Description?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
 
-        /// <inheritdoc />
-        protected override int CompareModels(BuiltInFunctionViewModel a, BuiltInFunctionViewModel b)
-            => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
+    /// <inheritdoc />
+    protected override int CompareModels(BuiltInFunctionViewModel a, BuiltInFunctionViewModel b)
+        => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
-        /// <inheritdoc />
-        protected override IReadOnlyObservableDictionary<string, BuiltInFunction> GetCollection(IWorkspace workspace)
-            => workspace.BuiltInFunctions.AsReadOnly();
+    /// <inheritdoc />
+    protected override IReadOnlyObservableDictionary<string, BuiltInFunction> GetCollection(IWorkspace workspace)
+        => workspace.BuiltInFunctions.AsReadOnly();
 
-        /// <inheritdoc />
-        protected override void UpdateModel(BuiltInFunctionViewModel model, string key, BuiltInFunction value)
-        {
-            model.Name = key;
-            model.MinArgCount = value.MinimumArgumentCount;
-            model.MaxArgCount = value.MaximumArgumentCount;
-            model.Description = value.Description;
-        }
+    /// <inheritdoc />
+    protected override void UpdateModel(BuiltInFunctionViewModel model, string key, BuiltInFunction value)
+    {
+        model.Name = key;
+        model.MinArgCount = value.MinimumArgumentCount;
+        model.MaxArgCount = value.MaximumArgumentCount;
+        model.Description = value.Description;
     }
 }

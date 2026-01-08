@@ -2,47 +2,46 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace MaxwellCalc.ViewModels
+namespace MaxwellCalc.ViewModels;
+
+public partial class VariablesViewModel : ViewModelBase
 {
-    public partial class VariablesViewModel : ViewModelBase
+    private readonly UserVariablesViewModel _userVariables;
+    private readonly ConstantsViewModel _constantVariables;
+
+    [ObservableProperty]
+    private int _selectedListItem;
+
+    [ObservableProperty]
+    private ViewModelBase _currentPage;
+
+    /// <summary>
+    /// Creates a new <see cref="FunctionsViewModel"/>.
+    /// </summary>
+    public VariablesViewModel()
     {
-        private readonly UserVariablesViewModel _userVariables;
-        private readonly ConstantsViewModel _constantVariables;
+        _userVariables = new UserVariablesViewModel();
+        _constantVariables = new ConstantsViewModel();
+        _currentPage = _userVariables;
+    }
 
-        [ObservableProperty]
-        private int _selectedListItem;
+    /// <summary>
+    /// Creates a new <see cref="FunctionsViewModel"/>.
+    /// </summary>
+    /// <param name="sp"></param>
+    public VariablesViewModel(IServiceProvider sp)
+    {
+        _userVariables = sp.GetRequiredService<UserVariablesViewModel>();
+        _constantVariables = sp.GetRequiredService<ConstantsViewModel>();
+        _currentPage = _userVariables;
+    }
 
-        [ObservableProperty]
-        private ViewModelBase _currentPage;
-
-        /// <summary>
-        /// Creates a new <see cref="FunctionsViewModel"/>.
-        /// </summary>
-        public VariablesViewModel()
+    partial void OnSelectedListItemChanged(int value)
+    {
+        switch (value)
         {
-            _userVariables = new UserVariablesViewModel();
-            _constantVariables = new ConstantsViewModel();
-            _currentPage = _userVariables;
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="FunctionsViewModel"/>.
-        /// </summary>
-        /// <param name="sp"></param>
-        public VariablesViewModel(IServiceProvider sp)
-        {
-            _userVariables = sp.GetRequiredService<UserVariablesViewModel>();
-            _constantVariables = sp.GetRequiredService<ConstantsViewModel>();
-            _currentPage = _userVariables;
-        }
-
-        partial void OnSelectedListItemChanged(int value)
-        {
-            switch (value)
-            {
-                case 0: CurrentPage = _userVariables; break;
-                case 1: CurrentPage = _constantVariables; break;
-            }
+            case 0: CurrentPage = _userVariables; break;
+            case 1: CurrentPage = _constantVariables; break;
         }
     }
 }

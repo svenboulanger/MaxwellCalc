@@ -9,102 +9,101 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MaxwellCalc.ViewModels
+namespace MaxwellCalc.ViewModels;
+
+/// <summary>
+/// A view model for the function list.
+/// </summary>
+public partial class UserFunctionsViewModel : FilteredCollectionViewModel<UserFunctionViewModel, UserFunctionKey, UserFunction>
 {
+    [ObservableProperty]
+    private string _signature = string.Empty;
+
+    [ObservableProperty]
+    private string _expression = string.Empty;
+
     /// <summary>
-    /// A view model for the function list.
+    /// Creates a new <see cref="UserFunctionsViewModel"/>.
     /// </summary>
-    public partial class UserFunctionsViewModel : FilteredCollectionViewModel<UserFunctionViewModel, UserFunctionKey, UserFunction>
+    public UserFunctionsViewModel()
     {
-        [ObservableProperty]
-        private string _signature = string.Empty;
-
-        [ObservableProperty]
-        private string _expression = string.Empty;
-
-        /// <summary>
-        /// Creates a new <see cref="UserFunctionsViewModel"/>.
-        /// </summary>
-        public UserFunctionsViewModel()
-        {
-            if (Design.IsDesignMode)
-            {
-            }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="UserFunctionsViewModel"/>.
-        /// </summary>
-        /// <param name="sp">The service provider.</param>
-        public UserFunctionsViewModel(IServiceProvider sp)
-            : base(sp)
+        if (Design.IsDesignMode)
         {
         }
+    }
 
-        /// <inheritdoc />
-        protected override bool MatchesFilter(UserFunctionViewModel model)
-            => string.IsNullOrWhiteSpace(Filter) ||
-            (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (model.Value?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
+    /// <summary>
+    /// Creates a new <see cref="UserFunctionsViewModel"/>.
+    /// </summary>
+    /// <param name="sp">The service provider.</param>
+    public UserFunctionsViewModel(IServiceProvider sp)
+        : base(sp)
+    {
+    }
 
-        /// <inheritdoc />
-        protected override int CompareModels(UserFunctionViewModel a, UserFunctionViewModel b)
-            => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
+    /// <inheritdoc />
+    protected override bool MatchesFilter(UserFunctionViewModel model)
+        => string.IsNullOrWhiteSpace(Filter) ||
+        (model.Name?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (model.Value?.Contains(Filter, StringComparison.OrdinalIgnoreCase) ?? false);
 
-        /// <inheritdoc />
-        protected override IReadOnlyObservableDictionary<UserFunctionKey, UserFunction> GetCollection(IWorkspace workspace)
-            => workspace.UserFunctions.AsReadOnly();
+    /// <inheritdoc />
+    protected override int CompareModels(UserFunctionViewModel a, UserFunctionViewModel b)
+        => StringComparer.OrdinalIgnoreCase.Compare(a.Name, b.Name);
 
-        /// <inheritdoc />
-        protected override void UpdateModel(UserFunctionViewModel model, UserFunctionKey key, UserFunction value)
+    /// <inheritdoc />
+    protected override IReadOnlyObservableDictionary<UserFunctionKey, UserFunction> GetCollection(IWorkspace workspace)
+        => workspace.UserFunctions.AsReadOnly();
+
+    /// <inheritdoc />
+    protected override void UpdateModel(UserFunctionViewModel model, UserFunctionKey key, UserFunction value)
+    {
+        model.Name = key.Name;
+        model.Arguments = [.. value.Parameters];
+        model.Value = string.Join(Environment.NewLine, value.Body.Select(n => n.Content.ToString()));
+    }
+
+    /// <inheritdoc />
+    protected override void RemoveItem(UserFunctionKey key)
+    {
+        if (Shared.Workspace.Key is null)
+            return;
+        Shared.Workspace.Key.UserFunctions.Remove(key);
+    }
+
+    [RelayCommand]
+    private void AddUserFunction()
+    {
+        if (Shared.Workspace.Key is null || string.IsNullOrWhiteSpace(Signature) || string.IsNullOrWhiteSpace(Expression))
+            return;
+
+        // The name
+        var lexer = new Lexer(Signature);
+        var node = Parser.Parse(lexer, Shared.Workspace.Key);
+        if (node is not FunctionNode fn)
+            return;
+        var args = new string[fn.Arguments.Count];
+        for (int i = 0; i < fn.Arguments.Count; i++)
         {
-            model.Name = key.Name;
-            model.Arguments = [.. value.Parameters];
-            model.Value = string.Join(Environment.NewLine, value.Body.Select(n => n.Content.ToString()));
-        }
-
-        /// <inheritdoc />
-        protected override void RemoveItem(UserFunctionKey key)
-        {
-            if (Shared.Workspace.Key is null)
+            if (fn.Arguments[i] is not VariableNode argNode)
                 return;
-            Shared.Workspace.Key.UserFunctions.Remove(key);
+            args[i] = argNode.Content.ToString();
         }
 
-        [RelayCommand]
-        private void AddUserFunction()
+        // Parse the nodes
+        var lines = Expression.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        var nodes = new List<INode>();
+        foreach (var line in lines)
         {
-            if (Shared.Workspace.Key is null || string.IsNullOrWhiteSpace(Signature) || string.IsNullOrWhiteSpace(Expression))
+            lexer = new Lexer(line);
+            node = Parser.Parse(lexer, Shared.Workspace.Key);
+            if (node is null)
                 return;
-
-            // The name
-            var lexer = new Lexer(Signature);
-            var node = Parser.Parse(lexer, Shared.Workspace.Key);
-            if (node is not FunctionNode fn)
-                return;
-            var args = new string[fn.Arguments.Count];
-            for (int i = 0; i < fn.Arguments.Count; i++)
-            {
-                if (fn.Arguments[i] is not VariableNode argNode)
-                    return;
-                args[i] = argNode.Content.ToString();
-            }
-
-            // Parse the nodes
-            var lines = Expression.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-            var nodes = new List<INode>();
-            foreach (var line in lines)
-            {
-                lexer = new Lexer(line);
-                node = Parser.Parse(lexer, Shared.Workspace.Key);
-                if (node is null)
-                    return;
-                nodes.Add(node);
-            }
-
-            Shared.Workspace.Key.UserFunctions[new(fn.Name, args.Length)] = new(args, nodes.ToArray());
-            Signature = string.Empty;
-            Expression = string.Empty;
+            nodes.Add(node);
         }
+
+        Shared.Workspace.Key.UserFunctions[new(fn.Name, args.Length)] = new(args, nodes.ToArray());
+        Signature = string.Empty;
+        Expression = string.Empty;
     }
 }

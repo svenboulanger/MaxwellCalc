@@ -1,22 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MaxwellCalc.ViewModels
+namespace MaxwellCalc.ViewModels;
+
+/// <summary>
+/// A view model base that can be selected.
+/// </summary>
+/// <param name="key">The key that can be used to link to the original dictionary.</param>
+public abstract partial class SelectableViewModelBase<TKey> : ViewModelBase
 {
     /// <summary>
-    /// A view model base that can be selected.
+    /// Gets the key for the item.
     /// </summary>
-    /// <param name="key">The key that can be used to link to the original dictionary.</param>
-    public abstract partial class SelectableViewModelBase<TKey> : ViewModelBase
-    {
-        /// <summary>
-        /// Gets the key for the item.
-        /// </summary>
-        public TKey? Key { get; init; }
+    public TKey? Key { get; init; }
 
-        [ObservableProperty]
-        private bool _selected = false;
+    [ObservableProperty]
+    private bool _selected = false;
 
-        [ObservableProperty]
-        private bool _visible = true;
-    }
+    [ObservableProperty]
+    private bool _visible = true;
 }

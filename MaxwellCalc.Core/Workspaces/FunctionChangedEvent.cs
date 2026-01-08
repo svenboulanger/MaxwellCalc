@@ -1,31 +1,30 @@
 ﻿using System;
 
-namespace MaxwellCalc.Core.Workspaces
+namespace MaxwellCalc.Core.Workspaces;
+
+/// <summary>
+/// Event arguments used when a function changes.
+/// </summary>
+public class FunctionChangedEvent : EventArgs
 {
     /// <summary>
-    /// Event arguments used when a function changes.
+    /// Gets the name of the function.
     /// </summary>
-    public class FunctionChangedEvent : EventArgs
+    public string? Name { get; }
+
+    /// <summary>
+    /// Gets the function argument parameters.
+    /// </summary>
+    public int Arguments { get; }
+
+    /// <summary>
+    /// Creates a new <see cref="FunctionChangedEvent"/>
+    /// </summary>
+    /// <param name="name">The name of the function.</param>
+    /// <param name="arguments">The number of arguments.</param>
+    public FunctionChangedEvent(string? name, int arguments)
     {
-        /// <summary>
-        /// Gets the name of the function.
-        /// </summary>
-        public string? Name { get; }
-
-        /// <summary>
-        /// Gets the function argument parameters.
-        /// </summary>
-        public int Arguments { get; }
-
-        /// <summary>
-        /// Creates a new <see cref="FunctionChangedEvent"/>
-        /// </summary>
-        /// <param name="name">The name of the function.</param>
-        /// <param name="arguments">The number of arguments.</param>
-        public FunctionChangedEvent(string? name, int arguments)
-        {
-            Name = name;
-            Arguments = arguments;
-        }
+        Name = name;
+        Arguments = arguments;
     }
 }

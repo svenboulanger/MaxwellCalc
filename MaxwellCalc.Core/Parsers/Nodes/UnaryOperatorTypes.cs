@@ -1,28 +1,27 @@
-﻿namespace MaxwellCalc.Core.Parsers.Nodes
+﻿namespace MaxwellCalc.Core.Parsers.Nodes;
+
+/// <summary>
+/// The possible unary operator types.
+/// </summary>
+public enum UnaryOperatorTypes
 {
     /// <summary>
-    /// The possible unary operator types.
+    /// Unary plus (+a).
     /// </summary>
-    public enum UnaryOperatorTypes
-    {
-        /// <summary>
-        /// Unary plus (+a).
-        /// </summary>
-        Plus,
+    Plus,
 
-        /// <summary>
-        /// Unary minus (-a).
-        /// </summary>
-        Minus,
+    /// <summary>
+    /// Unary minus (-a).
+    /// </summary>
+    Minus,
 
-        /// <summary>
-        /// Factorial (a!).
-        /// </summary>
-        Factorial,
+    /// <summary>
+    /// Factorial (a!).
+    /// </summary>
+    Factorial,
 
-        /// <summary>
-        /// Remove units operator ('a).
-        /// </summary>
-        RemoveUnits,
-    }
+    /// <summary>
+    /// Remove units operator ('a).
+    /// </summary>
+    RemoveUnits,
 }

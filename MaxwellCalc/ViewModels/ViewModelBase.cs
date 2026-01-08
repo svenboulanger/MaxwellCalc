@@ -1,11 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MaxwellCalc.ViewModels
+namespace MaxwellCalc.ViewModels;
+
+/// <summary>
+/// The base model that we will be using.
+/// </summary>
+public abstract class ViewModelBase : ObservableObject
 {
-    /// <summary>
-    /// The base model that we will be using.
-    /// </summary>
-    public abstract class ViewModelBase : ObservableObject
-    {
-    }
 }
