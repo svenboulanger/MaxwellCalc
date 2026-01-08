@@ -84,6 +84,11 @@ public interface IWorkspace : IDiagnosticsHandler
     public IObservableDictionary<string, BuiltInFunction> BuiltInFunctions { get; }
 
     /// <summary>
+    /// Gets or sets a variable that will always be set to the last resolved quantity.
+    /// </summary>
+    public string AnswerVariable { get; set; }
+
+    /// <summary>
     /// Tries to resolve a node and formats it.
     /// </summary>
     /// <param name="node">The node.</param>

@@ -142,6 +142,11 @@ public class WorkspaceJsonConverter<T>(Func<IWorkspace<T>> factory) : JsonConver
                     ReadUserFunctions(workspace, ref reader, subOptions);
                     break;
 
+                case "answer_variable":
+                    workspace.AnswerVariable = reader.GetString() ?? string.Empty;
+                    reader.Read();
+                    break;
+
                 default:
                     throw new JsonException($"Unrecognized property '{propertyName}'");
             }
@@ -406,6 +411,10 @@ public class WorkspaceJsonConverter<T>(Func<IWorkspace<T>> factory) : JsonConver
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
+
+        // Answer variable
+        writer.WritePropertyName("answer_variable");
+        writer.WriteStringValue(value.AnswerVariable);
 
         writer.WriteEndObject();
     }

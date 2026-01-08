@@ -128,7 +128,6 @@ public partial class CalculatorViewModel : ViewModelBase
                     var node = Parser.Parse(lexer, workspace);
                     if (node is not null)
                     {
-                        node = new BinaryNode(BinaryOperatorTypes.Assign, new VariableNode("ans".AsMemory()), node, default);
                         workspace.TryResolveAndFormat(node, Shared.Workspace.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
                     }
                 }

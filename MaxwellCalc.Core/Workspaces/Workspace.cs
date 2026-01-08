@@ -5,7 +5,6 @@ using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces.Variables;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace MaxwellCalc.Core.Workspaces;
 
@@ -75,6 +74,9 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
 
     /// <inheritdoc />
     public IObservableDictionary<string, BuiltInFunction> BuiltInFunctions { get; } = new ObservableDictionary<string, BuiltInFunction>();
+
+    /// <inheritdoc />
+    public string AnswerVariable { get; set; } = string.Empty;
 
     /// <summary>
     /// Creates a new <see cref="Workspace"/>.
@@ -231,6 +233,15 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         // Resolve the nodes
         if (!TryResolveNode(node, out result))
             return false;
+
+        // Store the last quantity in a dedicated variable if required
+        if (!string.IsNullOrEmpty(AnswerVariable) && AllowVariables)
+        {
+            if (_variableScope.Local.TryGetValue(AnswerVariable, out var existing))
+                _variableScope.Local[AnswerVariable] = new Variable<T>(result, existing.Description);
+            else
+                _variableScope.Local.Add(AnswerVariable, new Variable<T>(result, "The last answer."));
+        }
 
         // Resolve output units
         if (AllowUnits && ResolveOutputUnits)

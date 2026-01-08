@@ -220,17 +220,22 @@ public partial class SettingsViewModel : ViewModelBase
     {
         // Use the serializer options to make an empty workspace
         var workspace = JsonSerializer.Deserialize<IWorkspace>($"{{\"scalar\":\"{typeof(double).FullName}\",\"workspace\":{{}}}}", _jsonSerializerOptions);
-        var model = new WorkspaceViewModel()
+        if (workspace is not null)
         {
-            Key = workspace,
-            Name = "Workspace",
-            Selected = selected
-        };
-        Workspaces.Add(model);
-        if (selected)
-            Shared.Workspace = model;
+            workspace.AnswerVariable = "ans";
+            var model = new WorkspaceViewModel()
+            {
+                Key = workspace,
+                Name = "Workspace",
+                Selected = selected
+            };
+            Workspaces.Add(model);
+            if (selected)
+                Shared.Workspace = model;
 
-        return model;
+            return model;
+        }
+        throw new NotImplementedException("Error building a default workspace...");
     }
 
     [RelayCommand]
