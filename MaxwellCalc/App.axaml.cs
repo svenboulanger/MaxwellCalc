@@ -42,6 +42,7 @@ public partial class App : Application
         var jsonSerializerOptions = new JsonSerializerOptions() { WriteIndented = true };
         jsonSerializerOptions.Converters.Add(new WorkspaceJsonConverter()); // This will handle IWorkspace conversion
         jsonSerializerOptions.Converters.Add(new WorkspaceJsonConverterFactory()); // This will handle IWorkspace<T> conversion.
+        jsonSerializerOptions.Converters.Add(new VectorConverter());
         services.AddSingleton(jsonSerializerOptions);
 
         var serviceProvider = services.BuildServiceProvider();

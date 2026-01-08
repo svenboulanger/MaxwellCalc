@@ -8,27 +8,38 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MaxwellCalc.ViewModels;
 
 public partial class CalculatorViewModel : ViewModelBase
 {
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private int _historyFill = -1;
     private string _tmpLastInput = string.Empty;
 
     /// <summary>
     /// Gets the shared model.
     /// </summary>
+    [property: JsonIgnore]
     public SharedModel Shared { get; }
 
     [ObservableProperty]
     ObservableCollection<ResultViewModel> _results = [];
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private string? _expression;
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private int _caretIndex;
+
+    [ObservableProperty]
+    [property: JsonIgnore]
+    private string? _historyFile;
 
     /// <summary>
     /// This property makes the scroll viewer of the calculator persistent.
@@ -40,6 +51,7 @@ public partial class CalculatorViewModel : ViewModelBase
     private Avalonia.Vector _scrollOffset;
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private Avalonia.Size _scrollExtent;
 
     /// <summary>
@@ -48,6 +60,7 @@ public partial class CalculatorViewModel : ViewModelBase
     public CalculatorViewModel()
     {
         Shared = new SharedModel();
+        _jsonSerializerOptions = new();
         if (Design.IsDesignMode)
         {
             for (int i = 0; i < 10; i++)
@@ -74,9 +87,13 @@ public partial class CalculatorViewModel : ViewModelBase
     public CalculatorViewModel(IServiceProvider sp)
     {
         Shared = sp.GetRequiredService<SharedModel>();
+        HistoryFile = Path.Combine(Directory.GetCurrentDirectory(), "history.json");
+        _jsonSerializerOptions = sp.GetRequiredService<JsonSerializerOptions>();
+        LoadHistory();
     }
 
     [RelayCommand]
+    [property: JsonIgnore]
     private void Evaluate()
     {
         // Deal with some commands
@@ -108,7 +125,9 @@ public partial class CalculatorViewModel : ViewModelBase
                     var lexer = new Lexer(Expression ?? string.Empty);
                     var node = Parser.Parse(lexer, Shared.Workspace.Key);
                     if (node is not null)
+                    {
                         Shared.Workspace.Key.TryResolveAndFormat(node, Shared.Workspace.OutputFormat, System.Globalization.CultureInfo.InvariantCulture, out result);
+                    }
                 }
                 finally
                 {
@@ -131,6 +150,7 @@ public partial class CalculatorViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    [property: JsonIgnore]
     private void TrackHistoryUp()
     {
         // Store the current input for the future
@@ -146,6 +166,7 @@ public partial class CalculatorViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    [property: JsonIgnore]
     private void TrackHistoryDown()
     {
         if (_historyFill < Results.Count)
@@ -178,5 +199,35 @@ public partial class CalculatorViewModel : ViewModelBase
         Expression = Results[_historyFill].Expression ?? string.Empty;
         CaretIndex = Expression.Length - 1; // I don't know why, but removing this line makes the caret appear on index 0 instead of the end
         CaretIndex = Expression.Length;
+    }
+
+    [RelayCommand]
+    [property: JsonIgnore]
+    public void SaveHistory()
+    {
+        // Save the history to the file
+        if (string.IsNullOrEmpty(HistoryFile))
+            return;
+        string json = JsonSerializer.Serialize(this, _jsonSerializerOptions);
+        File.WriteAllText(HistoryFile, json);
+    }
+
+    [RelayCommand]
+    [property: JsonIgnore]
+    public void LoadHistory()
+    {
+        if (string.IsNullOrEmpty(HistoryFile) || !File.Exists(HistoryFile))
+            return;
+        string json = File.ReadAllText(HistoryFile);
+
+        Results.Clear();
+        var obj = JsonSerializer.Deserialize<CalculatorViewModel>(json, _jsonSerializerOptions);
+
+        if (obj is not null)
+        {
+            foreach (var model in obj.Results)
+                Results.Add(model);
+            ScrollOffset = obj.ScrollOffset;
+        }
     }
 }

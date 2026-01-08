@@ -16,7 +16,13 @@ public partial class CalculatorView : UserControl
     {
         base.OnLoaded(e);
         if (DataContext is CalculatorViewModel model)
+        {
             _scrollViewer.Offset = model.ScrollOffset;
+            _scrollViewer.ScrollChanged += (sender, args) =>
+            {
+                model.ScrollOffset = _scrollViewer.Offset;
+            };
+        }
     }
 
     /// <inheritdoc />

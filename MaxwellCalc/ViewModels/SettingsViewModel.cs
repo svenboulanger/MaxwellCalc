@@ -99,12 +99,6 @@ public partial class SettingsViewModel : ViewModelBase
             BuildDefaultWorkspace();
     }
 
-    ~SettingsViewModel()
-    {
-        // Save the workspaces for next time
-        SaveWorkspaces();
-    }
-
     partial void OnCurrentThemeChanged(int value)
     {
         switch (value)
@@ -253,7 +247,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     public void LoadWorkspaces()
     {
-        if (!File.Exists(WorkspaceFile))
+        if (string.IsNullOrEmpty(WorkspaceFile) || !File.Exists(WorkspaceFile))
             return;
         string json = File.ReadAllText(WorkspaceFile);
 
@@ -274,7 +268,6 @@ public partial class SettingsViewModel : ViewModelBase
     /// Saves the current settings to the settings file.
     /// </summary>
     [RelayCommand]
-    [property: JsonIgnore]
     public void SaveSettings()
     {
         if (string.IsNullOrEmpty(SettingsFile))
@@ -284,7 +277,6 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    [property: JsonIgnore]
     public void LoadSettings()
     {
         if (string.IsNullOrEmpty(SettingsFile))

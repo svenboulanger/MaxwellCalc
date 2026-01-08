@@ -134,6 +134,8 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (pane.ViewModel is SettingsViewModel settings)
                 settings.SaveWorkspaces();
+            if (pane.ViewModel is CalculatorViewModel calculator)
+                calculator.SaveHistory();
         }
     }
 }
