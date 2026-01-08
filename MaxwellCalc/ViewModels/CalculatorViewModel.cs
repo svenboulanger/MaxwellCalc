@@ -30,6 +30,12 @@ namespace MaxwellCalc.ViewModels
         [ObservableProperty]
         private int _caretIndex;
 
+        /// <summary>
+        /// This property makes the scroll viewer of the calculator persistent.
+        /// It is updated when the calculator view is unloaded, and used again
+        /// when the calculator view is loaded. It is not a real-time reflection
+        /// of the current scroll offset!
+        /// </summary>
         [ObservableProperty]
         private Avalonia.Vector _scrollOffset;
 
