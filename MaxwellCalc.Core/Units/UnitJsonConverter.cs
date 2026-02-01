@@ -110,6 +110,14 @@ public class UnitJsonConverter : JsonConverter<Unit>
     /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, Unit value, JsonSerializerOptions options)
     {
+        // No units
+        if (value.Dimension is null)
+        {
+            writer.WriteStartArray();
+            writer.WriteEndArray();
+            return;
+        }
+
         // Shorthand notation for a simple unit
         if (value.Dimension.Count == 1)
         {

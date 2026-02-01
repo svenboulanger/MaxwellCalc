@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Parsers;
-using MaxwellCalc.Core.Parsers.Nodes;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using Microsoft.Extensions.DependencyInjection;

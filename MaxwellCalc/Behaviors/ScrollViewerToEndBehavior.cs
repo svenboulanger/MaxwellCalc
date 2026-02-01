@@ -1,5 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.VisualTree;
+using MaxwellCalc.Views;
 using System.Collections.Specialized;
 
 namespace MaxwellCalc.Behaviors;
@@ -36,10 +38,12 @@ internal class ScrollViewerBehavior
         if (scrollViewer.Content is ItemsControl itemsControl &&
             itemsControl.Items is INotifyCollectionChanged notifyCollection)
         {
+            var parent = scrollViewer.FindAncestorOfType<CalculatorView>();
+            if (parent is null)
+                return;
             notifyCollection.CollectionChanged += (sender, args) =>
             {
-                // Scroll to the end if we were already scrolled to the end before
-                if (scrollViewer.Offset.Y >= scrollViewer.Extent.Height - scrollViewer.Viewport.Height - 50.0)
+                if (parent.Autoscrolling)
                     scrollViewer.ScrollToEnd();
             };
         }
