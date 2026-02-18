@@ -6,11 +6,6 @@ namespace MaxwellCalc.Views;
 
 public partial class CalculatorView : UserControl
 {
-    /// <summary>
-    /// Gets whether the calculator view is auto-scrolling to the end.
-    /// </summary>
-    public bool Autoscrolling { get; private set; } = true;
-
     public CalculatorView()
     {
         InitializeComponent();
@@ -20,28 +15,22 @@ public partial class CalculatorView : UserControl
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
-        if (DataContext is CalculatorViewModel model)
-        {
-            _scrollViewer.Offset = model.ScrollOffset;
-            _scrollViewer.ScrollChanged += (sender, args) =>
-            {
-                model.ScrollOffset = _scrollViewer.Offset;
+        _scrollViewer.ScrollChanged += ScrollChanged;
+        _scrollViewer.ScrollToEnd();
+    }
 
-                // Detect whether we are supposed to be at the end
-                Autoscrolling = _scrollViewer.Offset.Y >= _scrollViewer.Extent.Height - _scrollViewer.Viewport.Height - 50.0;
-            };
+    private void ScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        // Update the model with the new scroll settings
+        if (e.ExtentDelta.Y > 0.0)
+        {
+            // If the window was already pretty close to the end, then let's scroll to the end
+            if (_scrollViewer.Offset.Y - e.OffsetDelta.Y >= _scrollViewer.ScrollBarMaximum.Y - e.ExtentDelta.Y - 100.0)
+                _scrollViewer.ScrollToEnd();
         }
     }
 
-    /// <inheritdoc />
-    protected override void OnUnloaded(RoutedEventArgs e)
-    {
-        if (DataContext is CalculatorViewModel model)
-            model.ScrollOffset = _scrollViewer.Offset;
-        base.OnUnloaded(e);
-    }
-
-    private void InputTextBoxLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void InputTextBoxLoaded(object? sender, RoutedEventArgs e)
     {
         InputExpressionTextBox?.Focus();
     }

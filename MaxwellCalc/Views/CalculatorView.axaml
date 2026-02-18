@@ -41,8 +41,7 @@
 						Content="{materialIcons:MaterialIconExt Kind=KeyboardReturn}" />
 			</Grid>
 		</material:Card>
-		<ScrollViewer behaviors:ScrollViewerBehavior.AutoScrollToEnd="True"
-				x:Name="_scrollViewer">
+		<ScrollViewer x:Name="_scrollViewer">
 			<ItemsControl ItemsSource="{Binding Results, Mode=OneWay}">
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
