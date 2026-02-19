@@ -319,14 +319,14 @@ public static class UnitHelper
 
         // Time
         workspace.TryRegisterModifierInputOutputUnits(Unit.Second, Unit.UnitSeconds,
-            femto: true, pico: true, nano: true, micro: true);
+            femto: true, pico: true, nano: true, micro: true, milli: true);
         workspace.TryRegisterInputOutputUnit("min", Unit.UnitSeconds, "60");
         workspace.TryRegisterInputOutputUnit("hour", Unit.UnitSeconds, "3600");
         workspace.TryRegisterInputOutputUnit("day", Unit.UnitSeconds, "86400");
 
         // Time squared (variance)
         workspace.TryRegisterModifierOutputUnits(Unit.UnitSeconds, Unit.UnitSeconds, Unit.Second,
-            femto: true, pico: true, nano: true, micro: true, power: 2);
+            femto: true, pico: true, nano: true, micro: true, milli: true, power: 2);
         workspace.TryRegisterOutputUnit(new(("min", 2)), new Quantity<string>("3600", new Unit((Unit.Second, 2))));
         workspace.TryRegisterOutputUnit(new(("hour", 2)), new Quantity<string>("12960000", new Unit((Unit.Second, 2))));
         workspace.TryRegisterOutputUnit(new(("day", 2)), new Quantity<string>("7465e6", new Unit((Unit.Second, 2))));
