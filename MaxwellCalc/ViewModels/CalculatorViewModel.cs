@@ -216,5 +216,6 @@ public partial class CalculatorViewModel : ViewModelBase
             foreach (var model in obj.Results)
                 Results.Add(model);
         }
+        _historyFill = Results.Count;
     }
 }
