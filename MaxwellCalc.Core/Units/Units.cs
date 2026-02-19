@@ -67,6 +67,16 @@ public readonly struct Unit(params (string, Fraction)[] dimension)
     public static Unit UnitMeter { get; } = new((Meter, 1));
 
     /// <summary>
+    /// Gets the unit for area.
+    /// </summary>
+    public static Unit UnitArea { get; } = new((Meter, 2));
+
+    /// <summary>
+    /// Gets the unit for volume.
+    /// </summary>
+    public static Unit UnitVolume { get; } = new((Meter, 3));
+
+    /// <summary>
     /// Gets the unit for seconds.
     /// </summary>
     public static Unit UnitSeconds { get; } = new((Second, 1));
