@@ -336,6 +336,20 @@ public class ComplexDomain : IDomain<Complex>
     }
 
     /// <inheritdoc />
+    public bool TryInUnit(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
+    {
+        if (a.Unit != b.Unit)
+        {
+            // Cannot compare units
+            diagnostics?.PostDiagnosticMessage(new("Units do not match"));
+            result = Default;
+            return false;
+        }
+        result = a;
+        return true;
+    }
+
+    /// <inheritdoc />
     public bool TryFormat(Quantity<Complex> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
     {
         var sb = new StringBuilder();

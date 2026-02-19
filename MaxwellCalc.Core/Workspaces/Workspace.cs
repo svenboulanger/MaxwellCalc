@@ -334,7 +334,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                         BinaryOperatorTypes.LessThanOrEqual => Resolver.TryLessThanOrEqual(left, right, this, out result),
                         BinaryOperatorTypes.Equal => Resolver.TryEquals(left, right, this, out result),
                         BinaryOperatorTypes.NotEqual => Resolver.TryNotEquals(left, right, this, out result),
-                        // BinaryOperatorTypes.InUnit => Resolver.TryInUnit(left, right, binary.Right.Content, this, out result),
+                        BinaryOperatorTypes.InUnit => Resolver.TryInUnit(left, right, this, out result),
                         BinaryOperatorTypes.LogicalAnd => Resolver.TryLogicalAnd(left, right, this, out result),
                         BinaryOperatorTypes.LogicalOr => Resolver.TryLogicalOr(left, right, this, out result),
                         _ => throw new NotImplementedException()

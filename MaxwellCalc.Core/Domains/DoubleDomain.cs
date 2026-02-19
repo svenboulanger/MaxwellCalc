@@ -332,6 +332,20 @@ public class DoubleDomain : IDomain<double>
     }
 
     /// <inheritdoc />
+    public bool TryInUnit(Quantity<double> a, Quantity<double> b, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
+    {
+        if (a.Unit != b.Unit)
+        {
+            // Cannot compare units
+            diagnostics?.PostDiagnosticMessage(new("Units do not match"));
+            result = Default;
+            return false;
+        }
+        result = a;
+        return true;
+    }
+
+    /// <inheritdoc />
     public bool TryFormat(Quantity<double> value, string? format, IFormatProvider? formatProvider, out Quantity<string> result)
     {
         result = new(value.Scalar.ToString(format, formatProvider) ?? string.Empty, value.Unit);

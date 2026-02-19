@@ -3,6 +3,7 @@ using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -524,6 +525,21 @@ public class DifferentialDomain<T> : IDomain<Differential<T>> where T : IFormatt
             return false;
         }
         result = new Quantity<Differential<T>>(new Differential<T>(scalar.Scalar), scalar.Unit);
+        return true;
+    }
+
+
+    /// <inheritdoc />
+    public bool TryInUnit(Quantity<Differential<T>> a, Quantity<Differential<T>> b, IDiagnosticsHandler? diagnostics, out Quantity<Differential<T>> result)
+    {
+        if (a.Unit != b.Unit)
+        {
+            // Cannot compare units
+            diagnostics?.PostDiagnosticMessage(new("Units do not match"));
+            result = Default;
+            return false;
+        }
+        result = a;
         return true;
     }
 

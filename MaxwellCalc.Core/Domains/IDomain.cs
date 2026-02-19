@@ -263,6 +263,16 @@ public interface IDomain<T> where T : IFormattable
     public bool TryNotEquals(Quantity<T> a, Quantity<T> b, IDiagnosticsHandler? diagnostics, out Quantity<T> result);
 
     /// <summary>
+    /// Evaluates whether an expression can be expressed in the given units.
+    /// </summary>
+    /// <param name="a">The left argument.</param>
+    /// <param name="b">The right argument.</param>
+    /// <param name="diagnostics">The diagnostics.</param>
+    /// <param name="result">The result.</param>
+    /// <returns>Returns <c>true</c> if the evaluation happened; otherwise, <c>false</c>.</returns>
+    public bool TryInUnit(Quantity<T> a, Quantity<T> b, IDiagnosticsHandler? diagnostics, out Quantity<T> result);
+
+    /// <summary>
     /// Evaluates whether a quantity should be treated as "true".
     /// </summary>
     /// <param name="a">The left argument.</param>
