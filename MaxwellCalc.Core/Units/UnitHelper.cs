@@ -32,7 +32,9 @@ public static class UnitHelper
 
         // Set the input and output unit
         workspace.InputUnits[inputUnit] = new(result.Scalar, baseUnits);
-        workspace.OutputUnits[new(new Unit((inputUnit, 1)), baseUnits)] = result.Scalar;
+        var unit = new Unit((inputUnit, 1));
+        if (unit != baseUnits)
+            workspace.OutputUnits[new(unit, baseUnits)] = result.Scalar;
 
         // Reset
         workspace.Restore(oldState);
@@ -236,8 +238,14 @@ public static class UnitHelper
             if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>($"1e-{2 * power}", baseUnits)))
                 return false;
         }
-        if (!workspace.TryRegisterOutputUnit(outputUnit, new Quantity<string>("1", baseUnits)))
-            return false;
+        {
+            var nUnit = GetUnit("");
+            if (nUnit != baseUnits)
+            {
+                if (!workspace.TryRegisterOutputUnit(GetUnit(""), new Quantity<string>("1", baseUnits)))
+                    return false;
+            }
+        }
         if (kilo)
         {
             if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>($"1e{3 * power}", baseUnits)))
@@ -540,6 +548,12 @@ public static class UnitHelper
         // Hertz
         workspace.TryRegisterModifierOutputUnits(new(("Hz", 1)), new((Unit.Second, -1)), "Hz",
             milli: true, kilo: true, mega: true, giga: true, tera: true, power: 2);
+
+        // Current density
+        var bu = new Unit((Unit.Ampere, 1), (Unit.Meter, -2));
+        workspace.TryRegisterOutputUnit(new(("pA", 1), ("cm", -2)), new("1e-8", bu));
+        workspace.TryRegisterOutputUnit(new(("nA", 1), ("cm", -2)), new("1e-5", bu));
+        workspace.TryRegisterOutputUnit(new(("uA", 1), ("cm", -2)), new("1e-2", bu));
 
         // Bits
         var b = new Unit(("bit", 1));
