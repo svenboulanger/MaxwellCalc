@@ -122,7 +122,7 @@ public class DoubleDomain : IDomain<double>
     public bool TryModulo(Quantity<double> a, Quantity<double> b, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
     {
         result = new Quantity<double>(
-            Math.IEEERemainder(a.Scalar, b.Scalar),
+            a.Scalar % b.Scalar,
             a.Unit);
         return true;
     }

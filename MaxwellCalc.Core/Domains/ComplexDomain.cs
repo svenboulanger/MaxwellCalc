@@ -119,7 +119,7 @@ public class ComplexDomain : IDomain<Complex>
     public bool TryModulo(Quantity<Complex> a, Quantity<Complex> b, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
     {
         result = new Quantity<Complex>(
-            Math.IEEERemainder(a.Scalar.Real, b.Scalar.Real),
+            a.Scalar.Real % b.Scalar.Real,
             a.Unit);
         return true;
     }
