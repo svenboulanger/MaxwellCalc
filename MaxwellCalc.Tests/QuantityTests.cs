@@ -28,10 +28,10 @@ public class QuantityTests
         {
             var result = new TheoryData<Quantity<double>>
             {
-                { new(1.0, Unit.UnitNone) },
-                { new(10.0, new Unit((Unit.Meter, 2))) },
-                { new(2.5, new Unit((Unit.Meter, 1), (Unit.Second, -1))) },
-                { new(0.5, new Unit(("nV", 1), ("Hz", new Fraction(-1, 2)))) }
+                new Quantity<double>(1.0, Unit.UnitNone),
+                new Quantity<double>(10.0, new Unit((Unit.Meter, 2))),
+                new Quantity<double>(2.5, new Unit((Unit.Meter, 1), (Unit.Second, -1))),
+                new Quantity<double>(0.5, new Unit(("nV", 1), ("Hz", new Fraction(-1, 2))))
             };
             return result;
         }
