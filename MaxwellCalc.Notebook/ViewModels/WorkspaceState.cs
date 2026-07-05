@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Core.Domains;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 
 namespace MaxwellCalc.Notebook.ViewModels;
@@ -36,10 +37,26 @@ public partial class WorkspaceState : ViewModelBase
     public string OutputFormat => "g12";
 
     /// <summary>
-    /// Creates a new <see cref="WorkspaceState"/> with a default real-valued workspace.
+    /// Creates a new <see cref="WorkspaceState"/> with a default real-valued workspace, seeded with
+    /// the common units, constants, and built-in functions so the sheet has something to compute
+    /// against. (Step 10 moves workspace creation into the settings view model.)
     /// </summary>
     public WorkspaceState()
     {
-        Workspace = new Workspace<double>(new DoubleDomain()) { AnswerVariable = "ans" };
+        Workspace = CreateDefaultWorkspace();
+    }
+
+    /// <summary>
+    /// Creates a fresh real-valued workspace populated with the common units, constants, and
+    /// built-in math functions.
+    /// </summary>
+    /// <returns>Returns the seeded workspace.</returns>
+    public static Workspace<double> CreateDefaultWorkspace()
+    {
+        var workspace = new Workspace<double>(new DoubleDomain()) { AnswerVariable = "ans" };
+        workspace.RegisterCommonUnits();
+        workspace.RegisterConstants(typeof(DoubleMathHelper));
+        workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
+        return workspace;
     }
 }

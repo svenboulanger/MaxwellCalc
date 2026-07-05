@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MaxwellCalc.Core\MaxwellCalc.Core.csproj" />
+    <ProjectReference Include="..\MaxwellCalc.Notebook\MaxwellCalc.Notebook.csproj" />
   </ItemGroup>
 
   <ItemGroup>

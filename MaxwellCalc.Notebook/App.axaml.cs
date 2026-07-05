@@ -28,6 +28,7 @@ public partial class App : Application
 
         // Shared state + view models (all authored fresh; expanded in later steps).
         services.AddSingleton<WorkspaceState>();
+        services.AddSingleton<SheetViewModel>();
         services.AddSingleton<ShellViewModel>();
 
         var serviceProvider = services.BuildServiceProvider();

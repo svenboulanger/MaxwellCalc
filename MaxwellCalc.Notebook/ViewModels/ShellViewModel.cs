@@ -14,6 +14,11 @@ public partial class ShellViewModel : ViewModelBase
     public WorkspaceState WorkspaceState { get; }
 
     /// <summary>
+    /// Gets the notebook sheet view model.
+    /// </summary>
+    public SheetViewModel Sheet { get; }
+
+    /// <summary>
     /// Gets the name of the active workspace, for the title caption and Physics button.
     /// </summary>
     public string WorkspaceName => WorkspaceState.WorkspaceName;
@@ -31,9 +36,11 @@ public partial class ShellViewModel : ViewModelBase
     /// Creates a new <see cref="ShellViewModel"/>.
     /// </summary>
     /// <param name="workspaceState">The shared workspace state.</param>
-    public ShellViewModel(WorkspaceState workspaceState)
+    /// <param name="sheet">The notebook sheet view model.</param>
+    public ShellViewModel(WorkspaceState workspaceState, SheetViewModel sheet)
     {
         WorkspaceState = workspaceState;
+        Sheet = sheet;
         WorkspaceState.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(WorkspaceState.WorkspaceName))
