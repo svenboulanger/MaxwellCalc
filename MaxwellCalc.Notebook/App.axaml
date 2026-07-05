@@ -11,8 +11,11 @@
 	</Application.DataTemplates>
 
 	<Application.Styles>
-		<!-- Neutral base theme; the redesign's custom token dictionaries layer on top (Step 2). -->
+		<!-- Neutral base theme; the redesign's custom token dictionaries layer on top. -->
 		<FluentTheme />
+		<!-- Step 2: design tokens (brushes, fonts, radii, spacing, pill styles). After FluentTheme
+		     so token brushes override the base theme's. -->
+		<StyleInclude Source="avares://MaxwellCalc.Notebook/Assets/Theme.axaml" />
 		<materialIcons:MaterialIconStyles />
 	</Application.Styles>
 </Application>

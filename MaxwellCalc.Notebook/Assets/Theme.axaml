@@ -1,0 +1,152 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+	<!--
+	  Step 2 — Design tokens & theming resources.
+
+	  Every color from REDESIGN_UI.md → Design Tokens is exposed as a named brush inside a
+	  ThemeVariant dictionary (Light / Dark) so it resolves via {DynamicResource} and recolors
+	  live when Application.Current.RequestedThemeVariant changes.
+
+	  rgba(...) values are expressed as #AARRGGBB (alpha byte first). oklch(...) values are
+	  precomputed to sRGB hex (Avalonia's parser does not accept oklch); the source oklch is kept
+	  in a comment next to each so the intent stays auditable.
+
+	  Theme-invariant tokens (radii, spacing, fonts, pill styles) live at the bottom, outside the
+	  theme dictionaries.
+	-->
+	<Styles.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.ThemeDictionaries>
+
+				<!-- ============================ LIGHT ============================ -->
+				<ResourceDictionary x:Key="Light">
+					<SolidColorBrush x:Key="BgBrush" Color="#eeece7" />
+					<SolidColorBrush x:Key="SurfBrush" Color="#faf9f6" />
+					<SolidColorBrush x:Key="BarBrush" Color="#f1efe9" />
+					<SolidColorBrush x:Key="BarFooterBrush" Color="#f4f2ec" />
+					<SolidColorBrush x:Key="InkBrush" Color="#1c1c1a" />
+					<SolidColorBrush x:Key="MutBrush" Color="#80000000" />       <!-- rgba(0,0,0,.5) -->
+					<SolidColorBrush x:Key="FaintBrush" Color="#57000000" />     <!-- rgba(0,0,0,.34) -->
+					<SolidColorBrush x:Key="LineBrush" Color="#12000000" />      <!-- rgba(0,0,0,.07) -->
+					<SolidColorBrush x:Key="CardBrush" Color="#ffffff" />
+					<SolidColorBrush x:Key="ChipBrush" Color="#ffffff" />
+					<SolidColorBrush x:Key="ChipBorderBrush" Color="#14000000" /><!-- rgba(0,0,0,.08) -->
+					<SolidColorBrush x:Key="ActiveTintBrush" Color="#0D2A78D6" /><!-- rgba(42,120,214,.05) -->
+					<SolidColorBrush x:Key="ErrBrush" Color="#B33736" />         <!-- oklch(0.52 0.16 25) -->
+					<SolidColorBrush x:Key="OverlayBrush" Color="#29141412" />   <!-- rgba(20,20,18,.16) -->
+					<SolidColorBrush x:Key="AccentBrush" Color="#1666AA" />      <!-- oklch(0.5 0.13 250) -->
+					<SolidColorBrush x:Key="ConstPillBackground" Color="#1A2A78D6" /><!-- rgba(42,120,214,.1) -->
+
+					<!-- Unit-hue presets: oklch(0.52 0.13 H). Wash = same hue at ~0.12 alpha. -->
+					<SolidColorBrush x:Key="UnitHueAmberBrush" Color="#9D5300" />   <!-- H=60 -->
+					<SolidColorBrush x:Key="UnitHueGreenBrush" Color="#1D7D3E" />   <!-- H=150 -->
+					<SolidColorBrush x:Key="UnitHueVioletBrush" Color="#7555A8" />  <!-- H=300 -->
+					<SolidColorBrush x:Key="UnitHueAmberWashBrush" Color="#1F9D5300" />
+					<SolidColorBrush x:Key="UnitHueGreenWashBrush" Color="#1F1D7D3E" />
+					<SolidColorBrush x:Key="UnitHueVioletWashBrush" Color="#1F7555A8" />
+
+					<!-- Active unit hue: repointed by SettingsViewModel (Step 10); defaults to amber. -->
+					<SolidColorBrush x:Key="UnitHueBrush" Color="#9D5300" />
+					<SolidColorBrush x:Key="UnitHueWashBrush" Color="#1F9D5300" />
+				</ResourceDictionary>
+
+				<!-- ============================ DARK ============================ -->
+				<ResourceDictionary x:Key="Dark">
+					<SolidColorBrush x:Key="BgBrush" Color="#141417" />
+					<SolidColorBrush x:Key="SurfBrush" Color="#1b1b20" />
+					<SolidColorBrush x:Key="BarBrush" Color="#191920" />
+					<SolidColorBrush x:Key="BarFooterBrush" Color="#1e1e25" />
+					<SolidColorBrush x:Key="InkBrush" Color="#ececeb" />
+					<SolidColorBrush x:Key="MutBrush" Color="#70FFFFFF" />       <!-- rgba(255,255,255,.44) -->
+					<SolidColorBrush x:Key="FaintBrush" Color="#4DFFFFFF" />     <!-- rgba(255,255,255,.3) -->
+					<SolidColorBrush x:Key="LineBrush" Color="#14FFFFFF" />      <!-- rgba(255,255,255,.08) -->
+					<SolidColorBrush x:Key="CardBrush" Color="#22222a" />
+					<SolidColorBrush x:Key="ChipBrush" Color="#26262e" />
+					<SolidColorBrush x:Key="ChipBorderBrush" Color="#1AFFFFFF" /><!-- rgba(255,255,255,.1) -->
+					<SolidColorBrush x:Key="ActiveTintBrush" Color="#1278AAFF" /><!-- rgba(120,170,255,.07) -->
+					<SolidColorBrush x:Key="ErrBrush" Color="#F7857D" />         <!-- oklch(0.74 0.14 25) -->
+					<SolidColorBrush x:Key="OverlayBrush" Color="#80000000" />   <!-- rgba(0,0,0,.5) -->
+					<SolidColorBrush x:Key="AccentBrush" Color="#67B0F9" />      <!-- oklch(0.74 0.13 250) -->
+					<SolidColorBrush x:Key="ConstPillBackground" Color="#2978AAFF" /><!-- rgba(120,170,255,.16) -->
+
+					<!-- Unit-hue presets: oklch(0.82 0.11 H). Wash = same hue at ~0.16 alpha. -->
+					<SolidColorBrush x:Key="UnitHueAmberBrush" Color="#F9B379" />   <!-- H=60 -->
+					<SolidColorBrush x:Key="UnitHueGreenBrush" Color="#8FD89E" />   <!-- H=150 -->
+					<SolidColorBrush x:Key="UnitHueVioletBrush" Color="#CFB4FF" />  <!-- H=300 -->
+					<SolidColorBrush x:Key="UnitHueAmberWashBrush" Color="#29F9B379" />
+					<SolidColorBrush x:Key="UnitHueGreenWashBrush" Color="#298FD89E" />
+					<SolidColorBrush x:Key="UnitHueVioletWashBrush" Color="#29CFB4FF" />
+
+					<!-- Active unit hue: repointed by SettingsViewModel (Step 10); defaults to amber. -->
+					<SolidColorBrush x:Key="UnitHueBrush" Color="#F9B379" />
+					<SolidColorBrush x:Key="UnitHueWashBrush" Color="#29F9B379" />
+				</ResourceDictionary>
+
+			</ResourceDictionary.ThemeDictionaries>
+
+			<!-- ===================== THEME-INVARIANT TOKENS ===================== -->
+
+			<!-- Typography. UI = platform sans; mono is shared by the editor AND the result gutter
+			     so digits line up (identical family + metrics). IBM Plex is not bundled (see plan
+			     Step 2 fallback); Cascadia Code / Consolas are the desktop substitutes. -->
+			<FontFamily x:Key="UiFontFamily">Segoe UI, San Francisco, Helvetica Neue, Arial</FontFamily>
+			<FontFamily x:Key="MonoFontFamily">Cascadia Code, Cascadia Mono, Consolas, Courier New</FontFamily>
+
+			<!-- Radii -->
+			<CornerRadius x:Key="AppMarkCornerRadius">4</CornerRadius>
+			<CornerRadius x:Key="PillCornerRadius">5</CornerRadius>
+			<CornerRadius x:Key="FuncPillCornerRadius">6</CornerRadius>
+			<CornerRadius x:Key="InputCornerRadius">6</CornerRadius>
+			<CornerRadius x:Key="ChipCornerRadius">7</CornerRadius>
+			<CornerRadius x:Key="ButtonCornerRadius">7</CornerRadius>
+			<CornerRadius x:Key="CardCornerRadius">14</CornerRadius>
+
+			<!-- Spacing (Thickness = "left,top,right,bottom"; here "H,V" for symmetric padding) -->
+			<Thickness x:Key="RowPadding">26,8</Thickness>
+			<Thickness x:Key="AccessBarPadding">16,10</Thickness>
+			<Thickness x:Key="OverlayPadding">8,6</Thickness>
+			<Thickness x:Key="HeaderPadding">18,14</Thickness>
+			<Thickness x:Key="AddRowPadding">16,11</Thickness>
+
+			<!-- Gaps / metrics -->
+			<sys:Double x:Key="EditorGutterGap">24</sys:Double>
+			<sys:Double x:Key="ChipGap">9</sys:Double>
+			<sys:Double x:Key="TitleBarHeight">44</sys:Double>
+			<sys:Double x:Key="EditorFontSize">15</sys:Double>
+
+			<!-- Overlay drop shadow: 0 30px 70px -20px rgba(0,0,0,.5) -->
+			<BoxShadows x:Key="OverlayShadow">0 30 70 -20 #80000000</BoxShadows>
+		</ResourceDictionary>
+	</Styles.Resources>
+
+	<!-- ===================== SHARED PILL STYLES ===================== -->
+
+	<!-- const pill: accent text on a translucent accent wash; 10px sans 500, radius 5, pad 2px 7px. -->
+	<Style Selector="Border.constPill">
+		<Setter Property="Background" Value="{DynamicResource ConstPillBackground}" />
+		<Setter Property="CornerRadius" Value="{DynamicResource PillCornerRadius}" />
+		<Setter Property="Padding" Value="7,2" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+	<Style Selector="Border.constPill > TextBlock">
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+		<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+		<Setter Property="FontSize" Value="10" />
+		<Setter Property="FontWeight" Value="Medium" />
+	</Style>
+
+	<!-- ƒ-defined / auto pill: unit-hue text on a faint unit-hue wash; 10.5px sans 500, radius 6, pad 2px 8px. -->
+	<Style Selector="Border.funcPill">
+		<Setter Property="Background" Value="{DynamicResource UnitHueWashBrush}" />
+		<Setter Property="CornerRadius" Value="{DynamicResource FuncPillCornerRadius}" />
+		<Setter Property="Padding" Value="8,2" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+	<Style Selector="Border.funcPill > TextBlock">
+		<Setter Property="Foreground" Value="{DynamicResource UnitHueBrush}" />
+		<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+		<Setter Property="FontSize" Value="10.5" />
+		<Setter Property="FontWeight" Value="Medium" />
+	</Style>
+</Styles>

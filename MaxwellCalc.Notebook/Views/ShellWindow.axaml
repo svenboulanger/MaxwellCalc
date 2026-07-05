@@ -8,13 +8,93 @@
         x:Class="MaxwellCalc.Notebook.Views.ShellWindow"
         x:DataType="vm:ShellViewModel"
         ExtendClientAreaToDecorationsHint="True"
+        Background="{DynamicResource BgBrush}"
         Title="MaxwellCalc">
-	<!-- Step 1 scaffold: intentionally blank. The title bar, sheet, access bar and overlay
-	     are built in Steps 3+. This placeholder only confirms DI + data binding are wired. -->
-	<Panel>
-		<TextBlock HorizontalAlignment="Center"
-				   VerticalAlignment="Center"
-				   Opacity="0.5"
-				   Text="{Binding WorkspaceName, StringFormat='MaxwellCalc — {0}'}" />
-	</Panel>
+	<!-- Step 2 THROWAWAY token-preview page. Verifies that every design token resolves via
+	     DynamicResource and recolors live when the theme variant flips, and that the mono font
+	     applies. The real title bar / sheet / access bar / overlay are built in Step 3+, which
+	     replaces this content. -->
+	<ScrollViewer>
+		<StackPanel Margin="20,40,20,20" Spacing="16">
+
+			<DockPanel>
+				<Button DockPanel.Dock="Right"
+						Name="ThemeToggleButton"
+						Click="OnToggleTheme"
+						Content="Toggle light / dark"
+						Background="{DynamicResource AccentBrush}"
+						Foreground="White"
+						CornerRadius="{DynamicResource ButtonCornerRadius}"
+						Padding="12,6"
+						FontFamily="{DynamicResource UiFontFamily}" />
+				<TextBlock Text="{Binding WorkspaceName, StringFormat='MaxwellCalc — {0}'}"
+						   Foreground="{DynamicResource InkBrush}"
+						   FontFamily="{DynamicResource UiFontFamily}"
+						   FontSize="12.5" FontWeight="SemiBold"
+						   VerticalAlignment="Center" />
+			</DockPanel>
+
+			<TextBlock Text="Design token swatches" Foreground="{DynamicResource MutBrush}"
+					   FontFamily="{DynamicResource UiFontFamily}" FontSize="10.5"
+					   FontWeight="SemiBold" />
+
+			<WrapPanel>
+				<WrapPanel.Styles>
+					<Style Selector="Border.swatch">
+						<Setter Property="Width" Value="120" />
+						<Setter Property="Height" Value="64" />
+						<Setter Property="Margin" Value="0,0,8,8" />
+						<Setter Property="CornerRadius" Value="6" />
+						<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+						<Setter Property="BorderThickness" Value="1" />
+					</Style>
+					<Style Selector="Border.swatch > TextBlock">
+						<Setter Property="Margin" Value="6" />
+						<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+						<Setter Property="FontSize" Value="10" />
+						<Setter Property="VerticalAlignment" Value="Bottom" />
+					</Style>
+				</WrapPanel.Styles>
+
+				<Border Classes="swatch" Background="{DynamicResource BgBrush}"><TextBlock Text="bg" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource SurfBrush}"><TextBlock Text="surf" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource BarBrush}"><TextBlock Text="bar" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource BarFooterBrush}"><TextBlock Text="barFooter" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource CardBrush}"><TextBlock Text="card" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource ChipBrush}" BorderBrush="{DynamicResource ChipBorderBrush}"><TextBlock Text="chip / chipBorder" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource AccentBrush}"><TextBlock Text="accent" Foreground="White" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource ErrBrush}"><TextBlock Text="err" Foreground="White" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource ActiveTintBrush}"><TextBlock Text="activeTint" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource OverlayBrush}"><TextBlock Text="overlay" Foreground="{DynamicResource InkBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource InkBrush}"><TextBlock Text="ink" Foreground="{DynamicResource SurfBrush}" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource UnitHueAmberBrush}"><TextBlock Text="hue amber" Foreground="White" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource UnitHueGreenBrush}"><TextBlock Text="hue green" Foreground="White" /></Border>
+				<Border Classes="swatch" Background="{DynamicResource UnitHueVioletBrush}"><TextBlock Text="hue violet" Foreground="White" /></Border>
+			</WrapPanel>
+
+			<TextBlock Text="Text tokens" Foreground="{DynamicResource MutBrush}"
+					   FontFamily="{DynamicResource UiFontFamily}" FontSize="10.5" FontWeight="SemiBold" />
+			<StackPanel Spacing="2">
+				<TextBlock Text="ink — primary text" Foreground="{DynamicResource InkBrush}" FontFamily="{DynamicResource UiFontFamily}" />
+				<TextBlock Text="mut — muted text" Foreground="{DynamicResource MutBrush}" FontFamily="{DynamicResource UiFontFamily}" />
+				<TextBlock Text="faint — faint text" Foreground="{DynamicResource FaintBrush}" FontFamily="{DynamicResource UiFontFamily}" />
+				<TextBlock Text="err — 1.23·10⁻⁹ diagnostic" Foreground="{DynamicResource ErrBrush}" FontFamily="{DynamicResource UiFontFamily}" />
+			</StackPanel>
+
+			<TextBlock Text="Mono sample (editor / gutter share this family)" Foreground="{DynamicResource MutBrush}"
+					   FontFamily="{DynamicResource UiFontFamily}" FontSize="10.5" FontWeight="SemiBold" />
+			<TextBlock Text="1234567890  =  9.80665 m/s²   ρ · c²"
+					   Foreground="{DynamicResource InkBrush}"
+					   FontFamily="{DynamicResource MonoFontFamily}"
+					   FontSize="{DynamicResource EditorFontSize}" />
+
+			<TextBlock Text="Pills" Foreground="{DynamicResource MutBrush}"
+					   FontFamily="{DynamicResource UiFontFamily}" FontSize="10.5" FontWeight="SemiBold" />
+			<StackPanel Orientation="Horizontal" Spacing="8">
+				<Border Classes="constPill"><TextBlock Text="const" /></Border>
+				<Border Classes="funcPill"><TextBlock Text="ƒ defined" /></Border>
+			</StackPanel>
+
+		</StackPanel>
+	</ScrollViewer>
 </Window>
