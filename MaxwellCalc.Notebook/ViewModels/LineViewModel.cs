@@ -29,6 +29,8 @@ public partial class LineViewModel : ViewModelBase
     [ObservableProperty]
     [property: System.Text.Json.Serialization.JsonIgnore]
     [NotifyPropertyChangedFor(nameof(HasValue))]
+    [NotifyPropertyChangedFor(nameof(IsFuncDef))]
+    [NotifyPropertyChangedFor(nameof(IsError))]
     private LineKind _kind;
 
     /// <summary>
@@ -63,6 +65,16 @@ public partial class LineViewModel : ViewModelBase
     /// Gets whether this line has a value to render in the gutter.
     /// </summary>
     public bool HasValue => Kind is LineKind.Value or LineKind.Assign;
+
+    /// <summary>
+    /// Gets whether this line defines a function (renders the <c>ƒ defined</c> pill).
+    /// </summary>
+    public bool IsFuncDef => Kind is LineKind.FuncDef;
+
+    /// <summary>
+    /// Gets whether this line failed to evaluate (renders the error message).
+    /// </summary>
+    public bool IsError => Kind is LineKind.Error;
 
     /// <summary>
     /// Creates a new empty <see cref="LineViewModel"/>.

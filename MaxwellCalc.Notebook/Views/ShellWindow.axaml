@@ -103,56 +103,11 @@
 		</Border>
 
 		<!-- ============================ SHEET REGION ============================ -->
-		<!-- Placeholder rows demonstrating the row layout (editor left, result gutter right,
-		     gap 24, padding 8/26, 1px bottom line). Replaced by SheetView in Step 4. -->
+		<!-- The live notebook sheet. SheetView renders one editable row per line with its result
+		     gutter (Step 5); resolved via the ViewLocator from ShellViewModel.Sheet. -->
 		<ScrollViewer Grid.Row="1" Background="{DynamicResource SurfBrush}"
 					  HorizontalScrollBarVisibility="Disabled">
-			<StackPanel>
-				<StackPanel.Styles>
-					<Style Selector="Grid.sheetRow">
-						<Setter Property="Margin" Value="0" />
-					</Style>
-					<Style Selector="Border.sheetRow">
-						<Setter Property="Padding" Value="{DynamicResource RowPadding}" />
-						<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-						<Setter Property="BorderThickness" Value="0,0,0,1" />
-					</Style>
-					<Style Selector="Border.sheetRow TextBlock.editor">
-						<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
-						<Setter Property="FontSize" Value="{DynamicResource EditorFontSize}" />
-						<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
-						<Setter Property="VerticalAlignment" Value="Center" />
-					</Style>
-					<Style Selector="Border.sheetRow TextBlock.gutter">
-						<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
-						<Setter Property="FontSize" Value="{DynamicResource EditorFontSize}" />
-						<Setter Property="FontWeight" Value="SemiBold" />
-						<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
-						<Setter Property="TextAlignment" Value="Right" />
-						<Setter Property="VerticalAlignment" Value="Center" />
-					</Style>
-				</StackPanel.Styles>
-
-				<Border Classes="sheetRow">
-					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
-						<TextBlock Grid.Column="0" Classes="editor" Text="9.80665 m/s^2" />
-						<TextBlock Grid.Column="1" Classes="gutter" Text="9.80665 m/s²" />
-					</Grid>
-				</Border>
-				<Border Classes="sheetRow">
-					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
-						<TextBlock Grid.Column="0" Classes="editor" Text="mass = 70 kg" />
-						<TextBlock Grid.Column="1" Classes="gutter" Text="70 kg" />
-					</Grid>
-				</Border>
-				<Border Classes="sheetRow">
-					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
-						<TextBlock Grid.Column="0" Classes="editor"
-								   Foreground="{DynamicResource FaintBrush}"
-								   Text="type an expression on each line…" />
-					</Grid>
-				</Border>
-			</StackPanel>
+			<ContentControl Content="{Binding Sheet}" />
 		</ScrollViewer>
 
 		<!-- ============================ ACCESS BAR ============================ -->
