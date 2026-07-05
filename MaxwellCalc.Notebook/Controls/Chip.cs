@@ -31,21 +31,21 @@ public class Chip : TemplatedControl
     public static readonly StyledProperty<string?> CountProperty =
         AvaloniaProperty.Register<Chip, string?>(nameof(Count));
 
-    /// <summary>Gets or sets the leading mono glyph (e.g. <c>x</c>, <c>m</c>, <c>ƒ</c>).</summary>
+    /// <summary>Gets or sets the leading mono glyph (e.g. <c>x</c>, <c>m</c>, <c>f</c>).</summary>
     public string? Glyph
     {
         get => GetValue(GlyphProperty);
         set => SetValue(GlyphProperty, value);
     }
 
-    /// <summary>Gets or sets the brush for the leading glyph (accent for x/ƒ, unit hue for m).</summary>
+    /// <summary>Gets or sets the brush for the leading glyph (accent for x/f, unit hue for m).</summary>
     public IBrush? GlyphForeground
     {
         get => GetValue(GlyphForegroundProperty);
         set => SetValue(GlyphForegroundProperty, value);
     }
 
-    /// <summary>Gets or sets the font style of the leading glyph (x and ƒ render italic).</summary>
+    /// <summary>Gets or sets the font style of the leading glyph (x and f render italic).</summary>
     public FontStyle GlyphFontStyle
     {
         get => GetValue(GlyphFontStyleProperty);

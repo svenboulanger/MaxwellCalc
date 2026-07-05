@@ -190,7 +190,7 @@
 					<controls:Chip Glyph="m"
 								   GlyphForeground="{DynamicResource UnitHueBrush}"
 								   Label="Units" Count="{Binding UnitsCount}" />
-					<controls:Chip Glyph="ƒ" GlyphFontStyle="Italic"
+					<controls:Chip Glyph="f" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Functions" Count="{Binding FunctionsCount}" />
 				</StackPanel>
