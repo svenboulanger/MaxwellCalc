@@ -8,10 +8,9 @@
              x:Class="MaxwellCalc.Notebook.Views.SheetView"
              x:DataType="vm:SheetViewModel">
 
-	<!-- Step 5 — the notebook sheet: one row per line, editor on the left and the result gutter on
-	     the right. The editor is a plain (unhighlighted) TextBox for now; Step 6 swaps in the
-	     HighlightedExpressionBox and Step 7 adds the keyboard model. The gutter rendering is the
-	     focus of this step. -->
+	<!-- Step 6 — the notebook sheet: one row per line, the inline-highlighting editor on the left and
+	     the result gutter on the right. The editor is the HighlightedExpressionBox; Step 7 adds the
+	     Enter/Backspace/Arrow keyboard model. -->
 	<UserControl.Styles>
 		<!-- Row: padding 8/26, 1px bottom hairline, focused row gets a subtle accent wash with a
 		     120ms background transition. -->
@@ -30,30 +29,14 @@
 			<Setter Property="Background" Value="{DynamicResource ActiveTintBrush}" />
 		</Style>
 
-		<!-- Editor: transparent, borderless, mono 15px/400, ink; accent caret. -->
-		<Style Selector="TextBox.editor">
-			<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
-			<Setter Property="FontSize" Value="{DynamicResource EditorFontSize}" />
-			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
-			<Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
-			<Setter Property="Background" Value="Transparent" />
-			<Setter Property="BorderThickness" Value="0" />
-			<Setter Property="Padding" Value="0" />
-			<Setter Property="MinHeight" Value="0" />
-			<Setter Property="VerticalAlignment" Value="Center" />
-			<Setter Property="VerticalContentAlignment" Value="Center" />
-		</Style>
-		<Style Selector="TextBox.editor /template/ Border#PART_BorderElement">
-			<Setter Property="Background" Value="Transparent" />
-			<Setter Property="BorderThickness" Value="0" />
-		</Style>
-		<Style Selector="TextBox.editor:pointerover /template/ Border#PART_BorderElement">
-			<Setter Property="Background" Value="Transparent" />
-			<Setter Property="BorderThickness" Value="0" />
-		</Style>
-		<Style Selector="TextBox.editor:focus /template/ Border#PART_BorderElement">
-			<Setter Property="Background" Value="Transparent" />
-			<Setter Property="BorderThickness" Value="0" />
+		<!-- Auto-caption: tiny faint sans caption under the focused row when the output unit was
+		     auto-selected. Right-aligned to sit under the gutter value. -->
+		<Style Selector="TextBlock.autoCaption">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="10.5" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="TextAlignment" Value="Right" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
 		</Style>
 
 		<!-- Error: err color, 12.5px sans (not mono), ⚠ prefix, right-aligned and wrapping. -->
@@ -72,35 +55,46 @@
 		<ItemsControl.ItemTemplate>
 			<DataTemplate x:DataType="vm:LineViewModel">
 				<Border Classes="row">
-					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+					<StackPanel Spacing="2">
+						<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
 
-						<!-- Editor (left, fills). -->
-						<TextBox Grid.Column="0" Classes="editor"
-								 Text="{Binding Text, Mode=TwoWay}" />
+							<!-- Editor (left, fills): inline syntax highlighting driven by the active
+							     workspace, which lives on the SheetViewModel (the view's DataContext). -->
+							<controls:HighlightedExpressionBox Grid.Column="0"
+									Text="{Binding Text, Mode=TwoWay}"
+									Workspace="{Binding ((vm:SheetViewModel)DataContext).Workspace, RelativeSource={RelativeSource AncestorType=UserControl}}"
+									GotFocus="OnEditorGotFocus"
+									LostFocus="OnEditorLostFocus" />
 
-						<!-- Result gutter (right). Exactly one branch is visible per line. -->
-						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
-									HorizontalAlignment="Right" VerticalAlignment="Center">
+							<!-- Result gutter (right). Exactly one branch is visible per line. -->
+							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+										HorizontalAlignment="Right" VerticalAlignment="Center">
 
-							<!-- const pill, shown before the value when the line is a lone constant. -->
-							<Border Classes="constPill" IsVisible="{Binding IsConstBadge}">
-								<TextBlock Text="const" />
-							</Border>
+								<!-- const pill, shown before the value when the line is a lone constant. -->
+								<Border Classes="constPill" IsVisible="{Binding IsConstBadge}">
+									<TextBlock Text="const" />
+								</Border>
 
-							<!-- value / assignment: the formatted quantity. -->
-							<controls:QuantityView Value="{Binding Quantity}"
-												   IsVisible="{Binding HasValue}" />
+								<!-- value / assignment: the formatted quantity. -->
+								<controls:QuantityView Value="{Binding Quantity}"
+													   IsVisible="{Binding HasValue}" />
 
-							<!-- function definition. -->
-							<Border Classes="funcPill" IsVisible="{Binding IsFuncDef}">
-								<TextBlock Text="ƒ defined" />
-							</Border>
+								<!-- function definition. -->
+								<Border Classes="funcPill" IsVisible="{Binding IsFuncDef}">
+									<TextBlock Text="ƒ defined" />
+								</Border>
 
-							<!-- error. -->
-							<TextBlock Classes="error" IsVisible="{Binding IsError}"
-									   Text="{Binding ErrorMessage, StringFormat='⚠ {0}'}" />
-						</StackPanel>
-					</Grid>
+								<!-- error. -->
+								<TextBlock Classes="error" IsVisible="{Binding IsError}"
+										   Text="{Binding ErrorMessage, StringFormat='⚠ {0}'}" />
+							</StackPanel>
+						</Grid>
+
+						<!-- Auto-caption under the row (focused + auto-selected output unit only). -->
+						<TextBlock Classes="autoCaption"
+								   IsVisible="{Binding ShowAutoCaption}"
+								   Text="output unit auto-selected (value ≥ 1) — type `in &lt;unit&gt;` to override" />
+					</StackPanel>
 				</Border>
 			</DataTemplate>
 		</ItemsControl.ItemTemplate>

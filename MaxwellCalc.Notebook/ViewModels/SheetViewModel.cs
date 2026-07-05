@@ -24,6 +24,12 @@ public partial class SheetViewModel : ViewModelBase
     public ObservableCollection<LineViewModel> Lines { get; } = [];
 
     /// <summary>
+    /// Gets the active workspace the line editors classify their tokens against (for inline
+    /// highlighting). Proxies <see cref="WorkspaceState.Workspace"/> and changes with it.
+    /// </summary>
+    public MaxwellCalc.Core.Workspaces.IWorkspace? Workspace => _workspaceState.Workspace;
+
+    /// <summary>
     /// Gets or sets the index of the currently focused line, or <c>null</c> when nothing is focused.
     /// </summary>
     [ObservableProperty]
@@ -70,7 +76,10 @@ public partial class SheetViewModel : ViewModelBase
     private void OnWorkspaceStateChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(WorkspaceState.Workspace))
+        {
+            OnPropertyChanged(nameof(Workspace));
             Evaluate();
+        }
     }
 
     private void OnLinesChanged(object? sender, NotifyCollectionChangedEventArgs e)

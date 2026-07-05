@@ -52,7 +52,17 @@ public partial class LineViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [property: System.Text.Json.Serialization.JsonIgnore]
+    [NotifyPropertyChangedFor(nameof(ShowAutoCaption))]
     private bool _autoUnitSelected;
+
+    /// <summary>
+    /// Gets or sets whether this line's editor currently holds focus. Drives the auto-caption, which
+    /// is only shown under the focused row.
+    /// </summary>
+    [ObservableProperty]
+    [property: System.Text.Json.Serialization.JsonIgnore]
+    [NotifyPropertyChangedFor(nameof(ShowAutoCaption))]
+    private bool _isFocused;
 
     /// <summary>
     /// Gets the joined diagnostic message for error lines, or <c>null</c>.
@@ -75,6 +85,13 @@ public partial class LineViewModel : ViewModelBase
     /// Gets whether this line failed to evaluate (renders the error message).
     /// </summary>
     public bool IsError => Kind is LineKind.Error;
+
+    /// <summary>
+    /// Gets whether the auto-selected-output-unit caption should be shown under this row: only when
+    /// the line is focused and its output unit was auto-selected. (Step 10 gates this further behind a
+    /// user setting, default on.)
+    /// </summary>
+    public bool ShowAutoCaption => IsFocused && AutoUnitSelected;
 
     /// <summary>
     /// Creates a new empty <see cref="LineViewModel"/>.
