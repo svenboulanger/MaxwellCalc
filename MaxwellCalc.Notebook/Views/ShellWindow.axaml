@@ -10,8 +10,39 @@
         x:Class="MaxwellCalc.Notebook.Views.ShellWindow"
         x:DataType="vm:ShellViewModel"
         ExtendClientAreaToDecorationsHint="True"
+        WindowDecorations="BorderOnly"
         Background="{DynamicResource BgBrush}"
         Title="MaxwellCalc">
+
+	<Window.Styles>
+		<!-- Custom window caption buttons (min / max-restore / close) and the theme toggle.
+		     Flush to the top-right, 46x44, transparent with a subtle hover; close hovers red. -->
+		<Style Selector="Button.caption">
+			<Setter Property="Width" Value="46" />
+			<Setter Property="Height" Value="44" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="0" />
+			<Setter Property="VerticalAlignment" Value="Stretch" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+		</Style>
+		<Style Selector="Button.caption /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="CornerRadius" Value="0" />
+		</Style>
+		<Style Selector="Button.caption:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<Style Selector="Button.caption:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+		<Style Selector="Button.caption.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ErrBrush}" />
+		</Style>
+		<Style Selector="Button.caption.close:pointerover">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+	</Window.Styles>
 
 	<!-- Step 3 — static three-region shell: title bar (44px) / sheet region (*) / access bar (Auto).
 	     No evaluation or overlay logic yet; the sheet region hosts placeholder rows that SheetView
@@ -26,7 +57,7 @@
 				BorderBrush="{DynamicResource LineBrush}"
 				BorderThickness="0,0,0,1"
 				PointerPressed="OnTitleBarPointerPressed">
-			<Grid ColumnDefinitions="Auto,*,Auto" Margin="14,0">
+			<Grid ColumnDefinitions="Auto,*,Auto" Margin="14,0,0,0">
 
 				<!-- Left cluster: app mark + name + workspace caption (gap 10). -->
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10"
@@ -46,20 +77,26 @@
 							   VerticalAlignment="Center" />
 				</StackPanel>
 
-				<!-- Right cluster: theme toggle. Right margin reserves space for the OS caption
-				     buttons drawn by PreferSystemChrome in the extended client area. -->
-				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14"
-							VerticalAlignment="Center" Margin="0,0,140,0">
+				<!-- Right cluster: theme toggle + custom window caption buttons. We use
+				     SystemDecorations="BorderOnly" (native resize border + shadow, no native
+				     title/buttons), so the min/max/close buttons are drawn and wired here. -->
+				<StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
 					<Button Name="ThemeToggleButton"
 							Click="OnToggleTheme"
-							Background="Transparent"
-							BorderThickness="0"
-							Padding="6"
-							CornerRadius="{DynamicResource ButtonCornerRadius}"
-							VerticalAlignment="Center"
+							Classes="caption"
+							Margin="0,0,6,0"
 							ToolTip.Tip="Toggle light / dark">
-						<materialIcons:MaterialIcon Kind="WeatherNight" Width="17" Height="17"
-													Foreground="{DynamicResource MutBrush}" />
+						<materialIcons:MaterialIcon Kind="WeatherNight" Width="16" Height="16" />
+					</Button>
+					<Button Classes="caption" Click="OnMinimize" ToolTip.Tip="Minimize">
+						<materialIcons:MaterialIcon Kind="WindowMinimize" Width="15" Height="15" />
+					</Button>
+					<Button Classes="caption" Click="OnMaximizeRestore" ToolTip.Tip="Maximize">
+						<materialIcons:MaterialIcon Name="MaxRestoreIcon" Kind="WindowMaximize"
+													Width="14" Height="14" />
+					</Button>
+					<Button Classes="caption close" Click="OnClose" ToolTip.Tip="Close">
+						<materialIcons:MaterialIcon Kind="WindowClose" Width="15" Height="15" />
 					</Button>
 				</StackPanel>
 			</Grid>
