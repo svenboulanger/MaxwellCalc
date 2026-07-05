@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:controls="using:MaxwellCalc.Notebook.Controls">
 	<!--
 	  Step 2 — Design tokens & theming resources.
 
@@ -117,6 +118,46 @@
 
 			<!-- Overlay drop shadow: 0 30px 70px -20px rgba(0,0,0,.5) -->
 			<BoxShadows x:Key="OverlayShadow">0 30 70 -20 #80000000</BoxShadows>
+
+			<!-- ===================== CHIP CONTROL THEME ===================== -->
+			<!-- Access-bar chip: leading mono glyph (caller-colored) + sans label + optional faint
+			     count. inline-flex, gap 6, padding 5px 11px, radius 7, chip bg, 1px chipBorder. -->
+			<ControlTheme x:Key="{x:Type controls:Chip}" TargetType="controls:Chip">
+				<Setter Property="Background" Value="{DynamicResource ChipBrush}" />
+				<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+				<Setter Property="BorderThickness" Value="1" />
+				<Setter Property="CornerRadius" Value="{DynamicResource ChipCornerRadius}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<ControlTemplate>
+						<Border Background="{TemplateBinding Background}"
+								BorderBrush="{TemplateBinding BorderBrush}"
+								BorderThickness="{TemplateBinding BorderThickness}"
+								CornerRadius="{TemplateBinding CornerRadius}"
+								Padding="11,5">
+							<StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+								<TextBlock Text="{TemplateBinding Glyph}"
+										   FontFamily="{DynamicResource MonoFontFamily}"
+										   FontStyle="{TemplateBinding GlyphFontStyle}"
+										   Foreground="{TemplateBinding GlyphForeground}"
+										   FontSize="12"
+										   VerticalAlignment="Center" />
+								<TextBlock Text="{TemplateBinding Label}"
+										   FontFamily="{DynamicResource UiFontFamily}"
+										   FontSize="12" FontWeight="Medium"
+										   Foreground="{DynamicResource InkBrush}"
+										   VerticalAlignment="Center" />
+								<TextBlock Text="{TemplateBinding Count}"
+										   FontFamily="{DynamicResource UiFontFamily}"
+										   FontSize="12"
+										   Foreground="{DynamicResource FaintBrush}"
+										   VerticalAlignment="Center"
+										   IsVisible="{Binding Count, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+							</StackPanel>
+						</Border>
+					</ControlTemplate>
+				</Setter>
+			</ControlTheme>
 		</ResourceDictionary>
 	</Styles.Resources>
 

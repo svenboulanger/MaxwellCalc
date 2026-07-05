@@ -18,6 +18,15 @@ public partial class ShellViewModel : ViewModelBase
     /// </summary>
     public string WorkspaceName => WorkspaceState.WorkspaceName;
 
+    /// <summary>Gets the Variables chip count. Placeholder until wired to the panel VM in Step 10.</summary>
+    public string VariablesCount => string.Empty;
+
+    /// <summary>Gets the Units chip count. Placeholder until wired to the panel VM in Step 10.</summary>
+    public string UnitsCount => string.Empty;
+
+    /// <summary>Gets the Functions chip count. Placeholder until wired to the panel VM in Step 10.</summary>
+    public string FunctionsCount => string.Empty;
+
     /// <summary>
     /// Creates a new <see cref="ShellViewModel"/>.
     /// </summary>
