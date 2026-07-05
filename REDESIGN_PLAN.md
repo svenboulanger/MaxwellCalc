@@ -21,10 +21,19 @@ and the *in what order*.
    old shell's assumptions (panes, single-line history, etc.).
 
 3. **Target the versions already in the repo, not the handoff doc's.** The doc says "Avalonia 11";
-   the repo is on **Avalonia 12.0.4**, **Material.Avalonia 3.17.0**, **Material.Icons.Avalonia 3.0.2**,
-   **CommunityToolkit.Mvvm 8.4.2**, **.NET 8**. Match the repo.
+   the repo is on **Avalonia 12.0.4**, **Material.Icons.Avalonia 3.0.2**, **CommunityToolkit.Mvvm 8.4.2**,
+   **.NET 8**. Match the repo.
 
-4. **Sheet evaluation must not mutate the workspace.** Confirmed in
+4. **Base theme: Avalonia FluentTheme, not Material.** This is a from-scratch, fully token-driven
+   design with its own color system (accent + unit hue + `bg`/`surf`/`bar`/`ink`/… tokens), so it sits
+   on Avalonia's neutral built-in `FluentTheme` rather than the opinionated Material theme the old app
+   used. Light/dark switching uses the **built-in** `RequestedThemeVariant` (`ThemeVariant.Light` /
+   `ThemeVariant.Dark`) — no Material dependency. `Material.Icons.Avalonia` is kept purely as a
+   standalone **icon pack** (glyphs like `Magnify`, `WeatherNight`, `Close`, `MenuDown`, `Plus`); it is
+   independent of the Material theme. The handoff doc's mention of `Theme.MaterialLight/Dark` reflects
+   the old app and is superseded here.
+
+5. **Sheet evaluation must not mutate the workspace.** Confirmed in
    `MaxwellCalc.Core/Workspaces/Workspace.cs:271-306`: resolving an `Assign` node writes to
    `Scope.Local[name]`, and a function-definition assign writes to `UserFunctions`. Evaluating the
    sheet top-to-bottom against the live workspace would therefore permanently pollute it as the user
@@ -75,10 +84,10 @@ Steps 1–2 are prerequisites; 3–11 can largely be parallelized by area once t
 - Create `MaxwellCalc.Notebook/MaxwellCalc.Notebook.csproj` mirroring `MaxwellCalc.csproj`'s package
   set and settings (`WinExe`, `net8.0`, `Nullable`, `AvaloniaUseCompiledBindingsByDefault`,
   `ExtendClientAreaToDecorationsHint` usage). Add `PackageReference`s: Avalonia 12.0.4,
-  Avalonia.Desktop, Avalonia.Controls.DataGrid, Material.Avalonia + .DataGrid 3.17.0,
-  Material.Icons.Avalonia 3.0.2, CommunityToolkit.Mvvm 8.4.2, Microsoft.Extensions.DependencyInjection.
-  Add `<ProjectReference Include="..\MaxwellCalc.Core\MaxwellCalc.Core.csproj" />` — this is the **only**
-  dependency on existing repo code.
+  Avalonia.Desktop, Avalonia.Themes.Fluent, Avalonia.Fonts.Inter, Material.Icons.Avalonia 3.0.2
+  (icon pack only), CommunityToolkit.Mvvm 8.4.2, Microsoft.Extensions.DependencyInjection. Do **not**
+  reference Material.Avalonia. Add `<ProjectReference Include="..\MaxwellCalc.Core\MaxwellCalc.Core.csproj" />`
+  — the only dependency on existing repo code.
 - Add the project to `MaxwellCalc.sln`.
 - Author fresh, minimal boilerplate: `Program.cs`, `App.axaml`/`App.axaml.cs` (register the Material
   theme, build a fresh DI `ServiceCollection` for the new VMs, register the `System.Text.Json`
@@ -88,7 +97,7 @@ Steps 1–2 are prerequisites; 3–11 can largely be parallelized by area once t
 - **No files are copied or linked from `MaxwellCalc`.** The old project is only opened for reference.
 
 **Acceptance:** `dotnet build MaxwellCalc.Notebook` succeeds; running it opens a blank window with the
-Material theme; the new DI container builds without throwing. No compile unit originates from the old
+FluentTheme; the new DI container builds without throwing. No compile unit originates from the old
 UI project.
 
 ---
@@ -107,9 +116,9 @@ resources usable via `DynamicResource`, switching correctly between light and da
   with light `oklch(0.52 0.13 H)` and dark `oklch(0.82 0.11 H)` values, plus a single dynamic
   `UnitHueBrush` that the app points at the selected preset (wired in Step 10).
 - Define pill styles (`const` pill, `ƒ-defined`/`auto` pill) and shared radii/spacing as resources.
-- Register `Theme.axaml` in `App.axaml`. Wire theme switching to the standard mechanism
-  (`Application.Current.RequestedThemeVariant = Theme.MaterialLight/MaterialDark`); the fresh
-  `SettingsViewModel` (Step 10) drives it.
+- Register `Theme.axaml` in `App.axaml` (after `FluentTheme` so tokens override base brushes). Wire
+  theme switching to the built-in mechanism (`Application.Current.RequestedThemeVariant =
+  ThemeVariant.Light / ThemeVariant.Dark`); the fresh `SettingsViewModel` (Step 10) drives it.
 - **Typography:** add `Fonts/` and either bundle IBM Plex Sans + IBM Plex Mono (OFL) as
   `AvaloniaResource` and expose `UiFontFamily` / `MonoFontFamily` resources, or fall back to the system
   UI font + `Cascadia Code`/`Consolas`. Editor and gutter **must** share the same mono family/metrics.
@@ -329,7 +338,8 @@ item.
   command); button label + title caption reflect the active workspace name.
 - **Chips** ⇒ open the overlay on the matching section; live count badges bound to the panel VMs'
   item counts (user vars, input units, user funcs — pick the counts shown in the prototype).
-- **Theme toggle** ⇒ flips light/dark via `RequestedThemeVariant`; icon swaps ☾/☀; persists.
+- **Theme toggle** ⇒ flips light/dark via the built-in `RequestedThemeVariant` (`ThemeVariant.Light` /
+  `ThemeVariant.Dark`); icon swaps ☾/☀; persists.
 - Changing `UnitHue` repoints the dynamic `UnitHueBrush` (Step 2) and persists.
 
 **Acceptance:** switching workspace updates title + button + sheet + overlay contents; chip counts are

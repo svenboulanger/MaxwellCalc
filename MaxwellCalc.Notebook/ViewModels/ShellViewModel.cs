@@ -1,0 +1,34 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace MaxwellCalc.Notebook.ViewModels;
+
+/// <summary>
+/// The top-level view model for the notebook window. Owns the shared workspace state and
+/// (in later steps) the sheet and command-palette view models.
+/// </summary>
+public partial class ShellViewModel : ViewModelBase
+{
+    /// <summary>
+    /// Gets the shared workspace state.
+    /// </summary>
+    public WorkspaceState WorkspaceState { get; }
+
+    /// <summary>
+    /// Gets the name of the active workspace, for the title caption and Physics button.
+    /// </summary>
+    public string WorkspaceName => WorkspaceState.WorkspaceName;
+
+    /// <summary>
+    /// Creates a new <see cref="ShellViewModel"/>.
+    /// </summary>
+    /// <param name="workspaceState">The shared workspace state.</param>
+    public ShellViewModel(WorkspaceState workspaceState)
+    {
+        WorkspaceState = workspaceState;
+        WorkspaceState.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(WorkspaceState.WorkspaceName))
+                OnPropertyChanged(nameof(WorkspaceName));
+        };
+    }
+}
