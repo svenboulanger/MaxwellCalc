@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using MaxwellCalc.Core.Dictionaries;
@@ -32,15 +34,39 @@ namespace MaxwellCalc.Notebook.Controls;
 public class HighlightedExpressionBox : TemplatedControl
 {
     private TextBlock? _display;
+    private TextBox? _editor;
     private readonly List<Action> _unsubscribe = [];
     private IWorkspace? _hooked;
     private bool _isAttached;
     private bool _renderQueued;
 
+    /// <summary>
+    /// Raised when Enter is pressed. The sheet splits the line at <see cref="CaretIndex"/>: the text up
+    /// to the caret stays, the remainder moves to a new line below, and focus follows it (Step 7).
+    /// </summary>
+    public event EventHandler? EnterPressed;
+
+    /// <summary>
+    /// Raised when Backspace is pressed with the caret at column 0 and nothing selected. The sheet
+    /// merges this line into the previous one, placing the caret at the join point (Step 7).
+    /// </summary>
+    public event EventHandler? MergeBackRequested;
+
+    /// <summary>Raised when the Up arrow is pressed: the sheet moves focus to the previous line.</summary>
+    public event EventHandler? NavigateUpRequested;
+
+    /// <summary>Raised when the Down arrow is pressed: the sheet moves focus to the next line.</summary>
+    public event EventHandler? NavigateDownRequested;
+
     /// <summary>Identifies the <see cref="Text"/> property.</summary>
     public static readonly StyledProperty<string?> TextProperty =
         AvaloniaProperty.Register<HighlightedExpressionBox, string?>(
             nameof(Text), defaultBindingMode: BindingMode.TwoWay);
+
+    /// <summary>Identifies the <see cref="CaretIndex"/> property.</summary>
+    public static readonly StyledProperty<int> CaretIndexProperty =
+        AvaloniaProperty.Register<HighlightedExpressionBox, int>(
+            nameof(CaretIndex), defaultBindingMode: BindingMode.TwoWay);
 
     /// <summary>Identifies the <see cref="Workspace"/> property.</summary>
     public static readonly StyledProperty<IWorkspace?> WorkspaceProperty =
@@ -67,6 +93,16 @@ public class HighlightedExpressionBox : TemplatedControl
     {
         get => GetValue(TextProperty);
         set => SetValue(TextProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the caret position within the editable text. Kept in sync with the inner editor's
+    /// caret so the sheet's keyboard model can split at, preserve, and restore the column (Step 7).
+    /// </summary>
+    public int CaretIndex
+    {
+        get => GetValue(CaretIndexProperty);
+        set => SetValue(CaretIndexProperty, value);
     }
 
     /// <summary>Gets or sets the workspace used to classify identifiers (units / consts / vars / funcs).</summary>
@@ -108,8 +144,70 @@ public class HighlightedExpressionBox : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
+
+        if (_editor is not null)
+            _editor.RemoveHandler(KeyDownEvent, OnEditorKeyDown);
+
         _display = e.NameScope.Find<TextBlock>("PART_Display");
+        _editor = e.NameScope.Find<TextBox>("PART_Editor");
+
+        // Handle on the tunnel (preview) route so the notebook keys pre-empt the TextBox's own bubble
+        // handling — otherwise the TextBox would consume/act on them before we could.
+        if (_editor is not null)
+            _editor.AddHandler(KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
+
         Render();
+    }
+
+    /// <summary>
+    /// Moves keyboard focus to the editable surface and places the caret at <see cref="CaretIndex"/>.
+    /// Called by the sheet view after a split/merge/navigation so the freshly focused line's caret
+    /// lands where the keyboard model decided (Step 7).
+    /// </summary>
+    public void FocusEditor()
+    {
+        if (_editor is null)
+            return;
+        _editor.Focus();
+        int caret = Math.Clamp(CaretIndex, 0, (Text ?? string.Empty).Length);
+        // Collapse any select-all the focus may have applied so the caret shows at the target column.
+        _editor.SelectionStart = caret;
+        _editor.SelectionEnd = caret;
+        _editor.CaretIndex = caret;
+    }
+
+    // Turns the notebook navigation/edit keys into semantic events for the sheet to act on. Everything
+    // else (typing, Left/Right, selection) is left to the underlying TextBox. Each handled key is
+    // marked so the TextBox doesn't also process it.
+    private void OnEditorKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyModifiers != KeyModifiers.None)
+            return;
+
+        switch (e.Key)
+        {
+            case Key.Enter:
+                EnterPressed?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                break;
+
+            // Only merge when the caret sits before the first character with no active selection;
+            // otherwise let the TextBox delete normally.
+            case Key.Back when _editor is { CaretIndex: 0 } && _editor.SelectionStart == _editor.SelectionEnd:
+                MergeBackRequested?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                break;
+
+            case Key.Up:
+                NavigateUpRequested?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                break;
+
+            case Key.Down:
+                NavigateDownRequested?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                break;
+        }
     }
 
     /// <inheritdoc />

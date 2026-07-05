@@ -222,6 +222,7 @@
 							<TextBox Name="PART_Editor"
 									 Theme="{StaticResource EditorTextBoxTheme}"
 									 Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+									 CaretIndex="{Binding CaretIndex, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
 									 FontFamily="{TemplateBinding FontFamily}"
 									 FontSize="{TemplateBinding FontSize}"
 									 Foreground="Transparent"

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Notebook.Evaluation;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -34,6 +35,14 @@ public partial class SheetViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     private int? _focusedLineIndex;
+
+    /// <summary>
+    /// Raised when the keyboard model has moved the logical focus to a different line (after a split,
+    /// merge or arrow navigation). The argument is the index of the line whose editor should take
+    /// keyboard focus; the view realizes that row and calls <c>FocusEditor</c> on its editor. The line's
+    /// <see cref="LineViewModel.CaretIndex"/> is already set to the desired caret column.
+    /// </summary>
+    public event Action<int>? FocusRequested;
 
     /// <summary>
     /// Creates a new <see cref="SheetViewModel"/>.
@@ -71,6 +80,107 @@ public partial class SheetViewModel : ViewModelBase
             _suppressEvaluation = false;
         }
         Evaluate();
+    }
+
+    // ---- Keyboard model (Step 7) -------------------------------------------------------------
+
+    /// <summary>
+    /// Splits the line at <paramref name="index"/> at <paramref name="caretIndex"/> (the Enter key):
+    /// the text up to the caret stays on the line, the remainder moves to a new line inserted directly
+    /// below, and focus follows to the start of that new line. When the caret is at the end of the line
+    /// (the common case) the new line is simply empty.
+    /// </summary>
+    /// <param name="index">The index of the line being split.</param>
+    /// <param name="caretIndex">The caret column at which to split.</param>
+    public void SplitLine(int index, int caretIndex)
+    {
+        if (index < 0 || index >= Lines.Count)
+            return;
+
+        var line = Lines[index];
+        string text = line.Text ?? string.Empty;
+        caretIndex = Math.Clamp(caretIndex, 0, text.Length);
+
+        var newLine = new LineViewModel(text[caretIndex..]) { CaretIndex = 0 };
+
+        _suppressEvaluation = true;
+        try
+        {
+            line.Text = text[..caretIndex];
+            line.CaretIndex = caretIndex;
+            Lines.Insert(index + 1, newLine);
+        }
+        finally
+        {
+            _suppressEvaluation = false;
+        }
+
+        Evaluate();
+        FocusedLineIndex = index + 1;
+        FocusRequested?.Invoke(index + 1);
+    }
+
+    /// <summary>
+    /// Merges the line at <paramref name="index"/> into the previous line (Backspace at column 0): the
+    /// current line's text is appended to the previous line, the current line is removed, and focus
+    /// moves to the previous line with the caret at the join point. No-op for the first line.
+    /// </summary>
+    /// <param name="index">The index of the line being merged upward.</param>
+    public void MergeWithPrevious(int index)
+    {
+        if (index <= 0 || index >= Lines.Count)
+            return;
+
+        var previous = Lines[index - 1];
+        var current = Lines[index];
+        int joinAt = (previous.Text ?? string.Empty).Length;
+
+        _suppressEvaluation = true;
+        try
+        {
+            previous.Text = (previous.Text ?? string.Empty) + (current.Text ?? string.Empty);
+            previous.CaretIndex = joinAt;
+            Lines.RemoveAt(index);
+        }
+        finally
+        {
+            _suppressEvaluation = false;
+        }
+
+        Evaluate();
+        FocusedLineIndex = index - 1;
+        FocusRequested?.Invoke(index - 1);
+    }
+
+    /// <summary>
+    /// Moves focus to the previous line (Up arrow), preserving the caret column where the target line
+    /// is long enough. No-op on the first line.
+    /// </summary>
+    /// <param name="index">The index of the line currently focused.</param>
+    /// <param name="caretColumn">The caret column to preserve.</param>
+    public void NavigateUp(int index, int caretColumn) => MoveFocus(index, index - 1, caretColumn);
+
+    /// <summary>
+    /// Moves focus to the next line (Down arrow), preserving the caret column where the target line is
+    /// long enough. No-op on the last line.
+    /// </summary>
+    /// <param name="index">The index of the line currently focused.</param>
+    /// <param name="caretColumn">The caret column to preserve.</param>
+    public void NavigateDown(int index, int caretColumn) => MoveFocus(index, index + 1, caretColumn);
+
+    // Shared navigation: focus the target line (if it exists), clamping the preserved column to its
+    // length. Evaluation is untouched — navigation changes no text.
+    private void MoveFocus(int fromIndex, int toIndex, int caretColumn)
+    {
+        if (fromIndex < 0 || fromIndex >= Lines.Count)
+            return;
+        if (toIndex < 0 || toIndex >= Lines.Count)
+            return;
+
+        var target = Lines[toIndex];
+        target.CaretIndex = Math.Min(caretColumn, (target.Text ?? string.Empty).Length);
+        FocusedLineIndex = toIndex;
+        FocusRequested?.Invoke(toIndex);
     }
 
     private void OnWorkspaceStateChanged(object? sender, PropertyChangedEventArgs e)

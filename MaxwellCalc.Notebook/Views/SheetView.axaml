@@ -51,7 +51,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<ItemsControl ItemsSource="{Binding Lines}">
+	<ItemsControl Name="LinesHost" ItemsSource="{Binding Lines}">
 		<ItemsControl.ItemTemplate>
 			<DataTemplate x:DataType="vm:LineViewModel">
 				<Border Classes="row">
@@ -59,12 +59,18 @@
 						<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
 
 							<!-- Editor (left, fills): inline syntax highlighting driven by the active
-							     workspace, which lives on the SheetViewModel (the view's DataContext). -->
+							     workspace, which lives on the SheetViewModel (the view's DataContext).
+							     The Enter/Backspace/Arrow events drive the notebook keyboard model. -->
 							<controls:HighlightedExpressionBox Grid.Column="0"
 									Text="{Binding Text, Mode=TwoWay}"
+									CaretIndex="{Binding CaretIndex, Mode=TwoWay}"
 									Workspace="{Binding ((vm:SheetViewModel)DataContext).Workspace, RelativeSource={RelativeSource AncestorType=UserControl}}"
 									GotFocus="OnEditorGotFocus"
-									LostFocus="OnEditorLostFocus" />
+									LostFocus="OnEditorLostFocus"
+									EnterPressed="OnEnterPressed"
+									MergeBackRequested="OnMergeBackRequested"
+									NavigateUpRequested="OnNavigateUpRequested"
+									NavigateDownRequested="OnNavigateDownRequested" />
 
 							<!-- Result gutter (right). Exactly one branch is visible per line. -->
 							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
