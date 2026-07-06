@@ -102,6 +102,8 @@
 			<CornerRadius x:Key="ChipCornerRadius">7</CornerRadius>
 			<CornerRadius x:Key="ButtonCornerRadius">7</CornerRadius>
 			<CornerRadius x:Key="CardCornerRadius">14</CornerRadius>
+			<!-- Bottom-only radius so the palette footer follows the card's rounded corners. -->
+			<CornerRadius x:Key="CardFooterCornerRadius">0,0,14,14</CornerRadius>
 
 			<!-- Spacing (Thickness = "left,top,right,bottom"; here "H,V" for symmetric padding) -->
 			<Thickness x:Key="RowPadding">26,8</Thickness>
@@ -227,7 +229,7 @@
 									 FontSize="{TemplateBinding FontSize}"
 									 Foreground="Transparent"
 									 CaretBrush="{DynamicResource AccentBrush}"
-									 SelectionBrush="{DynamicResource ActiveTintBrush}"
+									 SelectionBrush="{DynamicResource TextControlSelectionHighlightColor}"
 									 SelectionForegroundBrush="Transparent"
 									 Background="Transparent"
 									 BorderThickness="0"

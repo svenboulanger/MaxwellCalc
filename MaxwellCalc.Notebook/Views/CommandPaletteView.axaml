@@ -108,9 +108,19 @@
 			<Setter Property="FontWeight" Value="Medium" />
 			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
 		</Style>
+		<!-- Active tab: accent pill with white text, matching the Add button. Template overrides lock the
+		     accent through the hover state so FluentTheme's pointerover brush doesn't wash it out. -->
 		<Style Selector="Button.tab.active">
-			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
-			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.tab.active /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.tab.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
 		</Style>
 
 		<!-- ===================== Footer add-row (Step 9) ===================== -->
@@ -120,6 +130,7 @@
 			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
 			<Setter Property="BorderThickness" Value="0,1,0,0" />
 			<Setter Property="Padding" Value="{DynamicResource AddRowPadding}" />
+			<Setter Property="CornerRadius" Value="{DynamicResource CardFooterCornerRadius}" />
 		</Style>
 
 		<!-- "＋ New …" label. -->
@@ -144,6 +155,25 @@
 			<Setter Property="MinHeight" Value="0" />
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<!-- Suppress FluentTheme's hover/focus border highlight so the field border stays quiet while
+		     editing. Thickness is kept (transparent) so the content never shifts by a pixel. -->
+		<Style Selector="TextBox.addField:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="Transparent" />
+		</Style>
+		<Style Selector="TextBox.addField:focus /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="Transparent" />
+		</Style>
+
+		<!-- Header search box: chrome-less in every state. FluentTheme's focus style forces a border
+		     thickness back onto the template part, so strip both thickness and brush on hover/focus. -->
+		<Style Selector="TextBox#PART_Search:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+		</Style>
+		<Style Selector="TextBox#PART_Search:focus /template/ Border#PART_BorderElement">
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="BorderBrush" Value="Transparent" />
 		</Style>
 
 		<!-- The "=" separator between the two fields. -->
@@ -296,21 +326,28 @@
 
 						<!-- ============================= UNITS ============================= -->
 						<StackPanel IsVisible="{Binding IsUnits}">
-							<!-- Segmented Input / Output tabs. -->
-							<Border HorizontalAlignment="Left" Margin="0,4,0,4"
-									Background="{DynamicResource BgBrush}"
-									CornerRadius="7" Padding="3">
-								<StackPanel Orientation="Horizontal" Spacing="3">
-									<Button Classes="tab" Classes.active="{Binding IsInputTab}"
-											Command="{Binding ShowInputUnitsCommand}" Content="Input units" />
-									<Button Classes="tab" Classes.active="{Binding IsOutputTab}"
-											Command="{Binding ShowOutputUnitsCommand}" Content="Output units" />
-								</StackPanel>
-							</Border>
+							<!-- Segmented Input / Output tabs, with the active tab's caption to their right. -->
+							<Grid ColumnDefinitions="Auto,*" Margin="0,4,0,4">
+								<Border Grid.Column="0" HorizontalAlignment="Left"
+										Background="{DynamicResource BgBrush}"
+										CornerRadius="7" Padding="3">
+									<StackPanel Orientation="Horizontal" Spacing="3">
+										<Button Classes="tab" Classes.active="{Binding IsInputTab}"
+												Command="{Binding ShowInputUnitsCommand}" Content="Input units" />
+										<Button Classes="tab" Classes.active="{Binding IsOutputTab}"
+												Command="{Binding ShowOutputUnitsCommand}" Content="Output units" />
+									</StackPanel>
+								</Border>
+								<Panel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+									<TextBlock Classes="rowCaption" Margin="0" VerticalAlignment="Center"
+											   IsVisible="{Binding IsInputTab}" Text="resolve to base SI" />
+									<TextBlock Classes="rowCaption" Margin="0" VerticalAlignment="Center"
+											   IsVisible="{Binding IsOutputTab}" Text="candidates the app auto-picks from" />
+								</Panel>
+							</Grid>
 
 							<!-- Input units. -->
 							<StackPanel IsVisible="{Binding IsInputTab}">
-								<TextBlock Classes="rowCaption" Text="resolve to base SI" />
 								<TextBlock Classes="emptyState" IsVisible="{Binding InputUnits.IsEmpty}"
 										   Text="No input units." />
 								<ItemsControl ItemsSource="{Binding InputUnits.Items}">
@@ -342,7 +379,6 @@
 
 							<!-- Output units, grouped by physical quantity. -->
 							<StackPanel IsVisible="{Binding IsOutputTab}">
-								<TextBlock Classes="rowCaption" Text="candidates the app auto-picks from" />
 								<TextBlock Classes="emptyState" IsVisible="{Binding OutputUnits.IsEmpty}"
 										   Text="No output units." />
 								<ItemsControl ItemsSource="{Binding OutputUnits.Groups}">
