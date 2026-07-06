@@ -163,12 +163,12 @@
 
 			<!-- ===================== QUANTITY VIEW THEME ===================== -->
 			<!-- Result-gutter quantity renderer: shared mono metrics with the editor so digits line up,
-			     600 weight, right-aligned. Scalar in ink; unit symbols in the unit hue. -->
+			     600 weight, right-aligned. Scalar in the accent color; unit symbols in the unit hue. -->
 			<ControlTheme x:Key="{x:Type controls:QuantityView}" TargetType="controls:QuantityView">
 				<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
 				<Setter Property="FontSize" Value="{DynamicResource EditorFontSize}" />
 				<Setter Property="FontWeight" Value="SemiBold" />
-				<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+				<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
 				<Setter Property="UnitForeground" Value="{DynamicResource UnitHueBrush}" />
 				<Setter Property="Template">
 					<ControlTemplate>

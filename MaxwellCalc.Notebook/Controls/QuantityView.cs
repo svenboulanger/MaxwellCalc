@@ -10,7 +10,7 @@ namespace MaxwellCalc.Notebook.Controls;
 
 /// <summary>
 /// Renders a <see cref="Quantity{T}"/> of <see cref="string"/> as colored inline runs: the scalar in
-/// the control <see cref="TemplatedControl.Foreground"/> (ink), each unit symbol in
+/// the control <see cref="TemplatedControl.Foreground"/> (the accent color), each unit symbol in
 /// <see cref="UnitForeground"/> (the unit hue), and each exponent as a superscript run at
 /// <c>0.75×</c> the base font size. Written fresh for the notebook gutter (Step 5); Core's formatter
 /// has already produced the scalar string and the unit dimension, so this control only lays out what
@@ -72,7 +72,7 @@ public class QuantityView : TemplatedControl
         var inlines = _output.Inlines ??= [];
         inlines.Clear();
 
-        // Scalar, in the primary (ink) foreground.
+        // Scalar, in the control foreground (the accent color).
         inlines.Add(new Run
         {
             Text = Value.Scalar ?? string.Empty,
