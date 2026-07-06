@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using MaxwellCalc.Core.Domains;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
+using System.Numerics;
 
 namespace MaxwellCalc.Notebook.ViewModels;
 
@@ -57,6 +58,20 @@ public partial class WorkspaceState : ViewModelBase
         workspace.RegisterCommonUnits();
         workspace.RegisterConstants(typeof(DoubleMathHelper));
         workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
+        return workspace;
+    }
+
+    /// <summary>
+    /// Creates a fresh complex-valued workspace populated with the common units, constants, and
+    /// built-in math functions. Used by the settings view model's workspace list (Step 10).
+    /// </summary>
+    /// <returns>Returns the seeded workspace.</returns>
+    public static Workspace<Complex> CreateComplexWorkspace()
+    {
+        var workspace = new Workspace<Complex>(new ComplexDomain()) { AnswerVariable = "ans" };
+        workspace.RegisterCommonUnits();
+        workspace.RegisterConstants(typeof(ComplexMathHelper));
+        workspace.RegisterBuiltInMethods(typeof(ComplexMathHelper));
         return workspace;
     }
 }

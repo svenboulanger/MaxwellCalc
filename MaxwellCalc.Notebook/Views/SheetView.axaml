@@ -96,10 +96,19 @@
 							</StackPanel>
 						</Grid>
 
-						<!-- Auto-caption under the row (focused + auto-selected output unit only). -->
+						<!-- Auto-caption under the row: shown when the row is focused, its output unit was
+						     auto-selected, AND the user setting is on (SheetViewModel.AutoCaptionEnabled,
+						     driven by SettingsViewModel — Step 10). -->
 						<TextBlock Classes="autoCaption"
-								   IsVisible="{Binding ShowAutoCaption}"
-								   Text="output unit auto-selected (value ≥ 1) — type `in &lt;unit&gt;` to override" />
+								   Text="output unit auto-selected (value ≥ 1) — type `in &lt;unit&gt;` to override">
+							<TextBlock.IsVisible>
+								<MultiBinding Converter="{x:Static BoolConverters.And}">
+									<Binding Path="ShowAutoCaption" />
+									<Binding Path="((vm:SheetViewModel)DataContext).AutoCaptionEnabled"
+											 RelativeSource="{RelativeSource AncestorType=UserControl}" />
+								</MultiBinding>
+							</TextBlock.IsVisible>
+						</TextBlock>
 					</StackPanel>
 				</Border>
 			</DataTemplate>

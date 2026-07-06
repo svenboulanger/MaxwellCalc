@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Material.Icons;
 using Material.Icons.Avalonia;
@@ -58,19 +57,6 @@ public partial class ShellWindow : Window
             icon.Kind = WindowState == WindowState.Maximized
                 ? MaterialIconKind.WindowRestore
                 : MaterialIconKind.WindowMaximize;
-        }
-    }
-
-    // Placeholder theme toggle for the static shell. Step 10 replaces this with the
-    // SettingsViewModel-driven, persisted toggle.
-    private void OnToggleTheme(object? sender, RoutedEventArgs e)
-    {
-        if (Application.Current is { } app)
-        {
-            var current = app.ActualThemeVariant;
-            app.RequestedThemeVariant = current == ThemeVariant.Dark
-                ? ThemeVariant.Light
-                : ThemeVariant.Dark;
         }
     }
 }

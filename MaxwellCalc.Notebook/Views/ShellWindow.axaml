@@ -42,6 +42,42 @@
 		<Style Selector="Button.caption.close:pointerover">
 			<Setter Property="Foreground" Value="White" />
 		</Style>
+
+		<!-- Settings flyout: section caption + unit-hue swatch buttons. -->
+		<Style Selector="TextBlock.settingsLabel">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="10.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+		</Style>
+		<!-- Chrome-less button wrapping a color swatch (kept transparent in every state). -->
+		<Style Selector="Button.hueBtn">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="Cursor" Value="Hand" />
+		</Style>
+		<Style Selector="Button.hueBtn /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="Button.hueBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="Button.hueBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<!-- The swatch itself: a rounded color chip with a ring that darkens when selected. -->
+		<Style Selector="Border.swatch">
+			<Setter Property="Width" Value="34" />
+			<Setter Property="Height" Value="24" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="BorderThickness" Value="2" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<Style Selector="Border.swatch.active">
+			<Setter Property="BorderBrush" Value="{DynamicResource InkBrush}" />
+		</Style>
 	</Window.Styles>
 
 	<!-- Global shortcuts: ⌘K / Ctrl+K opens the command palette on the Units section; Esc closes it
@@ -91,12 +127,50 @@
 				     SystemDecorations="BorderOnly" (native resize border + shadow, no native
 				     title/buttons), so the min/max/close buttons are drawn and wired here. -->
 				<StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
-					<Button Name="ThemeToggleButton"
-							Click="OnToggleTheme"
+					<!-- Settings: unit-hue swatches + the auto-caption toggle. -->
+					<Button Classes="caption" ToolTip.Tip="Settings">
+						<materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" />
+						<Button.Flyout>
+							<Flyout Placement="BottomEdgeAlignedRight">
+								<StackPanel Width="230" Spacing="12" Margin="4,6">
+									<TextBlock Classes="settingsLabel" Text="UNIT COLOR" />
+									<StackPanel Orientation="Horizontal" Spacing="10">
+										<Button Classes="hueBtn"
+												Command="{Binding Settings.SetUnitHueCommand}"
+												CommandParameter="{x:Static vm:UnitHue.Amber}"
+												ToolTip.Tip="Amber">
+											<Border Classes="swatch" Classes.active="{Binding Settings.IsAmber}"
+													Background="{DynamicResource UnitHueAmberBrush}" />
+										</Button>
+										<Button Classes="hueBtn"
+												Command="{Binding Settings.SetUnitHueCommand}"
+												CommandParameter="{x:Static vm:UnitHue.Green}"
+												ToolTip.Tip="Green">
+											<Border Classes="swatch" Classes.active="{Binding Settings.IsGreen}"
+													Background="{DynamicResource UnitHueGreenBrush}" />
+										</Button>
+										<Button Classes="hueBtn"
+												Command="{Binding Settings.SetUnitHueCommand}"
+												CommandParameter="{x:Static vm:UnitHue.Violet}"
+												ToolTip.Tip="Violet">
+											<Border Classes="swatch" Classes.active="{Binding Settings.IsViolet}"
+													Background="{DynamicResource UnitHueVioletBrush}" />
+										</Button>
+									</StackPanel>
+									<CheckBox IsChecked="{Binding Settings.AutoCaptionEnabled}"
+											  FontFamily="{DynamicResource UiFontFamily}"
+											  FontSize="12"
+											  Foreground="{DynamicResource InkBrush}"
+											  Content="Auto-select output unit caption" />
+								</StackPanel>
+							</Flyout>
+						</Button.Flyout>
+					</Button>
+					<Button Command="{Binding Settings.ToggleThemeCommand}"
 							Classes="caption"
 							Margin="0,0,6,0"
 							ToolTip.Tip="Toggle light / dark">
-						<materialIcons:MaterialIcon Kind="WeatherNight" Width="16" Height="16" />
+						<materialIcons:MaterialIcon Kind="{Binding Settings.ThemeToggleIcon}" Width="16" Height="16" />
 					</Button>
 					<Button Classes="caption" Click="OnMinimize" ToolTip.Tip="Minimize">
 						<materialIcons:MaterialIcon Kind="WindowMinimize" Width="15" Height="15" />
@@ -135,7 +209,8 @@
 							Foreground="White"
 							BorderThickness="0"
 							CornerRadius="{DynamicResource ButtonCornerRadius}"
-							Padding="11,6">
+							Padding="11,6"
+							ToolTip.Tip="Switch workspace">
 						<StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
 							<TextBlock Text="{Binding WorkspaceName}"
 									   FontFamily="{DynamicResource UiFontFamily}"
@@ -144,6 +219,19 @@
 							<materialIcons:MaterialIcon Kind="MenuDown" Width="15" Height="15"
 														VerticalAlignment="Center" />
 						</StackPanel>
+						<!-- Workspace switcher. MenuItems bind their own SelectCommand (per-entry), so no
+						     binding needs to cross the flyout popup back to the shell data context. -->
+						<Button.Flyout>
+							<MenuFlyout ItemsSource="{Binding Settings.Workspaces}">
+								<MenuFlyout.ItemContainerTheme>
+									<ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}"
+												  x:DataType="vm:WorkspaceEntry">
+										<Setter Property="Header" Value="{Binding Name}" />
+										<Setter Property="Command" Value="{Binding SelectCommand}" />
+									</ControlTheme>
+								</MenuFlyout.ItemContainerTheme>
+							</MenuFlyout>
+						</Button.Flyout>
 					</Button>
 
 					<Border Width="1" Height="20" Background="{DynamicResource LineBrush}"
@@ -151,15 +239,15 @@
 
 					<controls:Chip Glyph="x" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
-								   Label="Variables" Count="{Binding VariablesCount}"
+								   Label="Variables" Count="{Binding CommandPalette.Variables.Count}"
 								   Command="{Binding CommandPalette.OpenVariablesCommand}" />
 					<controls:Chip Glyph="m"
 								   GlyphForeground="{DynamicResource UnitHueBrush}"
-								   Label="Units" Count="{Binding UnitsCount}"
+								   Label="Units" Count="{Binding CommandPalette.InputUnits.Count}"
 								   Command="{Binding CommandPalette.OpenUnitsCommand}" />
 					<controls:Chip Glyph="f" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
-								   Label="Functions" Count="{Binding FunctionsCount}"
+								   Label="Functions" Count="{Binding CommandPalette.Functions.Count}"
 								   Command="{Binding CommandPalette.OpenFunctionsCommand}" />
 				</StackPanel>
 

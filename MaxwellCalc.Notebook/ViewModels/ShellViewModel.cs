@@ -24,18 +24,14 @@ public partial class ShellViewModel : ViewModelBase
     public CommandPaletteViewModel CommandPalette { get; }
 
     /// <summary>
+    /// Gets the user preferences (theme, unit hue, auto-caption) and workspace switcher.
+    /// </summary>
+    public SettingsViewModel Settings { get; }
+
+    /// <summary>
     /// Gets the name of the active workspace, for the title caption and Physics button.
     /// </summary>
     public string WorkspaceName => WorkspaceState.WorkspaceName;
-
-    /// <summary>Gets the Variables chip count. Placeholder until wired to the panel VM in Step 10.</summary>
-    public string VariablesCount => string.Empty;
-
-    /// <summary>Gets the Units chip count. Placeholder until wired to the panel VM in Step 10.</summary>
-    public string UnitsCount => string.Empty;
-
-    /// <summary>Gets the Functions chip count. Placeholder until wired to the panel VM in Step 10.</summary>
-    public string FunctionsCount => string.Empty;
 
     /// <summary>
     /// Creates a new <see cref="ShellViewModel"/>.
@@ -43,11 +39,17 @@ public partial class ShellViewModel : ViewModelBase
     /// <param name="workspaceState">The shared workspace state.</param>
     /// <param name="sheet">The notebook sheet view model.</param>
     /// <param name="commandPalette">The command-palette overlay view model.</param>
-    public ShellViewModel(WorkspaceState workspaceState, SheetViewModel sheet, CommandPaletteViewModel commandPalette)
+    /// <param name="settings">The user preferences and workspace switcher.</param>
+    public ShellViewModel(
+        WorkspaceState workspaceState,
+        SheetViewModel sheet,
+        CommandPaletteViewModel commandPalette,
+        SettingsViewModel settings)
     {
         WorkspaceState = workspaceState;
         Sheet = sheet;
         CommandPalette = commandPalette;
+        Settings = settings;
         WorkspaceState.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(WorkspaceState.WorkspaceName))

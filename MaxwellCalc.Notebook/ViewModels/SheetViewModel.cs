@@ -46,6 +46,14 @@ public partial class SheetViewModel : ViewModelBase
     private int? _focusedLineIndex;
 
     /// <summary>
+    /// Gets or sets whether the auto-selected-output-unit caption may show under a focused row. Driven
+    /// by the user setting owned by <c>SettingsViewModel</c> (Step 10, default on); the view ANDs this
+    /// with each line's <see cref="LineViewModel.ShowAutoCaption"/>.
+    /// </summary>
+    [ObservableProperty]
+    private bool _autoCaptionEnabled = true;
+
+    /// <summary>
     /// Gets the variables defined on the sheet this session (from <c>x = …</c> lines), deduplicated by
     /// name with the last assignment winning. These live only in the transient evaluation scope, so
     /// they are surfaced read-only in the command palette tagged <c>from sheet</c>.

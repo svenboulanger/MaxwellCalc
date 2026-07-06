@@ -40,6 +40,10 @@ public partial class App : Application
         services.AddSingleton<BuiltInFunctionsPanelViewModel>();
         services.AddSingleton<CommandPaletteViewModel>();
 
+        // Preferences + workspace switcher (Step 10). Constructed as part of the shell graph so it
+        // adopts the seeded workspace and applies persisted theme / unit-hue settings on startup.
+        services.AddSingleton<SettingsViewModel>();
+
         services.AddSingleton<ShellViewModel>();
 
         var serviceProvider = services.BuildServiceProvider();
