@@ -32,12 +32,18 @@ public enum LineKind
 /// <param name="IsConstBadge">Whether the whole line is a single constant identifier (renders a <c>const</c> pill).</param>
 /// <param name="AutoUnitSelected">Whether the output unit was auto-selected by the workspace (value ≥ 1 rule).</param>
 /// <param name="ErrorMessage">The joined diagnostic message for <see cref="LineKind.Error"/> lines.</param>
+/// <param name="DefinedName">
+/// The name defined on this line, used by the overlay's <c>from sheet</c> listing (Step 8): the
+/// variable name for an <see cref="LineKind.Assign"/> line, or the <c>name(params)</c> signature for a
+/// <see cref="LineKind.FuncDef"/> line. <c>null</c> for every other kind.
+/// </param>
 public readonly record struct LineResult(
     LineKind Kind,
     Quantity<string> Quantity,
     bool IsConstBadge,
     bool AutoUnitSelected,
-    string? ErrorMessage)
+    string? ErrorMessage,
+    string? DefinedName = null)
 {
     /// <summary>
     /// Gets the result for an empty line.

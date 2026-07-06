@@ -115,10 +115,14 @@ public static class SheetEvaluator
 
                 workspace.UserFunctions[new UserFunctionKey(function.Name, parameters.Count)] =
                     new UserFunction([.. parameters], [functionAssign.Right]);
-                return new LineResult(LineKind.FuncDef, default, false, false, null);
+                string signature = $"{function.Name}({string.Join(", ", parameters)})";
+                return new LineResult(LineKind.FuncDef, default, false, false, null, signature);
             }
 
-            bool isAssignment = node is BinaryNode { Type: BinaryOperatorTypes.Assign, Left: VariableNode };
+            string? assignedName = node is BinaryNode { Type: BinaryOperatorTypes.Assign, Left: VariableNode assignedVariable }
+                ? assignedVariable.Content.ToString()
+                : null;
+            bool isAssignment = assignedName is not null;
 
             // Resolve and format. For an assignment this also binds the variable into the (transient)
             // scope so later lines can reference it.
@@ -140,7 +144,8 @@ public static class SheetEvaluator
                 formatted,
                 isConstBadge,
                 autoUnitSelected,
-                null);
+                null,
+                assignedName);
         }
         finally
         {

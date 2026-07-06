@@ -1,13 +1,16 @@
 using Avalonia;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Media;
+using System.Windows.Input;
 
 namespace MaxwellCalc.Notebook.Controls;
 
 /// <summary>
 /// A small access-bar chip: a leading mono glyph (in a caller-chosen color), a sans label, and an
-/// optional trailing count. Matches REDESIGN_UI.md → Component: Chip. Clicking is handled by the
-/// host (the chip opens the overlay in later steps); this control is presentation only.
+/// optional trailing count. Matches REDESIGN_UI.md → Component: Chip. Clicking runs <see cref="Command"/>
+/// (with <see cref="CommandParameter"/>) — the access bar uses this to open the command palette on the
+/// matching section (Step 8).
 /// </summary>
 public class Chip : TemplatedControl
 {
@@ -30,6 +33,14 @@ public class Chip : TemplatedControl
     /// <summary>Identifies the <see cref="Count"/> property.</summary>
     public static readonly StyledProperty<string?> CountProperty =
         AvaloniaProperty.Register<Chip, string?>(nameof(Count));
+
+    /// <summary>Identifies the <see cref="Command"/> property.</summary>
+    public static readonly StyledProperty<ICommand?> CommandProperty =
+        AvaloniaProperty.Register<Chip, ICommand?>(nameof(Command));
+
+    /// <summary>Identifies the <see cref="CommandParameter"/> property.</summary>
+    public static readonly StyledProperty<object?> CommandParameterProperty =
+        AvaloniaProperty.Register<Chip, object?>(nameof(CommandParameter));
 
     /// <summary>Gets or sets the leading mono glyph (e.g. <c>x</c>, <c>m</c>, <c>f</c>).</summary>
     public string? Glyph
@@ -64,5 +75,36 @@ public class Chip : TemplatedControl
     {
         get => GetValue(CountProperty);
         set => SetValue(CountProperty, value);
+    }
+
+    /// <summary>Gets or sets the command run when the chip is clicked.</summary>
+    public ICommand? Command
+    {
+        get => GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    /// <summary>Gets or sets the parameter passed to <see cref="Command"/>.</summary>
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
+    /// <inheritdoc />
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        // Only fire for the primary button released while still over the chip (a genuine click).
+        if (e.InitialPressMouseButton != MouseButton.Left)
+            return;
+        if (!new Rect(Bounds.Size).Contains(e.GetPosition(this)))
+            return;
+
+        var command = Command;
+        var parameter = CommandParameter;
+        if (command?.CanExecute(parameter) == true)
+            command.Execute(parameter);
     }
 }

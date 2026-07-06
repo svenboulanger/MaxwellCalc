@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Notebook.ViewModels;
+using MaxwellCalc.Notebook.ViewModels.Overlay;
 using MaxwellCalc.Notebook.Views;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
@@ -29,6 +30,16 @@ public partial class App : Application
         // Shared state + view models (all authored fresh; expanded in later steps).
         services.AddSingleton<WorkspaceState>();
         services.AddSingleton<SheetViewModel>();
+
+        // Command-palette overlay panels (Step 8), each driving a Core dictionary directly.
+        services.AddSingleton<VariablesPanelViewModel>();
+        services.AddSingleton<ConstantsPanelViewModel>();
+        services.AddSingleton<InputUnitsPanelViewModel>();
+        services.AddSingleton<OutputUnitsPanelViewModel>();
+        services.AddSingleton<FunctionsPanelViewModel>();
+        services.AddSingleton<BuiltInFunctionsPanelViewModel>();
+        services.AddSingleton<CommandPaletteViewModel>();
+
         services.AddSingleton<ShellViewModel>();
 
         var serviceProvider = services.BuildServiceProvider();

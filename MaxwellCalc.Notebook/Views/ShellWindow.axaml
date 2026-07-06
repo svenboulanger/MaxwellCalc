@@ -44,9 +44,19 @@
 		</Style>
 	</Window.Styles>
 
-	<!-- Step 3 — static three-region shell: title bar (44px) / sheet region (*) / access bar (Auto).
-	     No evaluation or overlay logic yet; the sheet region hosts placeholder rows that SheetView
-	     replaces in Step 4, and the access-bar controls are wired live in Step 8/10. -->
+	<!-- Global shortcuts: ⌘K / Ctrl+K opens the command palette on the Units section; Esc closes it
+	     (a no-op when already closed). The line editor only handles unmodified Enter/Backspace/arrows,
+	     so Ctrl+K bubbles up to here. -->
+	<Window.KeyBindings>
+		<KeyBinding Gesture="Ctrl+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
+		<KeyBinding Gesture="Meta+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
+		<KeyBinding Gesture="Escape" Command="{Binding CommandPalette.CloseCommand}" />
+	</Window.KeyBindings>
+
+	<!-- Three-region single-window shell (title bar / sheet / access bar) with the command-palette
+	     overlay layered on top (Step 8). The overlay's scrim spans the whole window; when closed it is
+	     collapsed and transparent to hit-testing so the shell underneath stays interactive. -->
+	<Panel>
 	<Grid RowDefinitions="Auto,*,Auto">
 
 		<!-- ============================ TITLE BAR ============================ -->
@@ -141,13 +151,16 @@
 
 					<controls:Chip Glyph="x" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
-								   Label="Variables" Count="{Binding VariablesCount}" />
+								   Label="Variables" Count="{Binding VariablesCount}"
+								   Command="{Binding CommandPalette.OpenVariablesCommand}" />
 					<controls:Chip Glyph="m"
 								   GlyphForeground="{DynamicResource UnitHueBrush}"
-								   Label="Units" Count="{Binding UnitsCount}" />
+								   Label="Units" Count="{Binding UnitsCount}"
+								   Command="{Binding CommandPalette.OpenUnitsCommand}" />
 					<controls:Chip Glyph="f" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
-								   Label="Functions" Count="{Binding FunctionsCount}" />
+								   Label="Functions" Count="{Binding FunctionsCount}"
+								   Command="{Binding CommandPalette.OpenFunctionsCommand}" />
 				</StackPanel>
 
 				<!-- ⌘K key-hint pill at far right. -->
@@ -166,4 +179,9 @@
 			</Grid>
 		</Border>
 	</Grid>
+
+		<!-- Command-palette overlay, resolved to CommandPaletteView via the ViewLocator. It manages its
+		     own visibility (scrim IsVisible = PaletteOpen), so it stays here spanning the whole window. -->
+		<ContentControl Content="{Binding CommandPalette}" />
+	</Panel>
 </Window>

@@ -19,6 +19,11 @@ public partial class ShellViewModel : ViewModelBase
     public SheetViewModel Sheet { get; }
 
     /// <summary>
+    /// Gets the command-palette overlay view model (⌘K / chip clicks).
+    /// </summary>
+    public CommandPaletteViewModel CommandPalette { get; }
+
+    /// <summary>
     /// Gets the name of the active workspace, for the title caption and Physics button.
     /// </summary>
     public string WorkspaceName => WorkspaceState.WorkspaceName;
@@ -37,10 +42,12 @@ public partial class ShellViewModel : ViewModelBase
     /// </summary>
     /// <param name="workspaceState">The shared workspace state.</param>
     /// <param name="sheet">The notebook sheet view model.</param>
-    public ShellViewModel(WorkspaceState workspaceState, SheetViewModel sheet)
+    /// <param name="commandPalette">The command-palette overlay view model.</param>
+    public ShellViewModel(WorkspaceState workspaceState, SheetViewModel sheet, CommandPaletteViewModel commandPalette)
     {
         WorkspaceState = workspaceState;
         Sheet = sheet;
+        CommandPalette = commandPalette;
         WorkspaceState.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(WorkspaceState.WorkspaceName))

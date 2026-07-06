@@ -1,0 +1,350 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MaxwellCalc.Notebook.ViewModels"
+             xmlns:overlay="using:MaxwellCalc.Notebook.ViewModels.Overlay"
+             xmlns:controls="using:MaxwellCalc.Notebook.Controls"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="820" d:DesignHeight="620"
+             x:Class="MaxwellCalc.Notebook.Views.CommandPaletteView"
+             x:DataType="vm:CommandPaletteViewModel">
+
+	<!-- Step 8 — the command palette overlay. A dimmed full-window scrim (closes on click) with a
+	     centered card: search header, a scrolling body whose content depends on the active section, and
+	     the segmented Input/Output tabs inside the Units section. Add/remove flows (the footer form and
+	     the × commands) arrive in Step 9; the × buttons are laid out here so the read-only rows
+	     (constants, built-ins, from-sheet) correctly show none. -->
+	<UserControl.Styles>
+		<!-- Section label: uppercase-ish faint caption above each list. -->
+		<Style Selector="TextBlock.sectionLabel">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="10.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="Margin" Value="0,14,0,7" />
+		</Style>
+
+		<!-- Row caption under a units list. -->
+		<Style Selector="TextBlock.rowCaption">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="Margin" Value="0,2,0,8" />
+		</Style>
+
+		<!-- Empty-state text. -->
+		<Style Selector="TextBlock.emptyState">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Margin" Value="0,2,0,6" />
+		</Style>
+
+		<!-- A row: baseline-ish grid, subtle hover, hairline separator. -->
+		<Style Selector="Border.paletteRow">
+			<Setter Property="Padding" Value="4,7" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="0,0,0,1" />
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+
+		<!-- Monospace text used for names / symbols / signatures / definitions. -->
+		<Style Selector="TextBlock.mono">
+			<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+			<Setter Property="FontSize" Value="13.5" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!-- Sans description / secondary text. -->
+		<Style Selector="TextBlock.desc">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!-- "from sheet" tag. -->
+		<Style Selector="Border.fromSheet">
+			<Setter Property="Background" Value="{DynamicResource ChipBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource PillCornerRadius}" />
+			<Setter Property="Padding" Value="6,1" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Border.fromSheet > TextBlock">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="9.5" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+		</Style>
+
+		<!-- × remove button (wired in Step 9). -->
+		<Style Selector="Button.remove">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="4" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+		</Style>
+		<Style Selector="Button.remove:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+		</Style>
+
+		<!-- Segmented Input/Output tab buttons. -->
+		<Style Selector="Button.tab">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Padding" Value="12,5" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="Medium" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+		</Style>
+		<Style Selector="Button.tab.active">
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+	</UserControl.Styles>
+
+	<!-- Full-window scrim. Closes when clicked directly (handled in code-behind); hidden when closed. -->
+	<Border Name="Scrim"
+			IsVisible="{Binding PaletteOpen}"
+			Background="{DynamicResource OverlayBrush}"
+			PointerPressed="OnScrimPressed">
+
+		<!-- Inset frame: reserves the outer gap so the card can bind its MaxHeight to the frame (the gap
+		     already subtracted) and never overflow the window bottom. -->
+		<Grid Name="Frame" Margin="24,40">
+
+			<!-- Centered card: stretches up to 640px wide (so it shrinks on narrow windows). Its height is
+			     fixed (not sized to the item count) so the palette doesn't resize as the filter changes;
+			     the body scrolls within it. Clamped by the frame height so it still fits a small window. -->
+			<Border MaxWidth="640"
+					Height="520"
+					MaxHeight="{Binding #Frame.Bounds.Height}"
+					HorizontalAlignment="Stretch" VerticalAlignment="Center"
+					Background="{DynamicResource CardBrush}"
+					CornerRadius="{DynamicResource CardCornerRadius}"
+					BoxShadow="{DynamicResource OverlayShadow}">
+				<Grid RowDefinitions="Auto,*">
+
+				<!-- ============================ HEADER ============================ -->
+				<Border Grid.Row="0" Padding="{DynamicResource HeaderPadding}"
+						BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1">
+					<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+						<materialIcons:MaterialIcon Grid.Column="0" Kind="Magnify"
+													Width="18" Height="18"
+													Foreground="{DynamicResource MutBrush}"
+													VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" Name="PART_Search"
+								 Text="{Binding Search, Mode=TwoWay}"
+								 PlaceholderText="Search…"
+								 FontFamily="{DynamicResource MonoFontFamily}"
+								 FontSize="15"
+								 Foreground="{DynamicResource InkBrush}"
+								 Background="Transparent"
+								 BorderThickness="0"
+								 Padding="0"
+								 VerticalAlignment="Center"
+								 VerticalContentAlignment="Center" />
+						<TextBlock Grid.Column="2" Text="{Binding SectionTitle}"
+								   FontFamily="{DynamicResource UiFontFamily}"
+								   FontSize="11" FontWeight="SemiBold"
+								   Foreground="{DynamicResource FaintBrush}"
+								   VerticalAlignment="Center" />
+					</Grid>
+				</Border>
+
+				<!-- ============================ BODY ============================ -->
+				<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled"
+							  Padding="{DynamicResource AddRowPadding}">
+					<Panel>
+
+						<!-- ==================== VARIABLES & CONSTANTS ==================== -->
+						<StackPanel IsVisible="{Binding IsVariables}">
+							<TextBlock Classes="sectionLabel" Text="VARIABLES — YOU DEFINE THESE" />
+							<TextBlock Classes="emptyState"
+									   IsVisible="{Binding Variables.IsEmpty}"
+									   Text="None yet — add one below, or assign on a line like `mass = 70 kg`." />
+							<ItemsControl ItemsSource="{Binding Variables.Items}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="overlay:VariableItem">
+										<Border Classes="paletteRow">
+											<Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+												<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+															VerticalAlignment="Center">
+													<TextBlock Classes="mono" FontWeight="SemiBold" Text="{Binding Name}" />
+													<Border Classes="fromSheet" IsVisible="{Binding FromSheet}">
+														<TextBlock Text="from sheet" />
+													</Border>
+												</StackPanel>
+												<controls:QuantityView Grid.Column="1" Value="{Binding Value}"
+																	   VerticalAlignment="Center" />
+												<Button Grid.Column="2" Classes="remove" IsVisible="{Binding CanRemove}">
+													<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+												</Button>
+											</Grid>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+
+							<TextBlock Classes="sectionLabel" Text="CONSTANTS — FIXED, CAN'T BE REASSIGNED" />
+							<ItemsControl ItemsSource="{Binding Constants.Items}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="overlay:ConstantItem">
+										<Border Classes="paletteRow">
+											<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+												<TextBlock Grid.Column="0" Classes="mono" Text="{Binding Name}" />
+												<TextBlock Grid.Column="1" Classes="desc"
+														   IsVisible="{Binding HasDescription}"
+														   Text="{Binding Description}" />
+												<controls:QuantityView Grid.Column="2" Value="{Binding Value}"
+																	   VerticalAlignment="Center" />
+											</Grid>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</StackPanel>
+
+						<!-- ============================= UNITS ============================= -->
+						<StackPanel IsVisible="{Binding IsUnits}">
+							<!-- Segmented Input / Output tabs. -->
+							<Border HorizontalAlignment="Left" Margin="0,4,0,4"
+									Background="{DynamicResource BgBrush}"
+									CornerRadius="7" Padding="3">
+								<StackPanel Orientation="Horizontal" Spacing="3">
+									<Button Classes="tab" Classes.active="{Binding IsInputTab}"
+											Command="{Binding ShowInputUnitsCommand}" Content="Input units" />
+									<Button Classes="tab" Classes.active="{Binding IsOutputTab}"
+											Command="{Binding ShowOutputUnitsCommand}" Content="Output units" />
+								</StackPanel>
+							</Border>
+
+							<!-- Input units. -->
+							<StackPanel IsVisible="{Binding IsInputTab}">
+								<TextBlock Classes="rowCaption" Text="resolve to base SI" />
+								<TextBlock Classes="emptyState" IsVisible="{Binding InputUnits.IsEmpty}"
+										   Text="No input units." />
+								<ItemsControl ItemsSource="{Binding InputUnits.Items}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="overlay:InputUnitItem">
+											<Border Classes="paletteRow">
+												<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+													<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+																VerticalAlignment="Center">
+														<TextBlock Classes="mono" FontWeight="Medium"
+																   Foreground="{DynamicResource UnitHueBrush}"
+																   Text="{Binding Symbol}" />
+														<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
+																   Text="=" />
+														<controls:QuantityView Value="{Binding Definition}"
+																			   VerticalAlignment="Center" />
+													</StackPanel>
+													<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}">
+														<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+													</Button>
+												</Grid>
+											</Border>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</StackPanel>
+
+							<!-- Output units, grouped by physical quantity. -->
+							<StackPanel IsVisible="{Binding IsOutputTab}">
+								<TextBlock Classes="rowCaption" Text="candidates the app auto-picks from" />
+								<TextBlock Classes="emptyState" IsVisible="{Binding OutputUnits.IsEmpty}"
+										   Text="No output units." />
+								<ItemsControl ItemsSource="{Binding OutputUnits.Groups}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="overlay:OutputUnitGroup">
+											<StackPanel>
+												<TextBlock Classes="sectionLabel" Text="{Binding Label}" />
+												<ItemsControl ItemsSource="{Binding Items}">
+													<ItemsControl.ItemTemplate>
+														<DataTemplate x:DataType="overlay:OutputUnitItem">
+															<Border Classes="paletteRow">
+																<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+																	<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+																				VerticalAlignment="Center">
+																		<TextBlock Classes="mono" FontWeight="Medium"
+																				   Foreground="{DynamicResource UnitHueBrush}"
+																				   Text="{Binding Label}" />
+																		<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
+																				   Text="=" />
+																		<controls:QuantityView Value="{Binding Definition}"
+																							   VerticalAlignment="Center" />
+																	</StackPanel>
+																	<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}">
+																		<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+																	</Button>
+																</Grid>
+															</Border>
+														</DataTemplate>
+													</ItemsControl.ItemTemplate>
+												</ItemsControl>
+											</StackPanel>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</StackPanel>
+						</StackPanel>
+
+						<!-- =========================== FUNCTIONS =========================== -->
+						<StackPanel IsVisible="{Binding IsFunctions}">
+							<TextBlock Classes="sectionLabel" Text="YOUR FUNCTIONS" />
+							<TextBlock Classes="emptyState" IsVisible="{Binding Functions.IsEmpty}"
+									   Text="None yet — define one below, or on a line like `f(x) = x^2 + 1`." />
+							<ItemsControl ItemsSource="{Binding Functions.Items}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="overlay:FunctionItem">
+										<Border Classes="paletteRow">
+											<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+												<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+															VerticalAlignment="Center">
+													<TextBlock Classes="mono" FontWeight="Medium" Text="{Binding Signature}" />
+													<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
+															   IsVisible="{Binding HasBody}"
+															   Text="{Binding Body, StringFormat='= {0}'}" />
+													<Border Classes="fromSheet" IsVisible="{Binding FromSheet}">
+														<TextBlock Text="from sheet" />
+													</Border>
+												</StackPanel>
+												<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}">
+													<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+												</Button>
+											</Grid>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+
+							<TextBlock Classes="sectionLabel" Text="BUILT-IN — ALWAYS AVAILABLE" />
+							<ItemsControl ItemsSource="{Binding BuiltInFunctions.Items}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="overlay:BuiltInFunctionItem">
+										<Border Classes="paletteRow">
+											<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+												<TextBlock Grid.Column="0" Classes="mono" Text="{Binding Signature}" />
+												<TextBlock Grid.Column="1" Classes="desc" Text="{Binding Description}" />
+											</Grid>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</StackPanel>
+					</Panel>
+				</ScrollViewer>
+			</Grid>
+			</Border>
+		</Grid>
+	</Border>
+</UserControl>

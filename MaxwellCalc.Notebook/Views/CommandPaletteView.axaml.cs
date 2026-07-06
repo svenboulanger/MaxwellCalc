@@ -1,0 +1,73 @@
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
+using MaxwellCalc.Notebook.ViewModels;
+using System;
+using System.ComponentModel;
+
+namespace MaxwellCalc.Notebook.Views;
+
+/// <summary>
+/// The command-palette overlay (Step 8): a centered card over a dimmed scrim listing the workspace's
+/// variables, units and functions with live search. Open/close and section state live on the
+/// <see cref="CommandPaletteViewModel"/>; this code-behind only autofocuses the search box on open and
+/// closes the overlay when the scrim (not the card) is clicked.
+/// </summary>
+public partial class CommandPaletteView : UserControl
+{
+    private CommandPaletteViewModel? _viewModel;
+
+    /// <summary>
+    /// Creates a new <see cref="CommandPaletteView"/>.
+    /// </summary>
+    public CommandPaletteView()
+    {
+        InitializeComponent();
+    }
+
+    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+    // Keep a PropertyChanged hook on whichever palette VM is the current DataContext, so we can focus
+    // the search box each time the overlay opens.
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        if (_viewModel is not null)
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+
+        _viewModel = DataContext as CommandPaletteViewModel;
+
+        if (_viewModel is not null)
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(CommandPaletteViewModel.PaletteOpen) && _viewModel?.PaletteOpen == true)
+            FocusSearch();
+    }
+
+    // Focus + select the search box once the overlay has been realized (posted at Loaded priority so it
+    // runs after the IsVisible change lays the card out).
+    private void FocusSearch()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (this.FindControl<TextBox>("PART_Search") is { } search)
+            {
+                search.Focus();
+                search.SelectAll();
+            }
+        }, DispatcherPriority.Loaded);
+    }
+
+    // Close on a click that lands on the scrim itself; clicks inside the card report the card (or a
+    // descendant) as the source and are ignored.
+    private void OnScrimPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ReferenceEquals(e.Source, sender) && DataContext is CommandPaletteViewModel viewModel)
+            viewModel.CloseCommand.Execute(null);
+    }
+}

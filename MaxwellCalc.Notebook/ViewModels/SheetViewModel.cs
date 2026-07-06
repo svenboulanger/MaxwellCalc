@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Notebook.Evaluation;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,14 @@ using System.ComponentModel;
 using System.Linq;
 
 namespace MaxwellCalc.Notebook.ViewModels;
+
+/// <summary>
+/// A variable defined on the sheet (via an <c>x = …</c> line): its name and last formatted value.
+/// Surfaced read-only in the command palette tagged <c>from sheet</c> (Step 8).
+/// </summary>
+/// <param name="Name">The variable name.</param>
+/// <param name="Value">The formatted value the line resolved to.</param>
+public readonly record struct SheetVariable(string Name, Quantity<string> Value);
 
 /// <summary>
 /// The notebook sheet: an ordered collection of live calculation lines. Whenever a line's text
@@ -35,6 +44,25 @@ public partial class SheetViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     private int? _focusedLineIndex;
+
+    /// <summary>
+    /// Gets the variables defined on the sheet this session (from <c>x = …</c> lines), deduplicated by
+    /// name with the last assignment winning. These live only in the transient evaluation scope, so
+    /// they are surfaced read-only in the command palette tagged <c>from sheet</c>.
+    /// </summary>
+    public IReadOnlyList<SheetVariable> SheetVariables { get; private set; } = [];
+
+    /// <summary>
+    /// Gets the function signatures (<c>name(params)</c>) defined on the sheet this session (from
+    /// <c>f(x) = …</c> lines). Surfaced read-only in the command palette tagged <c>from sheet</c>.
+    /// </summary>
+    public IReadOnlyList<string> SheetFunctions { get; private set; } = [];
+
+    /// <summary>
+    /// Raised after a re-evaluation whenever the set of sheet-defined symbols changes, so the overlay's
+    /// Variables/Functions panels can refresh their <c>from sheet</c> rows.
+    /// </summary>
+    public event Action? SheetSymbolsChanged;
 
     /// <summary>
     /// Raised when the keyboard model has moved the logical focus to a different line (after a split,
@@ -227,5 +255,40 @@ public partial class SheetViewModel : ViewModelBase
         var results = SheetEvaluator.Evaluate(_workspaceState.Workspace, texts, _workspaceState.OutputFormat);
         for (int i = 0; i < Lines.Count && i < results.Count; i++)
             Lines[i].ApplyResult(results[i]);
+
+        UpdateSheetSymbols(results);
+    }
+
+    /// <summary>
+    /// Rebuilds <see cref="SheetVariables"/> / <see cref="SheetFunctions"/> from the pass results and
+    /// notifies listeners if either changed. Variables are deduplicated by name (last assignment wins);
+    /// functions by signature.
+    /// </summary>
+    private void UpdateSheetSymbols(IReadOnlyList<LineResult> results)
+    {
+        var variables = new List<SheetVariable>();
+        var functions = new List<string>();
+        foreach (var result in results)
+        {
+            switch (result.Kind)
+            {
+                case LineKind.Assign when result.DefinedName is { } name:
+                    variables.RemoveAll(v => v.Name == name);
+                    variables.Add(new SheetVariable(name, result.Quantity));
+                    break;
+
+                case LineKind.FuncDef when result.DefinedName is { } signature:
+                    if (!functions.Contains(signature))
+                        functions.Add(signature);
+                    break;
+            }
+        }
+
+        if (SheetVariables.SequenceEqual(variables) && SheetFunctions.SequenceEqual(functions))
+            return;
+
+        SheetVariables = variables;
+        SheetFunctions = functions;
+        SheetSymbolsChanged?.Invoke();
     }
 }
