@@ -55,7 +55,9 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly WorkspaceState _workspaceState;
     private readonly SheetViewModel _sheet;
+    private readonly JsonSerializerOptions _workspaceJsonOptions;
     private readonly string _settingsFile;
+    private readonly string _workspaceFile;
     private bool _suppressSave;
 
     /// <summary>Gets the available workspaces (the "Physics ▾" switcher list).</summary>
@@ -99,20 +101,32 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     /// <param name="workspaceState">The shared workspace state to drive on selection.</param>
     /// <param name="sheet">The sheet, for pushing the auto-caption toggle.</param>
-    public SettingsViewModel(WorkspaceState workspaceState, SheetViewModel sheet)
+    /// <param name="workspaceJsonOptions">The JSON options carrying Core's workspace converters, used to
+    /// persist and restore the workspace list (Step 11).</param>
+    public SettingsViewModel(
+        WorkspaceState workspaceState,
+        SheetViewModel sheet,
+        JsonSerializerOptions workspaceJsonOptions)
     {
         _workspaceState = workspaceState;
         _sheet = sheet;
+        _workspaceJsonOptions = workspaceJsonOptions;
         _settingsFile = Path.Combine(Directory.GetCurrentDirectory(), "settings.json");
-
-        // Adopt the workspace WorkspaceState already seeded as the default "Physics" entry (so the panels
-        // that attached to it at startup stay valid) and offer a complex-valued workspace alongside it.
-        var physics = _workspaceState.Workspace ?? WorkspaceState.CreateDefaultWorkspace();
-        Workspaces.Add(MakeEntry("Physics", physics));
-        Workspaces.Add(MakeEntry("Complex", WorkspaceState.CreateComplexWorkspace()));
+        _workspaceFile = Path.Combine(Directory.GetCurrentDirectory(), "workspace.json");
 
         _suppressSave = true;
-        _selectedWorkspace = Workspaces[0];
+
+        // Restore the saved workspace list (Step 11). If there is none, fall back to the default pair:
+        // adopt the workspace WorkspaceState already seeded as "Physics" (so the panels that attached to
+        // it at startup stay valid) and offer a complex-valued workspace alongside it.
+        if (!TryLoadWorkspaces())
+        {
+            var physics = _workspaceState.Workspace ?? WorkspaceState.CreateDefaultWorkspace();
+            Workspaces.Add(MakeEntry("Physics", physics));
+            Workspaces.Add(MakeEntry("Complex", WorkspaceState.CreateComplexWorkspace()));
+        }
+
+        _selectedWorkspace = Workspaces.Count > 0 ? Workspaces[0] : null;
 
         // Seed the toggle from the current (system) variant, then let persisted settings override it.
         _isDarkTheme = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
@@ -262,7 +276,73 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Persists everything this view model owns — the preferences (<c>settings.json</c>) and the
+    /// workspace list with its contents (<c>workspace.json</c>). Called from the shell on window close
+    /// (Step 11). Preferences also save eagerly on every change; the workspace <em>contents</em> only
+    /// persist here, since they mutate through the overlay's direct Core calls.
+    /// </summary>
+    public void Persist()
+    {
+        Save();
+        SaveWorkspaces();
+    }
+
+    // Serializes the workspace list (name + full contents) to workspace.json using Core's converters.
+    private void SaveWorkspaces()
+    {
+        try
+        {
+            var data = Workspaces
+                .Select(entry => new WorkspaceData { Name = entry.Name, Workspace = entry.Workspace })
+                .ToList();
+            File.WriteAllText(_workspaceFile, JsonSerializer.Serialize(data, _workspaceJsonOptions));
+        }
+        catch
+        {
+            // Persistence is best-effort; a failed write must not break shutdown.
+        }
+    }
+
+    // Restores the workspace list from workspace.json, returning whether any workspaces were loaded. A
+    // missing, empty, or malformed file leaves Workspaces empty so the caller seeds the defaults.
+    private bool TryLoadWorkspaces()
+    {
+        try
+        {
+            if (!File.Exists(_workspaceFile))
+                return false;
+            var data = JsonSerializer.Deserialize<List<WorkspaceData>>(
+                File.ReadAllText(_workspaceFile), _workspaceJsonOptions);
+            if (data is null)
+                return false;
+
+            Workspaces.Clear();
+            foreach (var item in data)
+            {
+                if (item.Workspace is null)
+                    continue;
+                Workspaces.Add(MakeEntry(item.Name, item.Workspace));
+            }
+            return Workspaces.Count > 0;
+        }
+        catch
+        {
+            Workspaces.Clear();
+            return false;
+        }
+    }
+
     private static readonly JsonSerializerOptions SaveOptions = new() { WriteIndented = true };
+
+    // The serializable shape of one workspace.json entry: its display name plus the workspace itself,
+    // which round-trips through Core's WorkspaceJsonConverter (registered on _workspaceJsonOptions).
+    private sealed class WorkspaceData
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public IWorkspace? Workspace { get; set; }
+    }
 
     // The plain, serializable shape of settings.json.
     private sealed class SettingsData

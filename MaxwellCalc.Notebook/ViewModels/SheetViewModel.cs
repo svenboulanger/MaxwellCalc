@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace MaxwellCalc.Notebook.ViewModels;
 
@@ -26,7 +28,10 @@ public readonly record struct SheetVariable(string Name, Quantity<string> Value)
 public partial class SheetViewModel : ViewModelBase
 {
     private readonly WorkspaceState _workspaceState;
+    private readonly string _sheetFile;
     private bool _suppressEvaluation;
+
+    private static readonly JsonSerializerOptions SaveOptions = new() { WriteIndented = true };
 
     /// <summary>
     /// Gets the lines of the sheet.
@@ -87,12 +92,17 @@ public partial class SheetViewModel : ViewModelBase
     public SheetViewModel(WorkspaceState workspaceState)
     {
         _workspaceState = workspaceState;
+        _sheetFile = Path.Combine(Directory.GetCurrentDirectory(), "sheet.json");
         _workspaceState.PropertyChanged += OnWorkspaceStateChanged;
         Lines.CollectionChanged += OnLinesChanged;
 
-        // Start with a single empty line so the sheet is immediately editable.
-        Lines.Add(new LineViewModel());
-        Evaluate();
+        // Restore the saved sheet (Step 11); if there is none, start with a single empty line so the
+        // sheet is immediately editable.
+        if (!TryLoad())
+        {
+            Lines.Add(new LineViewModel());
+            Evaluate();
+        }
     }
 
     /// <summary>
@@ -116,6 +126,47 @@ public partial class SheetViewModel : ViewModelBase
             _suppressEvaluation = false;
         }
         Evaluate();
+    }
+
+    // ---- Persistence (Step 11) ---------------------------------------------------------------
+
+    /// <summary>
+    /// Persists the sheet to <c>sheet.json</c> in the working directory as a plain JSON array of line
+    /// texts. Only the raw text is stored; results are always recomputed on load. Best-effort: a failed
+    /// write is swallowed so it can never break closing the window.
+    /// </summary>
+    public void Save()
+    {
+        try
+        {
+            var texts = Lines.Select(line => line.Text ?? string.Empty).ToList();
+            File.WriteAllText(_sheetFile, JsonSerializer.Serialize(texts, SaveOptions));
+        }
+        catch
+        {
+            // Persistence is best-effort; a failed write must not break shutdown.
+        }
+    }
+
+    // Loads the saved line texts from sheet.json and applies them, returning whether a sheet was
+    // restored. A missing, empty, or malformed file leaves the sheet untouched (the caller seeds a
+    // single empty line in that case).
+    private bool TryLoad()
+    {
+        try
+        {
+            if (!File.Exists(_sheetFile))
+                return false;
+            var texts = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_sheetFile));
+            if (texts is null || texts.Count == 0)
+                return false;
+            SetLines(texts);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     // ---- Keyboard model (Step 7) -------------------------------------------------------------

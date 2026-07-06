@@ -12,6 +12,7 @@
         ExtendClientAreaToDecorationsHint="True"
         WindowDecorations="BorderOnly"
         Background="{DynamicResource BgBrush}"
+        Closing="OnClosing"
         Title="MaxwellCalc">
 
 	<Window.Styles>

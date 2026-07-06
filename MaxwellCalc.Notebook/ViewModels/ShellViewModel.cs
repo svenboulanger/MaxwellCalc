@@ -56,4 +56,14 @@ public partial class ShellViewModel : ViewModelBase
                 OnPropertyChanged(nameof(WorkspaceName));
         };
     }
+
+    /// <summary>
+    /// Persists the session on shutdown (Step 11): the sheet's line texts, the workspace list and its
+    /// contents, and the user preferences. Called from <c>ShellWindow</c>'s <c>Closing</c> handler.
+    /// </summary>
+    public void Save()
+    {
+        Sheet.Save();
+        Settings.Persist();
+    }
 }

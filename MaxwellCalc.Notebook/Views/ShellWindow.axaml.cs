@@ -34,6 +34,13 @@ public partial class ShellWindow : Window
         BeginMoveDrag(e);
     }
 
+    // Persist the session (sheet, workspaces, preferences) as the window closes (Step 11).
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (DataContext is ViewModels.ShellViewModel shell)
+            shell.Save();
+    }
+
     private void OnMinimize(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
     private void OnMaximizeRestore(object? sender, RoutedEventArgs e) => ToggleMaximize();
