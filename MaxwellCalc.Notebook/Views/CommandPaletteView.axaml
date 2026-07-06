@@ -245,7 +245,7 @@
 													VerticalAlignment="Center" />
 						<TextBox Grid.Column="1" Name="PART_Search"
 								 Text="{Binding Search, Mode=TwoWay}"
-								 PlaceholderText="Search…"
+								 PlaceholderText="{Binding SearchPlaceholder}"
 								 FontFamily="{DynamicResource MonoFontFamily}"
 								 FontSize="15"
 								 Foreground="{DynamicResource InkBrush}"

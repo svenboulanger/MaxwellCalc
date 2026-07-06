@@ -45,12 +45,14 @@ public partial class CommandPaletteViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsUnits))]
     [NotifyPropertyChangedFor(nameof(IsFunctions))]
     [NotifyPropertyChangedFor(nameof(SectionTitle))]
+    [NotifyPropertyChangedFor(nameof(SearchPlaceholder))]
     private PaletteSection _section;
 
     /// <summary>Gets the active tab within the Units section.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInputTab))]
     [NotifyPropertyChangedFor(nameof(IsOutputTab))]
+    [NotifyPropertyChangedFor(nameof(SearchPlaceholder))]
     private UnitTab _unitTab;
 
     /// <summary>Gets the live search string, mirrored into every panel's filter.</summary>
@@ -97,6 +99,15 @@ public partial class CommandPaletteViewModel : ViewModelBase
         PaletteSection.Units => "Units",
         PaletteSection.Functions => "Functions",
         _ => string.Empty,
+    };
+
+    /// <summary>Gets the search box placeholder, tailored to the active section (and unit tab).</summary>
+    public string SearchPlaceholder => Section switch
+    {
+        PaletteSection.Variables => "Search variables & constants…",
+        PaletteSection.Units => IsInputTab ? "Search input units…" : "Search output units…",
+        PaletteSection.Functions => "Search functions…",
+        _ => "Search…",
     };
 
     /// <summary>
