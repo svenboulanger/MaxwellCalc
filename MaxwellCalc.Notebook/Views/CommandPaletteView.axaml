@@ -12,9 +12,11 @@
 
 	<!-- Step 8 — the command palette overlay. A dimmed full-window scrim (closes on click) with a
 	     centered card: search header, a scrolling body whose content depends on the active section, and
-	     the segmented Input/Output tabs inside the Units section. Add/remove flows (the footer form and
-	     the × commands) arrive in Step 9; the × buttons are laid out here so the read-only rows
-	     (constants, built-ins, from-sheet) correctly show none. -->
+	     the segmented Input/Output tabs inside the Units section.
+	     Step 9 — the row × buttons remove user items, and the footer add-row (one form per section/tab)
+	     adds constants, input/output units and functions against the Core API, surfacing any diagnostic
+	     inline. Read-only rows (built-ins, from-sheet) show no × and have no add form. Variables are
+	     defined on the sheet, not here, so the Variables & constants footer adds a constant. -->
 	<UserControl.Styles>
 		<!-- Section label: uppercase-ish faint caption above each list. -->
 		<Style Selector="TextBlock.sectionLabel">
@@ -82,7 +84,7 @@
 			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
 		</Style>
 
-		<!-- × remove button (wired in Step 9). -->
+		<!-- × remove button. -->
 		<Style Selector="Button.remove">
 			<Setter Property="Background" Value="Transparent" />
 			<Setter Property="BorderThickness" Value="0" />
@@ -110,6 +112,75 @@
 			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
 			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
 		</Style>
+
+		<!-- ===================== Footer add-row (Step 9) ===================== -->
+		<!-- Footer container: pinned below the body with a hairline top border. -->
+		<Style Selector="Border.addRow">
+			<Setter Property="Background" Value="{DynamicResource BarFooterBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="0,1,0,0" />
+			<Setter Property="Padding" Value="{DynamicResource AddRowPadding}" />
+		</Style>
+
+		<!-- "＋ New …" label. -->
+		<Style Selector="TextBlock.addLabel">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="Medium" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!-- A mono input field in the add-row. -->
+		<Style Selector="TextBox.addField">
+			<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="7,4" />
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+
+		<!-- The "=" separator between the two fields. -->
+		<Style Selector="TextBlock.addSeparator">
+			<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!-- Accent Add button. -->
+		<Style Selector="Button.add">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="14,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.add /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+		</Style>
+		<Style Selector="Button.add:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+		</Style>
+
+		<!-- Inline error line shown under a failed add. -->
+		<Style Selector="TextBlock.addError">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="11.5" />
+			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Margin" Value="0,8,0,0" />
+		</Style>
 	</UserControl.Styles>
 
 	<!-- Full-window scrim. Closes when clicked directly (handled in code-behind); hidden when closed. -->
@@ -132,7 +203,7 @@
 					Background="{DynamicResource CardBrush}"
 					CornerRadius="{DynamicResource CardCornerRadius}"
 					BoxShadow="{DynamicResource OverlayShadow}">
-				<Grid RowDefinitions="Auto,*">
+				<Grid RowDefinitions="Auto,*,Auto">
 
 				<!-- ============================ HEADER ============================ -->
 				<Border Grid.Row="0" Padding="{DynamicResource HeaderPadding}"
@@ -171,7 +242,7 @@
 							<TextBlock Classes="sectionLabel" Text="VARIABLES — YOU DEFINE THESE" />
 							<TextBlock Classes="emptyState"
 									   IsVisible="{Binding Variables.IsEmpty}"
-									   Text="None yet — add one below, or assign on a line like `mass = 70 kg`." />
+									   Text="None yet — assign one on a line like `mass = 70 kg`." />
 							<ItemsControl ItemsSource="{Binding Variables.Items}">
 								<ItemsControl.ItemTemplate>
 									<DataTemplate x:DataType="overlay:VariableItem">
@@ -186,7 +257,9 @@
 												</StackPanel>
 												<controls:QuantityView Grid.Column="1" Value="{Binding Value}"
 																	   VerticalAlignment="Center" />
-												<Button Grid.Column="2" Classes="remove" IsVisible="{Binding CanRemove}">
+												<Button Grid.Column="2" Classes="remove" IsVisible="{Binding CanRemove}"
+														Command="{Binding ((vm:CommandPaletteViewModel)DataContext).Variables.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+														CommandParameter="{Binding}">
 													<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
 												</Button>
 											</Grid>
@@ -195,18 +268,25 @@
 								</ItemsControl.ItemTemplate>
 							</ItemsControl>
 
-							<TextBlock Classes="sectionLabel" Text="CONSTANTS — FIXED, CAN'T BE REASSIGNED" />
+							<TextBlock Classes="sectionLabel" Text="CONSTANTS" />
+							<TextBlock Classes="emptyState" IsVisible="{Binding Constants.IsEmpty}"
+									   Text="None yet — add one below." />
 							<ItemsControl ItemsSource="{Binding Constants.Items}">
 								<ItemsControl.ItemTemplate>
 									<DataTemplate x:DataType="overlay:ConstantItem">
 										<Border Classes="paletteRow">
-											<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+											<Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
 												<TextBlock Grid.Column="0" Classes="mono" Text="{Binding Name}" />
 												<TextBlock Grid.Column="1" Classes="desc"
 														   IsVisible="{Binding HasDescription}"
 														   Text="{Binding Description}" />
 												<controls:QuantityView Grid.Column="2" Value="{Binding Value}"
 																	   VerticalAlignment="Center" />
+												<Button Grid.Column="3" Classes="remove"
+														Command="{Binding ((vm:CommandPaletteViewModel)DataContext).Constants.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+														CommandParameter="{Binding}">
+													<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+												</Button>
 											</Grid>
 										</Border>
 									</DataTemplate>
@@ -248,7 +328,9 @@
 														<controls:QuantityView Value="{Binding Definition}"
 																			   VerticalAlignment="Center" />
 													</StackPanel>
-													<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}">
+													<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
+															Command="{Binding ((vm:CommandPaletteViewModel)DataContext).InputUnits.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+															CommandParameter="{Binding}">
 														<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
 													</Button>
 												</Grid>
@@ -283,7 +365,9 @@
 																		<controls:QuantityView Value="{Binding Definition}"
 																							   VerticalAlignment="Center" />
 																	</StackPanel>
-																	<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}">
+																	<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
+																			Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+																			CommandParameter="{Binding}">
 																		<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
 																	</Button>
 																</Grid>
@@ -318,7 +402,9 @@
 														<TextBlock Text="from sheet" />
 													</Border>
 												</StackPanel>
-												<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}">
+												<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
+														Command="{Binding ((vm:CommandPaletteViewModel)DataContext).Functions.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+														CommandParameter="{Binding}">
 													<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
 												</Button>
 											</Grid>
@@ -343,6 +429,110 @@
 						</StackPanel>
 					</Panel>
 				</ScrollViewer>
+
+				<!-- ============================ FOOTER (add-row) ============================ -->
+				<!-- One form per section/tab. Each inner Grid rebinds its DataContext to the owning panel
+				     so its fields, Add command and error bind directly; Enter in either field submits. -->
+				<Border Grid.Row="2" Classes="addRow">
+					<Panel>
+
+						<!-- New constant: name + value + optional description. -->
+						<StackPanel IsVisible="{Binding IsVariables}">
+							<Grid DataContext="{Binding Constants}" x:DataType="overlay:ConstantsPanelViewModel"
+								  ColumnDefinitions="Auto,*,Auto,*,*,Auto" ColumnSpacing="9">
+								<TextBlock Grid.Column="0" Classes="addLabel" Text="＋ New constant" />
+								<TextBox Grid.Column="1" Classes="addField" Text="{Binding NewName}" PlaceholderText="name">
+									<TextBox.KeyBindings>
+										<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+									</TextBox.KeyBindings>
+								</TextBox>
+								<TextBlock Grid.Column="2" Classes="addSeparator" Text="=" />
+								<TextBox Grid.Column="3" Classes="addField" Text="{Binding NewValue}" PlaceholderText="value, e.g. 9.81 m/s^2">
+									<TextBox.KeyBindings>
+										<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+									</TextBox.KeyBindings>
+								</TextBox>
+								<TextBox Grid.Column="4" Classes="addField" Text="{Binding NewDescription}" PlaceholderText="description (optional)">
+									<TextBox.KeyBindings>
+										<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+									</TextBox.KeyBindings>
+								</TextBox>
+								<Button Grid.Column="5" Classes="add" Content="Add" Command="{Binding AddCommand}" />
+							</Grid>
+							<TextBlock DataContext="{Binding Constants}" x:DataType="overlay:ConstantsPanelViewModel"
+									   Classes="addError" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+						</StackPanel>
+
+						<!-- New units: depends on the active tab. -->
+						<Panel IsVisible="{Binding IsUnits}">
+							<!-- New input unit: symbol + base-unit definition. -->
+							<StackPanel IsVisible="{Binding IsInputTab}">
+								<Grid DataContext="{Binding InputUnits}" x:DataType="overlay:InputUnitsPanelViewModel"
+									  ColumnDefinitions="Auto,*,Auto,*,Auto" ColumnSpacing="9">
+									<TextBlock Grid.Column="0" Classes="addLabel" Text="＋ New input unit" />
+									<TextBox Grid.Column="1" Classes="addField" Text="{Binding NewSymbol}" PlaceholderText="symbol">
+										<TextBox.KeyBindings>
+											<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+										</TextBox.KeyBindings>
+									</TextBox>
+									<TextBlock Grid.Column="2" Classes="addSeparator" Text="=" />
+									<TextBox Grid.Column="3" Classes="addField" Text="{Binding NewDefinition}" PlaceholderText="value in base units">
+										<TextBox.KeyBindings>
+											<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+										</TextBox.KeyBindings>
+									</TextBox>
+									<Button Grid.Column="4" Classes="add" Content="Add" Command="{Binding AddCommand}" />
+								</Grid>
+								<TextBlock DataContext="{Binding InputUnits}" x:DataType="overlay:InputUnitsPanelViewModel"
+										   Classes="addError" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+							</StackPanel>
+
+							<!-- New output unit: unit + base-unit definition. -->
+							<StackPanel IsVisible="{Binding IsOutputTab}">
+								<Grid DataContext="{Binding OutputUnits}" x:DataType="overlay:OutputUnitsPanelViewModel"
+									  ColumnDefinitions="Auto,*,Auto,*,Auto" ColumnSpacing="9">
+									<TextBlock Grid.Column="0" Classes="addLabel" Text="＋ New output unit" />
+									<TextBox Grid.Column="1" Classes="addField" Text="{Binding NewUnit}" PlaceholderText="unit">
+										<TextBox.KeyBindings>
+											<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+										</TextBox.KeyBindings>
+									</TextBox>
+									<TextBlock Grid.Column="2" Classes="addSeparator" Text="=" />
+									<TextBox Grid.Column="3" Classes="addField" Text="{Binding NewDefinition}" PlaceholderText="value in base units">
+										<TextBox.KeyBindings>
+											<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+										</TextBox.KeyBindings>
+									</TextBox>
+									<Button Grid.Column="4" Classes="add" Content="Add" Command="{Binding AddCommand}" />
+								</Grid>
+								<TextBlock DataContext="{Binding OutputUnits}" x:DataType="overlay:OutputUnitsPanelViewModel"
+										   Classes="addError" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+							</StackPanel>
+						</Panel>
+
+						<!-- New function: signature + body. -->
+						<StackPanel IsVisible="{Binding IsFunctions}">
+							<Grid DataContext="{Binding Functions}" x:DataType="overlay:FunctionsPanelViewModel"
+								  ColumnDefinitions="Auto,*,Auto,*,Auto" ColumnSpacing="9">
+								<TextBlock Grid.Column="0" Classes="addLabel" Text="＋ New function" />
+								<TextBox Grid.Column="1" Classes="addField" Text="{Binding NewSignature}" PlaceholderText="f(x)">
+									<TextBox.KeyBindings>
+										<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+									</TextBox.KeyBindings>
+								</TextBox>
+								<TextBlock Grid.Column="2" Classes="addSeparator" Text="=" />
+								<TextBox Grid.Column="3" Classes="addField" Text="{Binding NewBody}" PlaceholderText="body, e.g. x^2 + 1">
+									<TextBox.KeyBindings>
+										<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+									</TextBox.KeyBindings>
+								</TextBox>
+								<Button Grid.Column="4" Classes="add" Content="Add" Command="{Binding AddCommand}" />
+							</Grid>
+							<TextBlock DataContext="{Binding Functions}" x:DataType="overlay:FunctionsPanelViewModel"
+									   Classes="addError" IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+						</StackPanel>
+					</Panel>
+				</Border>
 			</Grid>
 			</Border>
 		</Grid>

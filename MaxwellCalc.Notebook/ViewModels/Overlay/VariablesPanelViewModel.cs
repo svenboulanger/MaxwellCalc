@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
@@ -9,10 +10,13 @@ using System.Linq;
 namespace MaxwellCalc.Notebook.ViewModels.Overlay;
 
 /// <summary>
-/// The command palette's Variables panel: the workspace's user-defined variables plus the read-only
-/// <c>from sheet</c> variables assigned on the sheet this session. Reads <c>workspace.Variables.Local</c>.
+/// The command palette's Variables panel: the workspace's variables (e.g. the answer variable and any
+/// loaded from persistence) plus the read-only <c>from sheet</c> variables assigned on the sheet this
+/// session. Reads <c>workspace.Variables.Local</c>. Variables are defined on the sheet (<c>x = …</c>),
+/// not added here — the footer adds constants instead (see <see cref="ConstantsPanelViewModel"/>). Rows
+/// remove workspace variables; <c>from sheet</c> rows are read-only.
 /// </summary>
-public sealed class VariablesPanelViewModel : FilteredPanelViewModel<VariableItem, string, Variable<string>>
+public sealed partial class VariablesPanelViewModel : FilteredPanelViewModel<VariableItem, string, Variable<string>>
 {
     private readonly SheetViewModel _sheet;
 
@@ -29,6 +33,12 @@ public sealed class VariablesPanelViewModel : FilteredPanelViewModel<VariableIte
         // The sheet has already evaluated once by now; fold in whatever it defined.
         ScheduleRebuild();
     }
+
+    /// <summary>Removes a workspace variable (the row × button). <c>from sheet</c> rows have no button.</summary>
+    /// <param name="item">The row to remove.</param>
+    [RelayCommand]
+    private void Remove(VariableItem item)
+        => WorkspaceState.Workspace?.Variables.TryRemoveVariable(item.Name);
 
     /// <inheritdoc />
     protected override IReadOnlyObservableDictionary<string, Variable<string>>? GetDictionary(IWorkspace workspace)

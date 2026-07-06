@@ -1,4 +1,7 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MaxwellCalc.Core.Dictionaries;
+using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using System;
@@ -12,11 +15,28 @@ namespace MaxwellCalc.Notebook.ViewModels.Overlay;
 /// The command palette's Output-units panel: the candidates the app auto-picks from, grouped by physical
 /// quantity (Length, Mass, …). Reads <c>workspace.OutputUnits</c>; <see cref="Items"/> holds the flat,
 /// filtered rows and <see cref="Groups"/> the same rows arranged into labelled sections for the view.
+/// The footer (Step 9) adds an output unit; rows remove one.
 /// </summary>
-public sealed class OutputUnitsPanelViewModel : FilteredPanelViewModel<OutputUnitItem, OutputUnitKey, string>
+public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<OutputUnitItem, OutputUnitKey, string>
 {
     /// <summary>Gets the filtered rows grouped by physical quantity, for the view.</summary>
     public ObservableCollection<OutputUnitGroup> Groups { get; } = [];
+
+    /// <summary>Gets or sets the footer's unit field.</summary>
+    [ObservableProperty]
+    private string _newUnit = string.Empty;
+
+    /// <summary>Gets or sets the footer's definition field (value in base units).</summary>
+    [ObservableProperty]
+    private string _newDefinition = string.Empty;
+
+    /// <summary>Gets or sets the inline error shown when an add fails.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
+    private string? _errorMessage;
+
+    /// <summary>Gets whether an inline error is showing.</summary>
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     /// <summary>
     /// Creates a new <see cref="OutputUnitsPanelViewModel"/>.
@@ -33,7 +53,48 @@ public sealed class OutputUnitsPanelViewModel : FilteredPanelViewModel<OutputUni
 
     /// <inheritdoc />
     protected override OutputUnitItem Project(OutputUnitKey key, string value)
-        => new() { Label = key.OutputUnit.ToString(), Definition = new Quantity<string>(value, key.BaseUnit) };
+        => new() { Key = key, Label = key.OutputUnit.ToString(), Definition = new Quantity<string>(value, key.BaseUnit) };
+
+    /// <summary>
+    /// Adds an output unit from the footer fields: the unit label and its value in base units, parsed
+    /// under a restricted workspace then assigned via <c>TryAssignOutputUnit</c>, mirroring the old
+    /// <c>OutputUnitsViewModel.AddOutputUnit</c> flow.
+    /// </summary>
+    [RelayCommand]
+    private void Add()
+    {
+        if (string.IsNullOrWhiteSpace(NewUnit) || string.IsNullOrWhiteSpace(NewDefinition))
+            return;
+
+        ErrorMessage = RunWithDiagnostics(workspace =>
+        {
+            var oldState = workspace.Restrict(false, false, true, false, false);
+            try
+            {
+                var unitNode = Parser.Parse(new Lexer(NewUnit), workspace);
+                if (unitNode is null)
+                    return false;
+                var valueNode = Parser.Parse(new Lexer(NewDefinition), workspace);
+                return valueNode is not null && workspace.TryAssignOutputUnit(unitNode, valueNode);
+            }
+            finally
+            {
+                workspace.Restore(oldState);
+            }
+        });
+
+        if (ErrorMessage is null)
+        {
+            NewUnit = string.Empty;
+            NewDefinition = string.Empty;
+        }
+    }
+
+    /// <summary>Removes an output unit (the row × button).</summary>
+    /// <param name="item">The row to remove.</param>
+    [RelayCommand]
+    private void Remove(OutputUnitItem item)
+        => WorkspaceState.Workspace?.TryRemoveOutputUnit(item.Key);
 
     /// <inheritdoc />
     protected override bool Matches(OutputUnitItem item, string filter)

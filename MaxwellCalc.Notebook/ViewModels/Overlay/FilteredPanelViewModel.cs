@@ -106,6 +106,36 @@ public abstract class FilteredPanelViewModel<TItem, TKey, TValue> : ViewModelBas
     protected virtual void OnItemsChanged() { }
 
     /// <summary>
+    /// Runs an add/remove <paramref name="attempt"/> against the active workspace (Step 9) while capturing
+    /// any diagnostics it posts, so a footer can surface them inline. Returns <c>null</c> on success, or the
+    /// joined diagnostic text (falling back to a generic message) on failure.
+    /// </summary>
+    /// <param name="attempt">The Core call to run; returns whether it succeeded.</param>
+    protected string? RunWithDiagnostics(Func<IWorkspace, bool> attempt)
+    {
+        var workspace = WorkspaceState.Workspace;
+        if (workspace is null)
+            return "No active workspace.";
+
+        var diagnostics = new List<string>();
+        void Collect(object? sender, DiagnosticMessagePostedEventArgs args) => diagnostics.Add(args.Message);
+        workspace.DiagnosticMessagePosted += Collect;
+        try
+        {
+            bool ok = attempt(workspace);
+            if (ok && diagnostics.Count == 0)
+                return null;
+            if (diagnostics.Count > 0)
+                return string.Join(Environment.NewLine, diagnostics);
+            return "The expression could not be evaluated.";
+        }
+        finally
+        {
+            workspace.DiagnosticMessagePosted -= Collect;
+        }
+    }
+
+    /// <summary>
     /// Queues a coalesced rebuild. Used by subclasses that observe an additional source (e.g. the sheet's
     /// symbol changes) so their extra rows refresh.
     /// </summary>

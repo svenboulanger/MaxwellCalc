@@ -1,4 +1,5 @@
 using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using System.Collections.Generic;
 
 namespace MaxwellCalc.Notebook.ViewModels.Overlay;
@@ -63,6 +64,9 @@ public sealed class InputUnitItem
 /// </summary>
 public sealed class OutputUnitItem
 {
+    /// <summary>Gets the dictionary key, used to remove the row (Step 9).</summary>
+    public required OutputUnitKey Key { get; init; }
+
     /// <summary>Gets the output-unit label (rendered in the unit hue).</summary>
     public required string Label { get; init; }
 
@@ -90,6 +94,9 @@ public sealed class OutputUnitGroup
 /// </summary>
 public sealed class FunctionItem
 {
+    /// <summary>Gets the dictionary key, used to remove the row (Step 9). <c>null</c> for <c>from sheet</c> rows.</summary>
+    public UserFunctionKey? Key { get; init; }
+
     /// <summary>Gets the signature (<c>name(params)</c>).</summary>
     public required string Signature { get; init; }
 
