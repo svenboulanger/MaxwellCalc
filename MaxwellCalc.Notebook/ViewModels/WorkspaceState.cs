@@ -33,9 +33,12 @@ public partial class WorkspaceState : ViewModelBase
     public string WorkspaceName => Name;
 
     /// <summary>
-    /// Gets the numeric format string handed to <see cref="IWorkspace.TryResolveAndFormat"/>.
+    /// Gets or sets the numeric format string handed to <see cref="IWorkspace.TryResolveAndFormat"/>.
+    /// Driven by the active workspace entry's format/digits setting (Step 12); the sheet re-evaluates
+    /// whenever it changes. Defaults to a five-significant-digit "general" format ("Auto", 5 digits).
     /// </summary>
-    public string OutputFormat => "g12";
+    [ObservableProperty]
+    private string _outputFormat = "G5";
 
     /// <summary>
     /// Creates a new <see cref="WorkspaceState"/> with a default real-valued workspace, seeded with

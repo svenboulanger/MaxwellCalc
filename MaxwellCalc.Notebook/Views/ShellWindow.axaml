@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:MaxwellCalc.Notebook.ViewModels"
+        xmlns:views="using:MaxwellCalc.Notebook.Views"
         xmlns:controls="using:MaxwellCalc.Notebook.Controls"
         xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="820" d:DesignHeight="620"
@@ -79,6 +80,70 @@
 		<Style Selector="Border.swatch.active">
 			<Setter Property="BorderBrush" Value="{DynamicResource InkBrush}" />
 		</Style>
+
+		<!-- ===================== Workspace switcher flyout ===================== -->
+		<!-- The name button: chrome-less, fills the row, ink label, subtle hover. -->
+		<Style Selector="Button.wsName">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="Padding" Value="7,5" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+		<Style Selector="Button.wsName:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<!-- Small square icon button for the per-row gear / pencil / delete affordances. -->
+		<Style Selector="Button.wsIcon">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Padding" Value="5" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.wsIcon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<Style Selector="Button.wsIcon:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+		<Style Selector="Button.wsIcon.delete:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+		</Style>
+		<!-- Inline rename field. -->
+		<Style Selector="TextBox.wsRename">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="Padding" Value="6,3" />
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<!-- "+ New workspace" row: accent text, chrome-less. -->
+		<Style Selector="Button.wsNew">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="Padding" Value="7,6" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+		</Style>
+		<Style Selector="Button.wsNew:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
 	</Window.Styles>
 
 	<!-- Global shortcuts: ⌘K / Ctrl+K opens the command palette on the Units section; Esc closes it
@@ -87,6 +152,9 @@
 	<Window.KeyBindings>
 		<KeyBinding Gesture="Ctrl+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
 		<KeyBinding Gesture="Meta+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
+		<!-- Esc first tries to close the workspace-settings dialog (guarded by its CanExecute); when it
+		     isn't open the binding is skipped and the command palette's Esc handler runs instead. -->
+		<KeyBinding Gesture="Escape" Command="{Binding Settings.CloseWorkspaceSettingsCommand}" />
 		<KeyBinding Gesture="Escape" Command="{Binding CommandPalette.CloseCommand}" />
 	</Window.KeyBindings>
 
@@ -206,7 +274,8 @@
 				<!-- Physics ▾ button + divider + chips (gap 9). -->
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9"
 							VerticalAlignment="Center">
-					<Button Background="{DynamicResource AccentBrush}"
+					<Button Name="WorkspaceSwitcherButton"
+							Background="{DynamicResource AccentBrush}"
 							Foreground="White"
 							BorderThickness="0"
 							CornerRadius="{DynamicResource ButtonCornerRadius}"
@@ -220,18 +289,76 @@
 							<materialIcons:MaterialIcon Kind="MenuDown" Width="15" Height="15"
 														VerticalAlignment="Center" />
 						</StackPanel>
-						<!-- Workspace switcher. MenuItems bind their own SelectCommand (per-entry), so no
-						     binding needs to cross the flyout popup back to the shell data context. -->
+						<!-- Workspace switcher: full CRUD. Each row binds its own per-entry commands
+						     (Select / OpenSettings / Rename / Remove), so no binding crosses the flyout
+						     popup boundary back to the shell. Select and the gear also close the flyout
+						     (code-behind); rename/delete keep it open so the list stays visible. -->
 						<Button.Flyout>
-							<MenuFlyout ItemsSource="{Binding Settings.Workspaces}">
-								<MenuFlyout.ItemContainerTheme>
-									<ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}"
-												  x:DataType="vm:WorkspaceEntry">
-										<Setter Property="Header" Value="{Binding Name}" />
-										<Setter Property="Command" Value="{Binding SelectCommand}" />
-									</ControlTheme>
-								</MenuFlyout.ItemContainerTheme>
-							</MenuFlyout>
+							<Flyout Placement="TopEdgeAlignedLeft">
+								<StackPanel Width="252" Spacing="1" Margin="4,6">
+									<TextBlock Classes="settingsLabel" Text="WORKSPACES" Margin="7,2,0,6" />
+									<ItemsControl ItemsSource="{Binding Settings.Workspaces}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="vm:WorkspaceEntry">
+												<Grid ColumnDefinitions="18,*,Auto,Auto,Auto">
+													<!-- Active check mark. -->
+													<materialIcons:MaterialIcon Grid.Column="0" Kind="Check"
+																				Width="14" Height="14"
+																				IsVisible="{Binding IsSelected}"
+																				Foreground="{DynamicResource AccentBrush}"
+																				VerticalAlignment="Center" />
+
+													<!-- Name (select) — hidden while renaming. -->
+													<Button Grid.Column="1" Classes="wsName"
+															Content="{Binding Name}"
+															IsVisible="{Binding !IsEditing}"
+															Command="{Binding SelectCommand}"
+															Click="OnWorkspaceRowActivated" />
+													<!-- Inline rename field — shown while renaming. -->
+													<TextBox Grid.Column="1" Classes="wsRename"
+															 Text="{Binding Name, Mode=TwoWay}"
+															 IsVisible="{Binding IsEditing}"
+															 LostFocus="OnRenameLostFocus"
+															 KeyDown="OnRenameKeyDown" />
+
+													<Button Grid.Column="2" Classes="wsIcon"
+															IsVisible="{Binding !IsEditing}"
+															Command="{Binding OpenSettingsCommand}"
+															Click="OnWorkspaceRowActivated"
+															ToolTip.Tip="Workspace settings">
+														<materialIcons:MaterialIcon Kind="Cog" Width="14" Height="14" />
+													</Button>
+													<Button Grid.Column="3" Classes="wsIcon"
+															IsVisible="{Binding !IsEditing}"
+															Command="{Binding RenameCommand}"
+															ToolTip.Tip="Rename">
+														<materialIcons:MaterialIcon Kind="Pencil" Width="14" Height="14" />
+													</Button>
+													<Button Grid.Column="4" Classes="wsIcon delete"
+															IsVisible="{Binding !IsEditing}"
+															Command="{Binding RemoveCommand}"
+															ToolTip.Tip="Delete workspace">
+														<materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" />
+													</Button>
+												</Grid>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+
+									<Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,5" />
+
+									<Button Classes="wsNew" Command="{Binding Settings.AddWorkspaceCommand}">
+										<StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+											<materialIcons:MaterialIcon Kind="Plus" Width="15" Height="15"
+																		VerticalAlignment="Center" />
+											<TextBlock Text="New workspace"
+													   FontFamily="{DynamicResource UiFontFamily}"
+													   FontSize="12.5" FontWeight="Medium"
+													   VerticalAlignment="Center" />
+										</StackPanel>
+									</Button>
+								</StackPanel>
+							</Flyout>
 						</Button.Flyout>
 					</Button>
 
@@ -272,5 +399,9 @@
 		<!-- Command-palette overlay, resolved to CommandPaletteView via the ViewLocator. It manages its
 		     own visibility (scrim IsVisible = PaletteOpen), so it stays here spanning the whole window. -->
 		<ContentControl Content="{Binding CommandPalette}" />
+
+		<!-- Workspace-settings dialog (Step 12). Bound directly to the SettingsViewModel; manages its own
+		     visibility (scrim IsVisible = WorkspaceSettingsOpen) and layers above the palette. -->
+		<views:WorkspaceSettingsView DataContext="{Binding Settings}" />
 	</Panel>
 </Window>

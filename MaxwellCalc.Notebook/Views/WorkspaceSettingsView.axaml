@@ -1,0 +1,274 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MaxwellCalc.Notebook.ViewModels"
+             xmlns:controls="using:MaxwellCalc.Notebook.Controls"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="820" d:DesignHeight="620"
+             x:Class="MaxwellCalc.Notebook.Views.WorkspaceSettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+	<!-- Step 12 — per-workspace settings dialog. A dimmed full-window scrim (closes on click) with a
+	     centered card: workspace name, an Auto/Fixed/Scientific segmented control, a significant-digits
+	     stepper, a live preview of sample quantities under the current format string, and the two
+	     "Add common units" preset buttons. Styling follows the command-palette overlay. -->
+	<UserControl.Styles>
+		<!-- Section label: faint uppercase caption above each group. -->
+		<Style Selector="TextBlock.label">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+
+		<!-- Faint helper caption. -->
+		<Style Selector="TextBlock.caption">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+		</Style>
+
+		<!-- Workspace-name field. -->
+		<Style Selector="TextBox.nameField">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13.5" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="10,7" />
+			<Setter Property="MinHeight" Value="0" />
+		</Style>
+
+		<!-- Segmented Auto / Fixed / Scientific buttons (matches the palette's tab styling). -->
+		<Style Selector="Button.seg">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Padding" Value="0,7" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+		</Style>
+		<Style Selector="Button.seg.active">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.seg.active /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.seg.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+
+		<!-- Digit stepper − / + buttons. -->
+		<Style Selector="Button.step">
+			<Setter Property="Width" Value="40" />
+			<Setter Property="Height" Value="36" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Cursor" Value="Hand" />
+		</Style>
+		<Style Selector="Button.step:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+
+		<!-- "Add units" preset button. -->
+		<Style Selector="Button.preset">
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="14,7" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.preset:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ConstPillBackground}" />
+		</Style>
+
+		<!-- × close button. -->
+		<Style Selector="Button.close">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="5" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+	</UserControl.Styles>
+
+	<!-- Full-window scrim; closes when clicked directly (handled in code-behind); hidden when closed. -->
+	<Border Name="Scrim"
+			IsVisible="{Binding WorkspaceSettingsOpen}"
+			Background="{DynamicResource OverlayBrush}"
+			PointerPressed="OnScrimPressed">
+
+		<Grid Name="Frame" Margin="24,14">
+			<!-- Stretch up to 440px wide so the card has a definite width to lay content out in (rather
+			     than shrinking to the header and clipping the scroll body). Vertically the card STRETCHES
+			     to fill the frame — which is already margin-inset from the window — so the card can never
+			     exceed the window; MaxHeight caps it on tall windows so it doesn't grow past the content.
+			     Because the card always fits the window, the body's * row is a fully-visible viewport, so
+			     when content is taller than it the ScrollViewer scrolls and every row stays reachable. -->
+			<Border MaxWidth="440"
+					MaxHeight="600"
+					HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+					Background="{DynamicResource CardBrush}"
+					CornerRadius="{DynamicResource CardCornerRadius}"
+					BoxShadow="{DynamicResource OverlayShadow}">
+				<Grid RowDefinitions="Auto,*">
+
+					<!-- ============================ HEADER ============================ -->
+					<Border Grid.Row="0" Padding="{DynamicResource HeaderPadding}"
+							BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1">
+						<Grid ColumnDefinitions="*,Auto">
+							<TextBlock Grid.Column="0" Text="Workspace settings"
+									   FontFamily="{DynamicResource UiFontFamily}"
+									   FontSize="15" FontWeight="SemiBold"
+									   Foreground="{DynamicResource InkBrush}"
+									   VerticalAlignment="Center" />
+							<Button Grid.Column="1" Classes="close"
+									Command="{Binding CloseWorkspaceSettingsCommand}"
+									ToolTip.Tip="Close">
+								<materialIcons:MaterialIcon Kind="Close" Width="16" Height="16" />
+							</Button>
+						</Grid>
+					</Border>
+
+					<!-- ============================ BODY ============================ -->
+					<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+						<!-- Pad via the content's Margin, not ScrollViewer.Padding: Avalonia excludes the
+						     ScrollViewer's own padding from the scroll extent, which leaves the last row
+						     unreachable on short windows. -->
+						<StackPanel Spacing="11" Margin="18,14">
+
+							<!-- Workspace name. -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Workspace name" />
+								<TextBox Classes="nameField" Text="{Binding SettingsTarget.Name, Mode=TwoWay}" />
+							</StackPanel>
+
+							<!-- Scalar format. -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Scalar format" />
+								<TextBlock Classes="caption"
+										   Text="Auto switches to scientific for very large or very small values." />
+								<Border Background="{DynamicResource BgBrush}" CornerRadius="7" Padding="3">
+									<Grid ColumnDefinitions="*,*,*" ColumnSpacing="3">
+										<Button Grid.Column="0" Classes="seg"
+												Classes.active="{Binding SettingsTarget.IsAuto}"
+												Command="{Binding SetTargetFormatCommand}"
+												CommandParameter="{x:Static vm:ScalarFormat.Auto}"
+												Content="Auto" />
+										<Button Grid.Column="1" Classes="seg"
+												Classes.active="{Binding SettingsTarget.IsFixed}"
+												Command="{Binding SetTargetFormatCommand}"
+												CommandParameter="{x:Static vm:ScalarFormat.Fixed}"
+												Content="Fixed" />
+										<Button Grid.Column="2" Classes="seg"
+												Classes.active="{Binding SettingsTarget.IsScientific}"
+												Command="{Binding SetTargetFormatCommand}"
+												CommandParameter="{x:Static vm:ScalarFormat.Scientific}"
+												Content="Scientific" />
+									</Grid>
+								</Border>
+							</StackPanel>
+
+							<!-- Significant digits. -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Significant digits" />
+								<StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+									<Button Classes="step" Command="{Binding DecrementDigitsCommand}" Content="−" />
+									<TextBlock Text="{Binding SettingsTarget.Digits}"
+											   FontFamily="{DynamicResource MonoFontFamily}"
+											   FontSize="15" FontWeight="SemiBold"
+											   Foreground="{DynamicResource InkBrush}"
+											   Width="28" TextAlignment="Center"
+											   VerticalAlignment="Center" />
+									<Button Classes="step" Command="{Binding IncrementDigitsCommand}" Content="+" />
+								</StackPanel>
+							</StackPanel>
+
+							<!-- Live preview. -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Preview" />
+								<Border Background="{DynamicResource SurfBrush}"
+										BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+										CornerRadius="{DynamicResource InputCornerRadius}"
+										Padding="14,8">
+									<ItemsControl ItemsSource="{Binding Preview}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="vm:PreviewSample">
+												<Grid ColumnDefinitions="*,Auto" Margin="0,2">
+													<TextBlock Grid.Column="0" Text="{Binding Label}"
+															   FontFamily="{DynamicResource UiFontFamily}"
+															   FontSize="12.5"
+															   Foreground="{DynamicResource MutBrush}"
+															   VerticalAlignment="Center" />
+													<controls:QuantityView Grid.Column="1" Value="{Binding Value}"
+																		   VerticalAlignment="Center" />
+												</Grid>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</Border>
+							</StackPanel>
+
+							<!-- Add common units presets. -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Add common units" />
+								<TextBlock Classes="caption" Text="Bundles input &amp; output units into this workspace." />
+
+								<Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+									<StackPanel Grid.Column="0" VerticalAlignment="Center">
+										<TextBlock Text="Physics"
+												   FontFamily="{DynamicResource UiFontFamily}"
+												   FontSize="12.5" FontWeight="SemiBold"
+												   Foreground="{DynamicResource InkBrush}" />
+										<TextBlock Classes="caption" Text="astronomical, magnetic &amp; energy units" />
+									</StackPanel>
+									<Button Grid.Column="1" Classes="preset"
+											Command="{Binding AddPhysicsUnitsCommand}" Content="Add units" />
+								</Grid>
+
+								<Grid ColumnDefinitions="*,Auto">
+									<StackPanel Grid.Column="0" VerticalAlignment="Center">
+										<TextBlock Text="Electronics"
+												   FontFamily="{DynamicResource UiFontFamily}"
+												   FontSize="12.5" FontWeight="SemiBold"
+												   Foreground="{DynamicResource InkBrush}" />
+										<TextBlock Classes="caption" Text="sub-pF caps, siemens, amp-hours" />
+									</StackPanel>
+									<Button Grid.Column="1" Classes="preset"
+											Command="{Binding AddElectronicsUnitsCommand}" Content="Add units" />
+								</Grid>
+							</StackPanel>
+
+						</StackPanel>
+					</ScrollViewer>
+				</Grid>
+			</Border>
+		</Grid>
+	</Border>
+</UserControl>

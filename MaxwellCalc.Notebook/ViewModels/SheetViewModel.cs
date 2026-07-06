@@ -270,11 +270,24 @@ public partial class SheetViewModel : ViewModelBase
         FocusRequested?.Invoke(toIndex);
     }
 
+    /// <summary>
+    /// Re-evaluates the whole sheet against the active workspace. Public entry point for callers that
+    /// mutate the workspace out-of-band (e.g. the settings view model applying a unit preset, Step 12)
+    /// and need the gutter to refresh.
+    /// </summary>
+    public void Recompute() => Evaluate();
+
     private void OnWorkspaceStateChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(WorkspaceState.Workspace))
         {
             OnPropertyChanged(nameof(Workspace));
+            Evaluate();
+        }
+        else if (e.PropertyName is nameof(WorkspaceState.OutputFormat))
+        {
+            // The active entry's scalar-format / digit setting changed: re-run the pass so every
+            // gutter value re-formats with the new format string.
             Evaluate();
         }
     }

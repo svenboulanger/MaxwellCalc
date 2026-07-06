@@ -3,16 +3,27 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Material.Icons;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.Json;
 using System.Windows.Input;
 
 namespace MaxwellCalc.Notebook.ViewModels;
+
+/// <summary>
+/// One row in the settings dialog's live preview: a caption and the sample quantity formatted with the
+/// edited workspace's current format string.
+/// </summary>
+/// <param name="Label">The sample caption (e.g. "Avogadro").</param>
+/// <param name="Value">The formatted sample quantity, ready for a <c>QuantityView</c>.</param>
+public readonly record struct PreviewSample(string Label, Quantity<string> Value);
 
 /// <summary>The selectable unit-hue preset (the color used for unit symbols in the editor and gutter).</summary>
 public enum UnitHue
@@ -27,22 +38,118 @@ public enum UnitHue
     Violet,
 }
 
+/// <summary>The scalar display format for a workspace (Step 12): how numeric results are rendered.</summary>
+public enum ScalarFormat
+{
+    /// <summary>General format: plain decimal for mid-range magnitudes, exponent for very large/small.</summary>
+    Auto,
+
+    /// <summary>Fixed-point format (always <c>digits</c> decimal places).</summary>
+    Fixed,
+
+    /// <summary>Scientific / exponential format.</summary>
+    Scientific,
+}
+
 /// <summary>
-/// One entry in the workspace switcher: a named workspace plus a command that selects it. The command
-/// is per-entry (it captures this entry) so the "Physics ▾" menu items can bind
+/// One entry in the workspace switcher: a named workspace, its per-workspace display settings (scalar
+/// format + significant digits, Step 12), and the per-entry commands the switcher rows bind to. The
+/// commands capture this entry so the "Physics ▾" flyout rows can bind
 /// <c>Command="{Binding SelectCommand}"</c> directly against their own data context, without reaching
 /// across the flyout's popup boundary back to the shell.
 /// </summary>
-public sealed class WorkspaceEntry(string name, IWorkspace workspace, ICommand selectCommand)
+public partial class WorkspaceEntry : ObservableObject
 {
-    /// <summary>Gets the display name shown in the title caption, the Physics button, and the menu.</summary>
-    public string Name { get; } = name;
+    /// <summary>Gets the display name shown in the title caption, the Physics button, and the switcher.</summary>
+    [ObservableProperty]
+    private string _name;
+
+    /// <summary>Gets or sets whether this row is showing its inline rename text box.</summary>
+    [ObservableProperty]
+    private bool _isEditing;
+
+    /// <summary>Gets or sets whether this is the active workspace (drives the switcher check mark).</summary>
+    [ObservableProperty]
+    private bool _isSelected;
+
+    /// <summary>Gets or sets the scalar display format.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FormatString))]
+    [NotifyPropertyChangedFor(nameof(IsAuto))]
+    [NotifyPropertyChangedFor(nameof(IsFixed))]
+    [NotifyPropertyChangedFor(nameof(IsScientific))]
+    private ScalarFormat _format;
+
+    /// <summary>Gets or sets the number of significant digits / decimal places (1–12).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FormatString))]
+    private int _digits;
 
     /// <summary>Gets the workspace this entry activates.</summary>
-    public IWorkspace Workspace { get; } = workspace;
+    public IWorkspace Workspace { get; }
 
     /// <summary>Gets the command that makes this the active workspace.</summary>
-    public ICommand SelectCommand { get; } = selectCommand;
+    public ICommand SelectCommand { get; }
+
+    /// <summary>Gets the command that opens this workspace's settings dialog.</summary>
+    public ICommand OpenSettingsCommand { get; }
+
+    /// <summary>Gets the command that starts an inline rename of this workspace.</summary>
+    public ICommand RenameCommand { get; }
+
+    /// <summary>Gets the command that removes this workspace.</summary>
+    public ICommand RemoveCommand { get; }
+
+    /// <summary>
+    /// Gets the standard .NET numeric format string this entry's setting maps to (handed straight to
+    /// <c>double.ToString</c> by the domain formatters).
+    /// </summary>
+    public string FormatString => Format switch
+    {
+        ScalarFormat.Fixed => "F" + Digits,        // 0.00012, 273.15000
+        ScalarFormat.Scientific => "E" + Digits,   // 2.99792E+008
+        _ => "G" + Digits,                          // .NET "general": auto fixed/scientific
+    };
+
+    /// <summary>Gets whether the Auto format is selected (drives the segmented control highlight).</summary>
+    public bool IsAuto => Format is ScalarFormat.Auto;
+
+    /// <summary>Gets whether the Fixed format is selected.</summary>
+    public bool IsFixed => Format is ScalarFormat.Fixed;
+
+    /// <summary>Gets whether the Scientific format is selected.</summary>
+    public bool IsScientific => Format is ScalarFormat.Scientific;
+
+    /// <summary>
+    /// Creates a new <see cref="WorkspaceEntry"/>.
+    /// </summary>
+    /// <param name="name">The display name.</param>
+    /// <param name="workspace">The workspace this entry activates.</param>
+    /// <param name="format">The scalar display format.</param>
+    /// <param name="digits">The significant-digit count.</param>
+    /// <param name="selectCommand">The command that activates this workspace.</param>
+    /// <param name="openSettingsCommand">The command that opens this workspace's settings.</param>
+    /// <param name="renameCommand">The command that starts an inline rename.</param>
+    /// <param name="removeCommand">The command that removes this workspace.</param>
+    public WorkspaceEntry(
+        string name,
+        IWorkspace workspace,
+        ScalarFormat format,
+        int digits,
+        ICommand selectCommand,
+        ICommand openSettingsCommand,
+        ICommand renameCommand,
+        ICommand removeCommand)
+    {
+        _name = name;
+        Workspace = workspace;
+        _format = format;
+        _digits = digits;
+        SelectCommand = selectCommand;
+        OpenSettingsCommand = openSettingsCommand;
+        RenameCommand = renameCommand;
+        RemoveCommand = removeCommand;
+    }
 }
 
 /// <summary>
@@ -59,6 +166,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly string _settingsFile;
     private readonly string _workspaceFile;
     private bool _suppressSave;
+    private WorkspaceEntry? _observedEntry;
 
     /// <summary>Gets the available workspaces (the "Physics ▾" switcher list).</summary>
     public ObservableCollection<WorkspaceEntry> Workspaces { get; } = [];
@@ -82,6 +190,19 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>Gets or sets whether the auto-selected-output-unit caption is shown (default on).</summary>
     [ObservableProperty]
     private bool _autoCaptionEnabled = true;
+
+    /// <summary>Gets or sets whether the workspace-settings dialog is open.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseWorkspaceSettingsCommand))]
+    private bool _workspaceSettingsOpen;
+
+    /// <summary>Gets or sets the workspace entry the settings dialog is editing.</summary>
+    [ObservableProperty]
+    private WorkspaceEntry? _settingsTarget;
+
+    /// <summary>Gets the sample quantities shown in the settings dialog's live preview.</summary>
+    [ObservableProperty]
+    private IReadOnlyList<PreviewSample> _preview = [];
 
     /// <summary>Gets the theme-toggle glyph: a moon in light mode (switch to dark), a sun in dark mode.</summary>
     public MaterialIconKind ThemeToggleIcon =>
@@ -128,6 +249,9 @@ public partial class SettingsViewModel : ViewModelBase
 
         _selectedWorkspace = Workspaces.Count > 0 ? Workspaces[0] : null;
 
+        // Keep every row's delete command in step with the count (the last workspace can't be removed).
+        Workspaces.CollectionChanged += (_, _) => RefreshRemoveCommands();
+
         // Seed the toggle from the current (system) variant, then let persisted settings override it.
         _isDarkTheme = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
 
@@ -140,6 +264,11 @@ public partial class SettingsViewModel : ViewModelBase
         ApplyTheme();
         ApplyUnitHue();
         _sheet.AutoCaptionEnabled = AutoCaptionEnabled;
+
+        // Track the settled selection (Load may or may not have gone through the property setter, so we
+        // attach here rather than relying on the change handler having fired) and mark the check.
+        ObserveSelectedEntry(SelectedWorkspace);
+        UpdateSelectedFlags();
     }
 
     /// <summary>Makes this the active workspace (a "Physics ▾" menu item).</summary>
@@ -149,6 +278,154 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (entry is not null)
             SelectedWorkspace = entry;
+    }
+
+    /// <summary>Creates a fresh, seeded workspace, appends it to the switcher, and activates it.</summary>
+    [RelayCommand]
+    private void AddWorkspace()
+    {
+        var workspace = WorkspaceState.CreateDefaultWorkspace();
+        var entry = MakeEntry(UniqueName("Untitled"), workspace);
+        Workspaces.Add(entry);
+        SelectedWorkspace = entry;   // fires OnSelectedWorkspaceChanged → applies + saves preferences
+        SaveWorkspaces();            // persist the new (empty) workspace into the list immediately
+    }
+
+    /// <summary>
+    /// Removes a workspace, guarding against deleting the last one. If the removed entry was active,
+    /// selection falls back to the nearest remaining entry.
+    /// </summary>
+    /// <param name="entry">The workspace to remove.</param>
+    [RelayCommand]
+    private void RemoveWorkspace(WorkspaceEntry? entry)
+    {
+        if (entry is null || Workspaces.Count <= 1)
+            return;
+
+        int index = Workspaces.IndexOf(entry);
+        if (index < 0)
+            return;
+
+        bool wasSelected = SelectedWorkspace == entry;
+        if (WorkspaceSettingsOpen && SettingsTarget == entry)
+            CloseWorkspaceSettings();
+
+        Workspaces.Remove(entry);
+        if (wasSelected)
+            SelectedWorkspace = Workspaces[Math.Min(index, Workspaces.Count - 1)];
+
+        SaveWorkspaces();
+        Save();
+    }
+
+    /// <summary>Starts (or, if already editing, commits) an inline rename of a workspace row.</summary>
+    /// <param name="entry">The workspace being renamed.</param>
+    [RelayCommand]
+    private void RenameWorkspace(WorkspaceEntry? entry)
+    {
+        if (entry is null)
+            return;
+        entry.IsEditing = !entry.IsEditing;
+        if (!entry.IsEditing)
+            SaveWorkspaces();
+    }
+
+    /// <summary>Commits an in-progress rename (Enter or focus loss on the inline text box).</summary>
+    /// <param name="entry">The workspace whose rename is being committed.</param>
+    public void CommitRename(WorkspaceEntry? entry)
+    {
+        if (entry is null || !entry.IsEditing)
+            return;
+        entry.IsEditing = false;
+        SaveWorkspaces();
+    }
+
+    /// <summary>Opens the settings dialog for a workspace.</summary>
+    /// <param name="entry">The workspace to edit.</param>
+    [RelayCommand]
+    private void OpenWorkspaceSettings(WorkspaceEntry? entry)
+    {
+        if (entry is null)
+            return;
+
+        DetachSettingsTarget();
+        SettingsTarget = entry;
+        SettingsTarget.PropertyChanged += OnSettingsTargetChanged;
+        RefreshPreview();
+        WorkspaceSettingsOpen = true;
+    }
+
+    /// <summary>Closes the settings dialog (× button, scrim click, or Esc).</summary>
+    [RelayCommand(CanExecute = nameof(WorkspaceSettingsOpen))]
+    private void CloseWorkspaceSettings()
+    {
+        DetachSettingsTarget();
+        WorkspaceSettingsOpen = false;
+        // Persist any name / format / digit edits made in the dialog (edits to a non-active workspace
+        // don't route through the active-entry change handler, so save the whole list here).
+        SaveWorkspaces();
+        Save();
+    }
+
+    /// <summary>Sets the edited workspace's scalar format (the Auto/Fixed/Scientific segmented control).</summary>
+    /// <param name="format">The format to apply.</param>
+    [RelayCommand]
+    private void SetTargetFormat(ScalarFormat format)
+    {
+        if (SettingsTarget is { } target)
+            target.Format = format;
+    }
+
+    /// <summary>Increases the edited workspace's significant digits (the stepper's +), capped at 12.</summary>
+    [RelayCommand]
+    private void IncrementDigits()
+    {
+        if (SettingsTarget is { } target)
+            target.Digits = Math.Min(12, target.Digits + 1);
+    }
+
+    /// <summary>Decreases the edited workspace's significant digits (the stepper's −), floored at 1.</summary>
+    [RelayCommand]
+    private void DecrementDigits()
+    {
+        if (SettingsTarget is { } target)
+            target.Digits = Math.Max(1, target.Digits - 1);
+    }
+
+    /// <summary>Registers the common physics / general unit bundle into the edited workspace.</summary>
+    [RelayCommand]
+    private void AddPhysicsUnits()
+    {
+        switch (SettingsTarget?.Workspace)
+        {
+            case IWorkspace<double> real:
+                real.RegisterCommonUnits();
+                break;
+            case IWorkspace<Complex> complex:
+                complex.RegisterCommonUnits();
+                break;
+            default:
+                return;
+        }
+        AfterPresetApplied();
+    }
+
+    /// <summary>Registers the common electronics unit bundle (fF, aF, siemens, amp-hours, …).</summary>
+    [RelayCommand]
+    private void AddElectronicsUnits()
+    {
+        switch (SettingsTarget?.Workspace)
+        {
+            case IWorkspace<double> real:
+                UnitHelper.RegisterCommonElectronicsUnits(real);
+                break;
+            case IWorkspace<Complex> complex:
+                UnitHelper.RegisterCommonElectronicsUnits(complex);
+                break;
+            default:
+                return;
+        }
+        AfterPresetApplied();
     }
 
     /// <summary>Flips between light and dark (the title-bar theme button).</summary>
@@ -162,8 +439,48 @@ public partial class SettingsViewModel : ViewModelBase
 
     partial void OnSelectedWorkspaceChanged(WorkspaceEntry? value)
     {
+        ObserveSelectedEntry(value);
+        UpdateSelectedFlags();
         ApplySelectedWorkspace();
         Save();
+    }
+
+    // Subscribes to the active entry so a live rename / format / digit edit re-applies to the workspace
+    // state (and re-evaluates the sheet). Idempotent: re-attaching the same entry is a no-op.
+    private void ObserveSelectedEntry(WorkspaceEntry? entry)
+    {
+        if (_observedEntry == entry)
+            return;
+        if (_observedEntry is not null)
+            _observedEntry.PropertyChanged -= OnSelectedEntryChanged;
+        _observedEntry = entry;
+        if (_observedEntry is not null)
+            _observedEntry.PropertyChanged += OnSelectedEntryChanged;
+    }
+
+    private void OnSelectedEntryChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(WorkspaceEntry.Name)
+            or nameof(WorkspaceEntry.Format)
+            or nameof(WorkspaceEntry.Digits))
+        {
+            // Push the name into the title caption and the format string into WorkspaceState (which
+            // re-evaluates the sheet), then persist the change.
+            ApplySelectedWorkspace();
+            Save();
+        }
+    }
+
+    private void UpdateSelectedFlags()
+    {
+        foreach (var entry in Workspaces)
+            entry.IsSelected = entry == SelectedWorkspace;
+    }
+
+    private void RefreshRemoveCommands()
+    {
+        foreach (var entry in Workspaces)
+            (entry.RemoveCommand as IRelayCommand)?.NotifyCanExecuteChanged();
     }
 
     partial void OnIsDarkThemeChanged(bool value)
@@ -186,12 +503,38 @@ public partial class SettingsViewModel : ViewModelBase
         Save();
     }
 
-    // Builds a workspace entry whose SelectCommand captures the entry itself.
-    private WorkspaceEntry MakeEntry(string name, IWorkspace workspace)
+    // Builds a workspace entry whose per-row commands capture the entry itself, so the switcher flyout
+    // rows bind directly to them without crossing the popup boundary back to the shell.
+    private WorkspaceEntry MakeEntry(
+        string name,
+        IWorkspace workspace,
+        ScalarFormat format = ScalarFormat.Auto,
+        int digits = 5)
     {
         WorkspaceEntry entry = null!;
-        entry = new WorkspaceEntry(name, workspace, new RelayCommand(() => SelectWorkspace(entry)));
+        entry = new WorkspaceEntry(
+            name,
+            workspace,
+            format,
+            digits,
+            selectCommand: new RelayCommand(() => SelectWorkspace(entry)),
+            openSettingsCommand: new RelayCommand(() => OpenWorkspaceSettings(entry)),
+            renameCommand: new RelayCommand(() => RenameWorkspace(entry)),
+            removeCommand: new RelayCommand(() => RemoveWorkspace(entry), () => Workspaces.Count > 1));
         return entry;
+    }
+
+    // Returns a name not already used by any workspace: the base name, else "base 2", "base 3", …
+    private string UniqueName(string baseName)
+    {
+        if (Workspaces.All(w => w.Name != baseName))
+            return baseName;
+        for (int n = 2; ; n++)
+        {
+            string candidate = $"{baseName} {n}";
+            if (Workspaces.All(w => w.Name != candidate))
+                return candidate;
+        }
     }
 
     private void ApplySelectedWorkspace()
@@ -200,6 +543,53 @@ public partial class SettingsViewModel : ViewModelBase
             return;
         _workspaceState.Workspace = SelectedWorkspace.Workspace;
         _workspaceState.Name = SelectedWorkspace.Name;
+        _workspaceState.OutputFormat = SelectedWorkspace.FormatString;
+    }
+
+    private void DetachSettingsTarget()
+    {
+        if (SettingsTarget is not null)
+            SettingsTarget.PropertyChanged -= OnSettingsTargetChanged;
+    }
+
+    private void OnSettingsTargetChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(WorkspaceEntry.FormatString)
+            or nameof(WorkspaceEntry.Format)
+            or nameof(WorkspaceEntry.Digits))
+        {
+            RefreshPreview();
+        }
+    }
+
+    // Rebuilds the live preview from the edited workspace's current format string. The sample scalars
+    // are formatted directly (dimensionless) so the preview matches the gutter's scalar rendering.
+    private void RefreshPreview()
+    {
+        if (SettingsTarget is not { } target)
+        {
+            Preview = [];
+            return;
+        }
+
+        string format = target.FormatString;
+        Preview = PreviewInputs
+            .Select(sample => new PreviewSample(
+                sample.Label,
+                new Quantity<string>(
+                    sample.Value.ToString(format, CultureInfo.InvariantCulture),
+                    Unit.UnitNone)))
+            .ToList();
+    }
+
+    // After a unit preset is applied to the edited workspace: re-evaluate the sheet (in case the edited
+    // workspace is the active one), refresh the preview, and persist the enlarged workspace.
+    private void AfterPresetApplied()
+    {
+        _sheet.Recompute();
+        RefreshPreview();
+        SaveWorkspaces();
+        Save();
     }
 
     private void ApplyTheme()
@@ -294,7 +684,13 @@ public partial class SettingsViewModel : ViewModelBase
         try
         {
             var data = Workspaces
-                .Select(entry => new WorkspaceData { Name = entry.Name, Workspace = entry.Workspace })
+                .Select(entry => new WorkspaceData
+                {
+                    Name = entry.Name,
+                    Workspace = entry.Workspace,
+                    Format = entry.Format,
+                    Digits = entry.Digits,
+                })
                 .ToList();
             File.WriteAllText(_workspaceFile, JsonSerializer.Serialize(data, _workspaceJsonOptions));
         }
@@ -322,7 +718,7 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 if (item.Workspace is null)
                     continue;
-                Workspaces.Add(MakeEntry(item.Name, item.Workspace));
+                Workspaces.Add(MakeEntry(item.Name, item.Workspace, item.Format, item.Digits));
             }
             return Workspaces.Count > 0;
         }
@@ -335,13 +731,27 @@ public partial class SettingsViewModel : ViewModelBase
 
     private static readonly JsonSerializerOptions SaveOptions = new() { WriteIndented = true };
 
-    // The serializable shape of one workspace.json entry: its display name plus the workspace itself,
-    // which round-trips through Core's WorkspaceJsonConverter (registered on _workspaceJsonOptions).
+    // The fixed sample scalars run through the edited workspace's format string for the settings preview:
+    // a very large number (auto → scientific), a very small one, and a mid-range value (auto → decimal).
+    private static readonly (string Label, double Value)[] PreviewInputs =
+    [
+        ("Avogadro", 6.02214076e23),
+        ("Boltzmann", 1.380649e-23),
+        ("small", 273.15),
+    ];
+
+    // The serializable shape of one workspace.json entry: its display name and per-workspace display
+    // settings, plus the workspace itself, which round-trips through Core's WorkspaceJsonConverter
+    // (registered on _workspaceJsonOptions).
     private sealed class WorkspaceData
     {
         public string Name { get; set; } = string.Empty;
 
         public IWorkspace? Workspace { get; set; }
+
+        public ScalarFormat Format { get; set; } = ScalarFormat.Auto;
+
+        public int Digits { get; set; } = 5;
     }
 
     // The plain, serializable shape of settings.json.
