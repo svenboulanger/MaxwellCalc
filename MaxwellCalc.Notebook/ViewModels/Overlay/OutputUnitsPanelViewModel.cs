@@ -106,8 +106,8 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     {
         // Order by physical-quantity group first, then by unit label, so grouping is contiguous.
         int byGroup = StringComparer.OrdinalIgnoreCase.Compare(
-            PhysicalQuantity.Label(a.Definition.Unit),
-            PhysicalQuantity.Label(b.Definition.Unit));
+            CategoryLabel(a.Definition.Unit),
+            CategoryLabel(b.Definition.Unit));
         if (byGroup != 0)
             return byGroup;
         return StringComparer.OrdinalIgnoreCase.Compare(a.Label, b.Label);
@@ -117,7 +117,24 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     protected override void OnItemsChanged()
     {
         Groups.Clear();
-        foreach (var group in Items.GroupBy(item => PhysicalQuantity.Label(item.Definition.Unit)))
+        foreach (var group in Items.GroupBy(item => CategoryLabel(item.Definition.Unit)))
             Groups.Add(new OutputUnitGroup { Label = group.Key, Items = group.ToList() });
+    }
+
+    /// <summary>
+    /// Gets the display label for the physical quantity a base unit represents, used to group the output
+    /// units. Looks the base unit up in the active workspace's <see cref="IWorkspace.UnitCategories"/>
+    /// (upper-casing the stored lower-case category), falling back to the base unit's own string so every
+    /// output unit still lands in a labelled group.
+    /// </summary>
+    /// <param name="baseUnit">The base unit.</param>
+    /// <returns>The category label, or the base unit's string when it has no category.</returns>
+    private string CategoryLabel(Unit baseUnit)
+    {
+        var categories = WorkspaceState.Workspace?.UnitCategories;
+        if (categories is not null && categories.TryGetValue(baseUnit, out var category))
+            return category.ToUpperInvariant();
+        string key = baseUnit.ToString();
+        return key.Length == 0 ? "Dimensionless" : key;
     }
 }
