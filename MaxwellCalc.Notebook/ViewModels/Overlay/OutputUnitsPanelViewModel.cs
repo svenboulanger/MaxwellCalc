@@ -14,13 +14,18 @@ namespace MaxwellCalc.Notebook.ViewModels.Overlay;
 /// <summary>
 /// The command palette's Output-units panel: the candidates the app auto-picks from, grouped by physical
 /// quantity (Length, Mass, …). Reads <c>workspace.OutputUnits</c>; <see cref="Items"/> holds the flat,
-/// filtered rows and <see cref="Groups"/> the same rows arranged into labelled sections for the view.
-/// The footer (Step 9) adds an output unit; rows remove one.
+/// filtered rows and <see cref="Rows"/> the same rows flattened into a single virtualizable sequence —
+/// section headers interleaved with their units — for the view. The footer (Step 9) adds an output unit;
+/// rows remove one.
 /// </summary>
 public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<OutputUnitItem, OutputUnitKey, string>
 {
-    /// <summary>Gets the filtered rows grouped by physical quantity, for the view.</summary>
-    public ObservableCollection<OutputUnitGroup> Groups { get; } = [];
+    /// <summary>
+    /// Gets the filtered rows flattened for the view: an <see cref="OutputHeaderRow"/> per physical
+    /// quantity followed by that group's <see cref="OutputUnitItem"/>s. A single flat collection (rather
+    /// than nested groups) lets the view virtualize the list with one <c>VirtualizingStackPanel</c>.
+    /// </summary>
+    public ObservableCollection<OutputRow> Rows { get; } = [];
 
     /// <summary>Gets or sets the footer's unit field.</summary>
     [ObservableProperty]
@@ -116,9 +121,16 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     /// <inheritdoc />
     protected override void OnItemsChanged()
     {
-        Groups.Clear();
+        // Flatten the (already category-then-label sorted) items into header + unit rows, then reconcile
+        // in place so an add/remove only touches the affected rows — see CollectionReconciler.
+        var rows = new List<OutputRow>(Items.Count);
         foreach (var group in Items.GroupBy(item => CategoryLabel(item.Definition.Unit)))
-            Groups.Add(new OutputUnitGroup { Label = group.Key, Items = group.ToList() });
+        {
+            rows.Add(new OutputHeaderRow { Label = group.Key });
+            foreach (var item in group)
+                rows.Add(item);
+        }
+        CollectionReconciler.Reconcile(Rows, rows);
     }
 
     /// <summary>

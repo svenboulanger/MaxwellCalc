@@ -263,12 +263,16 @@
 				</Border>
 
 				<!-- ============================ BODY ============================ -->
-				<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled"
-							  Padding="{DynamicResource AddRowPadding}">
-					<Panel>
+				<!-- Each section owns its own scroll region rather than sharing one outer ScrollViewer, so the
+				     card's bounded height flows down into the list — a VirtualizingStackPanel needs a bounded
+				     viewport, which a shared ScrollViewer's infinite content measure would deny. Content is
+				     inset with a Margin (not ScrollViewer.Padding, which is excluded from the scroll extent, so
+				     padding there would clip the last rows). -->
+				<Panel Grid.Row="1">
 
-						<!-- ==================== VARIABLES & CONSTANTS ==================== -->
-						<StackPanel IsVisible="{Binding IsVariables}">
+					<!-- ==================== VARIABLES & CONSTANTS ==================== -->
+					<ScrollViewer IsVisible="{Binding IsVariables}" HorizontalScrollBarVisibility="Disabled">
+						<StackPanel Margin="{DynamicResource AddRowPadding}">
 							<TextBlock Classes="sectionLabel" Text="VARIABLES — YOU DEFINE THESE" />
 							<TextBlock Classes="emptyState"
 									   IsVisible="{Binding Variables.IsEmpty}"
@@ -323,103 +327,122 @@
 								</ItemsControl.ItemTemplate>
 							</ItemsControl>
 						</StackPanel>
+					</ScrollViewer>
 
-						<!-- ============================= UNITS ============================= -->
-						<StackPanel IsVisible="{Binding IsUnits}">
-							<!-- Segmented Input / Output tabs, with the active tab's caption to their right. -->
-							<Grid ColumnDefinitions="Auto,*" Margin="0,4,0,4">
-								<Border Grid.Column="0" HorizontalAlignment="Left"
-										Background="{DynamicResource BgBrush}"
-										CornerRadius="7" Padding="3">
-									<StackPanel Orientation="Horizontal" Spacing="3">
-										<Button Classes="tab" Classes.active="{Binding IsInputTab}"
-												Command="{Binding ShowInputUnitsCommand}" Content="Input units" />
-										<Button Classes="tab" Classes.active="{Binding IsOutputTab}"
-												Command="{Binding ShowOutputUnitsCommand}" Content="Output units" />
-									</StackPanel>
-								</Border>
-								<Panel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
-									<TextBlock Classes="rowCaption" Margin="0" VerticalAlignment="Center"
-											   IsVisible="{Binding IsInputTab}" Text="resolve to base SI" />
-									<TextBlock Classes="rowCaption" Margin="0" VerticalAlignment="Center"
-											   IsVisible="{Binding IsOutputTab}" Text="candidates the app auto-picks from" />
-								</Panel>
-							</Grid>
+					<!-- ============================= UNITS ============================= -->
+					<Grid IsVisible="{Binding IsUnits}" RowDefinitions="Auto,*">
+						<!-- Segmented Input / Output tabs (fixed above the list), with the active tab's caption
+						     to their right. Kept out of the scroll region so the list below can virtualize. -->
+						<Grid Grid.Row="0" ColumnDefinitions="Auto,*"
+							  Margin="{DynamicResource AddRowPadding}">
+							<Border Grid.Column="0" HorizontalAlignment="Left"
+									Background="{DynamicResource BgBrush}"
+									CornerRadius="7" Padding="3">
+								<StackPanel Orientation="Horizontal" Spacing="3">
+									<Button Classes="tab" Classes.active="{Binding IsInputTab}"
+											Command="{Binding ShowInputUnitsCommand}" Content="Input units" />
+									<Button Classes="tab" Classes.active="{Binding IsOutputTab}"
+											Command="{Binding ShowOutputUnitsCommand}" Content="Output units" />
+								</StackPanel>
+							</Border>
+							<Panel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+								<TextBlock Classes="rowCaption" Margin="0" VerticalAlignment="Center"
+										   IsVisible="{Binding IsInputTab}" Text="resolve to base SI" />
+								<TextBlock Classes="rowCaption" Margin="0" VerticalAlignment="Center"
+										   IsVisible="{Binding IsOutputTab}" Text="candidates the app auto-picks from" />
+							</Panel>
+						</Grid>
+
+						<!-- The two tab bodies share the row; each is its own bounded scroll region. -->
+						<Panel Grid.Row="1">
 
 							<!-- Input units. -->
-							<StackPanel IsVisible="{Binding IsInputTab}">
-								<TextBlock Classes="emptyState" IsVisible="{Binding InputUnits.IsEmpty}"
-										   Text="No input units." />
-								<ItemsControl ItemsSource="{Binding InputUnits.Items}">
-									<ItemsControl.ItemTemplate>
-										<DataTemplate x:DataType="overlay:InputUnitItem">
-											<Border Classes="paletteRow">
-												<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-													<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
-																VerticalAlignment="Center">
-														<TextBlock Classes="mono" FontWeight="Medium"
-																   Foreground="{DynamicResource UnitHueBrush}"
-																   Text="{Binding Symbol}" />
-														<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
-																   Text="=" />
-														<controls:QuantityView Value="{Binding Definition}"
-																			   VerticalAlignment="Center" />
-													</StackPanel>
-													<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
-															Command="{Binding ((vm:CommandPaletteViewModel)DataContext).InputUnits.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-															CommandParameter="{Binding}">
-														<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
-													</Button>
-												</Grid>
-											</Border>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
-							</StackPanel>
+							<Panel IsVisible="{Binding IsInputTab}">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+									<ItemsControl ItemsSource="{Binding InputUnits.Items}"
+												  Margin="{DynamicResource AddRowPadding}">
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												<VirtualizingStackPanel />
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="overlay:InputUnitItem">
+												<Border Classes="paletteRow">
+													<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+														<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+																	VerticalAlignment="Center">
+															<TextBlock Classes="mono" FontWeight="Medium"
+																	   Foreground="{DynamicResource UnitHueBrush}"
+																	   Text="{Binding Symbol}" />
+															<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
+																	   Text="=" />
+															<controls:QuantityView Value="{Binding Definition}"
+																				   VerticalAlignment="Center" />
+														</StackPanel>
+														<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
+																Command="{Binding ((vm:CommandPaletteViewModel)DataContext).InputUnits.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+																CommandParameter="{Binding}">
+															<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+														</Button>
+													</Grid>
+												</Border>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</ScrollViewer>
+								<TextBlock Classes="emptyState" Margin="{DynamicResource AddRowPadding}"
+										   IsVisible="{Binding InputUnits.IsEmpty}" Text="No input units." />
+							</Panel>
 
-							<!-- Output units, grouped by physical quantity. -->
-							<StackPanel IsVisible="{Binding IsOutputTab}">
-								<TextBlock Classes="emptyState" IsVisible="{Binding OutputUnits.IsEmpty}"
-										   Text="No output units." />
-								<ItemsControl ItemsSource="{Binding OutputUnits.Groups}">
-									<ItemsControl.ItemTemplate>
-										<DataTemplate x:DataType="overlay:OutputUnitGroup">
-											<StackPanel>
+							<!-- Output units: one flat, virtualized list — a section-header row per physical
+							     quantity followed by that group's unit rows (matched to templates by type). -->
+							<Panel IsVisible="{Binding IsOutputTab}">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+									<ItemsControl ItemsSource="{Binding OutputUnits.Rows}"
+												  Margin="{DynamicResource AddRowPadding}">
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												<VirtualizingStackPanel />
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+										<ItemsControl.DataTemplates>
+											<DataTemplate DataType="overlay:OutputHeaderRow">
 												<TextBlock Classes="sectionLabel" Text="{Binding Label}" />
-												<ItemsControl ItemsSource="{Binding Items}">
-													<ItemsControl.ItemTemplate>
-														<DataTemplate x:DataType="overlay:OutputUnitItem">
-															<Border Classes="paletteRow">
-																<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-																	<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
-																				VerticalAlignment="Center">
-																		<TextBlock Classes="mono" FontWeight="Medium"
-																				   Foreground="{DynamicResource UnitHueBrush}"
-																				   Text="{Binding Label}" />
-																		<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
-																				   Text="=" />
-																		<controls:QuantityView Value="{Binding Definition}"
-																							   VerticalAlignment="Center" />
-																	</StackPanel>
-																	<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
-																			Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-																			CommandParameter="{Binding}">
-																		<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
-																	</Button>
-																</Grid>
-															</Border>
-														</DataTemplate>
-													</ItemsControl.ItemTemplate>
-												</ItemsControl>
-											</StackPanel>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
-							</StackPanel>
-						</StackPanel>
+											</DataTemplate>
+											<DataTemplate DataType="overlay:OutputUnitItem">
+												<Border Classes="paletteRow">
+													<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+														<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+																	VerticalAlignment="Center">
+															<TextBlock Classes="mono" FontWeight="Medium"
+																	   Foreground="{DynamicResource UnitHueBrush}"
+																	   Text="{Binding Label}" />
+															<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
+																	   Text="=" />
+															<controls:QuantityView Value="{Binding Definition}"
+																				   VerticalAlignment="Center" />
+														</StackPanel>
+														<Button Grid.Column="1" Classes="remove" IsVisible="{Binding CanRemove}"
+																Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+																CommandParameter="{Binding}">
+															<materialIcons:MaterialIcon Kind="Close" Width="13" Height="13" />
+														</Button>
+													</Grid>
+												</Border>
+											</DataTemplate>
+										</ItemsControl.DataTemplates>
+									</ItemsControl>
+								</ScrollViewer>
+								<TextBlock Classes="emptyState" Margin="{DynamicResource AddRowPadding}"
+										   IsVisible="{Binding OutputUnits.IsEmpty}" Text="No output units." />
+							</Panel>
+						</Panel>
+					</Grid>
 
-						<!-- =========================== FUNCTIONS =========================== -->
-						<StackPanel IsVisible="{Binding IsFunctions}">
+					<!-- =========================== FUNCTIONS =========================== -->
+					<ScrollViewer IsVisible="{Binding IsFunctions}" HorizontalScrollBarVisibility="Disabled">
+						<StackPanel Margin="{DynamicResource AddRowPadding}">
 							<TextBlock Classes="sectionLabel" Text="YOUR FUNCTIONS" />
 							<TextBlock Classes="emptyState" IsVisible="{Binding Functions.IsEmpty}"
 									   Text="None yet — define one below, or on a line like `f(x) = x^2 + 1`." />
@@ -463,8 +486,8 @@
 								</ItemsControl.ItemTemplate>
 							</ItemsControl>
 						</StackPanel>
-					</Panel>
-				</ScrollViewer>
+					</ScrollViewer>
+				</Panel>
 
 				<!-- ============================ FOOTER (add-row) ============================ -->
 				<!-- One form per section/tab. Each inner Grid rebinds its DataContext to the owning panel

@@ -204,12 +204,17 @@ public abstract class FilteredPanelViewModel<TItem, TKey, TValue> : ViewModelBas
 
     private void ApplyFilter()
     {
-        Items.Clear();
+        // Project the wanted rows, then reconcile the bound collection in place rather than clearing and
+        // re-adding: unchanged rows are value-equal records, so this keeps their existing containers and a
+        // single add/remove (or keystroke) only touches the rows that actually changed. See
+        // CollectionReconciler for why this matters for the non-virtualized panels.
+        var target = new List<TItem>(_all.Count);
         foreach (var item in _all)
         {
             if (string.IsNullOrWhiteSpace(_filter) || Matches(item, _filter))
-                Items.Add(item);
+                target.Add(item);
         }
+        CollectionReconciler.Reconcile(Items, target);
         OnPropertyChanged(nameof(IsEmpty));
         OnItemsChanged();
     }
