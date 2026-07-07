@@ -117,18 +117,19 @@
 		<Style Selector="Button.wsIcon.delete:pointerover">
 			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
 		</Style>
-		<!-- Inline rename field. -->
-		<Style Selector="TextBox.wsRename">
-			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
-			<Setter Property="FontSize" Value="12.5" />
-			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
-			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
-			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+		<!-- Per-row domain badge: a small uppercase mono pill (Double / Complex). -->
+		<Style Selector="Border.wsBadge">
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
 			<Setter Property="BorderThickness" Value="1" />
-			<Setter Property="CornerRadius" Value="6" />
-			<Setter Property="Padding" Value="6,3" />
-			<Setter Property="MinHeight" Value="0" />
-			<Setter Property="VerticalContentAlignment" Value="Center" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Padding" Value="5,2" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Margin" Value="4,0" />
+		</Style>
+		<Style Selector="Border.wsBadge > TextBlock">
+			<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
 		</Style>
 		<!-- "+ New workspace" row: accent text, chrome-less. -->
 		<Style Selector="Button.wsNew">
@@ -152,8 +153,10 @@
 	<Window.KeyBindings>
 		<KeyBinding Gesture="Ctrl+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
 		<KeyBinding Gesture="Meta+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
-		<!-- Esc first tries to close the workspace-settings dialog (guarded by its CanExecute); when it
-		     isn't open the binding is skipped and the command palette's Esc handler runs instead. -->
+		<!-- Esc first tries to close the new-workspace dialog, then the workspace-settings dialog (each
+		     guarded by its CanExecute); when neither is open those bindings are skipped and the command
+		     palette's Esc handler runs instead. -->
+		<KeyBinding Gesture="Escape" Command="{Binding Settings.CloseNewWorkspaceCommand}" />
 		<KeyBinding Gesture="Escape" Command="{Binding Settings.CloseWorkspaceSettingsCommand}" />
 		<KeyBinding Gesture="Escape" Command="{Binding CommandPalette.CloseCommand}" />
 	</Window.KeyBindings>
@@ -308,34 +311,25 @@
 																				Foreground="{DynamicResource AccentBrush}"
 																				VerticalAlignment="Center" />
 
-													<!-- Name (select) — hidden while renaming. -->
+													<!-- Name (select). -->
 													<Button Grid.Column="1" Classes="wsName"
 															Content="{Binding Name}"
-															IsVisible="{Binding !IsEditing}"
 															Command="{Binding SelectCommand}"
 															Click="OnWorkspaceRowActivated" />
-													<!-- Inline rename field — shown while renaming. -->
-													<TextBox Grid.Column="1" Classes="wsRename"
-															 Text="{Binding Name, Mode=TwoWay}"
-															 IsVisible="{Binding IsEditing}"
-															 LostFocus="OnRenameLostFocus"
-															 KeyDown="OnRenameKeyDown" />
 
-													<Button Grid.Column="2" Classes="wsIcon"
-															IsVisible="{Binding !IsEditing}"
+													<!-- Domain badge (Double / Complex). -->
+													<Border Grid.Column="2" Classes="wsBadge"
+															ToolTip.Tip="{Binding DomainTooltip}">
+														<TextBlock Text="{Binding DomainBadge}" />
+													</Border>
+
+													<Button Grid.Column="3" Classes="wsIcon"
 															Command="{Binding OpenSettingsCommand}"
 															Click="OnWorkspaceRowActivated"
 															ToolTip.Tip="Workspace settings">
 														<materialIcons:MaterialIcon Kind="Cog" Width="14" Height="14" />
 													</Button>
-													<Button Grid.Column="3" Classes="wsIcon"
-															IsVisible="{Binding !IsEditing}"
-															Command="{Binding RenameCommand}"
-															ToolTip.Tip="Rename">
-														<materialIcons:MaterialIcon Kind="Pencil" Width="14" Height="14" />
-													</Button>
 													<Button Grid.Column="4" Classes="wsIcon delete"
-															IsVisible="{Binding !IsEditing}"
 															Command="{Binding RemoveCommand}"
 															ToolTip.Tip="Delete workspace">
 														<materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" />
@@ -347,7 +341,8 @@
 
 									<Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,5" />
 
-									<Button Classes="wsNew" Command="{Binding Settings.AddWorkspaceCommand}">
+									<Button Classes="wsNew" Command="{Binding Settings.OpenNewWorkspaceCommand}"
+											Click="OnWorkspaceRowActivated">
 										<StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
 											<materialIcons:MaterialIcon Kind="Plus" Width="15" Height="15"
 																		VerticalAlignment="Center" />
@@ -403,5 +398,9 @@
 		<!-- Workspace-settings dialog (Step 12). Bound directly to the SettingsViewModel; manages its own
 		     visibility (scrim IsVisible = WorkspaceSettingsOpen) and layers above the palette. -->
 		<views:WorkspaceSettingsView DataContext="{Binding Settings}" />
+
+		<!-- New-workspace dialog. Bound directly to the SettingsViewModel; manages its own visibility
+		     (scrim IsVisible = NewWorkspaceOpen) and layers above everything else. -->
+		<views:NewWorkspaceView DataContext="{Binding Settings}" />
 	</Panel>
 </Window>

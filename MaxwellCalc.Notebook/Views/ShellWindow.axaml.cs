@@ -18,8 +18,9 @@ public partial class ShellWindow : Window
         InitializeComponent();
     }
 
-    // Selecting a workspace or opening its settings dismisses the switcher flyout (the row's own command
-    // has already run); rename and delete deliberately leave it open so the list stays visible.
+    // Selecting a workspace, opening its settings, or starting a new workspace dismisses the switcher
+    // flyout (the button's own command has already run); delete deliberately leaves it open so the list
+    // stays visible.
     private void OnWorkspaceRowActivated(object? sender, RoutedEventArgs e)
     {
         // Defer the flyout close: the Click event is raised *before* the button's Command in
@@ -31,29 +32,6 @@ public partial class ShellWindow : Window
             if (this.FindControl<Button>("WorkspaceSwitcherButton")?.Flyout is { } flyout)
                 flyout.Hide();
         });
-    }
-
-    // Commit an inline rename when the field loses focus.
-    private void OnRenameLostFocus(object? sender, RoutedEventArgs e) => CommitRename(sender);
-
-    // Enter commits the rename; Escape cancels it (both just close the editor — the name has already
-    // been written through the two-way binding as the user typed).
-    private void OnRenameKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key is Key.Enter or Key.Escape)
-        {
-            CommitRename(sender);
-            e.Handled = true;
-        }
-    }
-
-    private void CommitRename(object? sender)
-    {
-        if (sender is Control { DataContext: WorkspaceEntry entry }
-            && DataContext is ShellViewModel shell)
-        {
-            shell.Settings.CommitRename(entry);
-        }
     }
 
     // The whole title bar is the window drag handle (SystemDecorations="BorderOnly" gives a native

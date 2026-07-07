@@ -1,0 +1,201 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MaxwellCalc.Notebook.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="820" d:DesignHeight="620"
+             x:Class="MaxwellCalc.Notebook.Views.NewWorkspaceView"
+             x:DataType="vm:SettingsViewModel">
+
+	<!-- "New workspace" dialog: a dimmed full-window scrim (closes on click) with a centered card that
+	     collects a name and a numeric domain (Double / Complex) before the workspace is created. Styling
+	     follows WorkspaceSettingsView (same brushes, radii, and segmented-control pattern). -->
+	<UserControl.Styles>
+		<!-- Section label: faint uppercase caption above each group. -->
+		<Style Selector="TextBlock.label">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+
+		<!-- Workspace-name field. -->
+		<Style Selector="TextBox.nameField">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13.5" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="10,7" />
+			<Setter Property="MinHeight" Value="0" />
+		</Style>
+
+		<!-- Selectable domain card (Double / Complex). Accent border + tint + accent title when active. -->
+		<Style Selector="Button.domainCard">
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="14,10" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="Cursor" Value="Hand" />
+		</Style>
+		<Style Selector="Button.domainCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<Style Selector="Button.domainCard.active">
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+		</Style>
+		<Style Selector="Button.domainCard.active /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ConstPillBackground}" />
+		</Style>
+		<Style Selector="Button.domainCard.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ConstPillBackground}" />
+		</Style>
+		<!-- Card title: ink normally, accent when this card is active. -->
+		<Style Selector="Button.domainCard TextBlock.cardTitle">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+		<Style Selector="Button.domainCard.active TextBlock.cardTitle">
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+		</Style>
+		<Style Selector="Button.domainCard TextBlock.cardSub">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+		</Style>
+
+		<!-- Footer buttons. -->
+		<Style Selector="Button.cancel">
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="16,7" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Cursor" Value="Hand" />
+		</Style>
+		<Style Selector="Button.cancel:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<Style Selector="Button.create">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="16,7" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="Cursor" Value="Hand" />
+		</Style>
+		<Style Selector="Button.create /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+
+		<!-- × close button. -->
+		<Style Selector="Button.close">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="5" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+	</UserControl.Styles>
+
+	<!-- Full-window scrim; closes when clicked directly (handled in code-behind); hidden when closed. -->
+	<Border Name="Scrim"
+			IsVisible="{Binding NewWorkspaceOpen}"
+			Background="{DynamicResource OverlayBrush}"
+			PointerPressed="OnScrimPressed">
+
+		<Grid Margin="24,14">
+			<Border MaxWidth="400"
+					HorizontalAlignment="Stretch" VerticalAlignment="Center"
+					Background="{DynamicResource CardBrush}"
+					CornerRadius="{DynamicResource CardCornerRadius}"
+					BoxShadow="{DynamicResource OverlayShadow}">
+				<Grid RowDefinitions="Auto,*">
+
+					<!-- ============================ HEADER ============================ -->
+					<Border Grid.Row="0" Padding="{DynamicResource HeaderPadding}"
+							BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1">
+						<Grid ColumnDefinitions="*,Auto">
+							<TextBlock Grid.Column="0" Text="New workspace"
+									   FontFamily="{DynamicResource UiFontFamily}"
+									   FontSize="15" FontWeight="SemiBold"
+									   Foreground="{DynamicResource InkBrush}"
+									   VerticalAlignment="Center" />
+							<Button Grid.Column="1" Classes="close"
+									Command="{Binding CloseNewWorkspaceCommand}"
+									ToolTip.Tip="Close">
+								<materialIcons:MaterialIcon Kind="Close" Width="16" Height="16" />
+							</Button>
+						</Grid>
+					</Border>
+
+					<!-- ============================ BODY ============================ -->
+					<StackPanel Grid.Row="1" Spacing="16" Margin="18,16">
+
+						<!-- Name. -->
+						<StackPanel Spacing="8">
+							<TextBlock Classes="label" Text="Name" />
+							<TextBox Name="NameField" Classes="nameField"
+									 Text="{Binding NewWorkspaceName, Mode=TwoWay}"
+									 KeyDown="OnNameKeyDown" />
+						</StackPanel>
+
+						<!-- Domain. -->
+						<StackPanel Spacing="8">
+							<TextBlock Classes="label" Text="Domain" />
+							<Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+								<Button Grid.Column="0" Classes="domainCard"
+										Classes.active="{Binding IsNewDouble}"
+										Command="{Binding SetNewWorkspaceDomainCommand}"
+										CommandParameter="{x:Static vm:WorkspaceDomain.Double}">
+									<StackPanel Spacing="2">
+										<TextBlock Classes="cardTitle" Text="Double" />
+										<TextBlock Classes="cardSub" Text="Real numbers only" />
+									</StackPanel>
+								</Button>
+								<Button Grid.Column="1" Classes="domainCard"
+										Classes.active="{Binding IsNewComplex}"
+										Command="{Binding SetNewWorkspaceDomainCommand}"
+										CommandParameter="{x:Static vm:WorkspaceDomain.Complex}">
+									<StackPanel Spacing="2">
+										<TextBlock Classes="cardTitle" Text="Complex" />
+										<TextBlock Classes="cardSub" Text="Allows imaginary results" />
+									</StackPanel>
+								</Button>
+							</Grid>
+						</StackPanel>
+
+						<!-- Footer. -->
+						<StackPanel Orientation="Horizontal" Spacing="10"
+									HorizontalAlignment="Right" Margin="0,4,0,0">
+							<Button Classes="cancel"
+									Command="{Binding CloseNewWorkspaceCommand}" Content="Cancel" />
+							<Button Classes="create"
+									Command="{Binding CreateNewWorkspaceCommand}" Content="Create" />
+						</StackPanel>
+
+					</StackPanel>
+				</Grid>
+			</Border>
+		</Grid>
+	</Border>
+</UserControl>

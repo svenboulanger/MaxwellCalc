@@ -169,6 +169,22 @@
 								<TextBox Classes="nameField" Text="{Binding SettingsTarget.Name, Mode=TwoWay}" />
 							</StackPanel>
 
+							<!-- Number domain (read-only — a workspace's domain is fixed at creation). -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Number domain" />
+								<TextBlock Classes="caption"
+										   Text="Double works in real numbers only; Complex allows imaginary results." />
+								<Border Background="{DynamicResource SurfBrush}"
+										BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+										CornerRadius="{DynamicResource InputCornerRadius}"
+										Padding="10,7">
+									<TextBlock Text="{Binding SettingsTarget.DomainLabel}"
+											   FontFamily="{DynamicResource UiFontFamily}"
+											   FontSize="13.5" FontWeight="SemiBold"
+											   Foreground="{DynamicResource InkBrush}" />
+								</Border>
+							</StackPanel>
+
 							<!-- Scalar format. -->
 							<StackPanel Spacing="8">
 								<TextBlock Classes="label" Text="Scalar format" />

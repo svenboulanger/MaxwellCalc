@@ -38,6 +38,16 @@ public enum UnitHue
     Violet,
 }
 
+/// <summary>The numeric domain a workspace calculates over, chosen once at creation.</summary>
+public enum WorkspaceDomain
+{
+    /// <summary>Real numbers only (<see cref="System.Double"/>).</summary>
+    Double,
+
+    /// <summary>Complex numbers (allows imaginary results).</summary>
+    Complex,
+}
+
 /// <summary>The scalar display format for a workspace (Step 12): how numeric results are rendered.</summary>
 public enum ScalarFormat
 {
@@ -63,10 +73,6 @@ public partial class WorkspaceEntry : ObservableObject
     /// <summary>Gets the display name shown in the title caption, the Physics button, and the switcher.</summary>
     [ObservableProperty]
     private string _name;
-
-    /// <summary>Gets or sets whether this row is showing its inline rename text box.</summary>
-    [ObservableProperty]
-    private bool _isEditing;
 
     /// <summary>Gets or sets whether this is the active workspace (drives the switcher check mark).</summary>
     [ObservableProperty]
@@ -94,11 +100,23 @@ public partial class WorkspaceEntry : ObservableObject
     /// <summary>Gets the command that opens this workspace's settings dialog.</summary>
     public ICommand OpenSettingsCommand { get; }
 
-    /// <summary>Gets the command that starts an inline rename of this workspace.</summary>
-    public ICommand RenameCommand { get; }
-
     /// <summary>Gets the command that removes this workspace.</summary>
     public ICommand RemoveCommand { get; }
+
+    /// <summary>
+    /// Gets the workspace's numeric-domain label ("Complex" / "Double"), derived from its scalar type.
+    /// The domain is fixed at creation, so this never changes for a given entry.
+    /// </summary>
+    public string DomainLabel =>
+        Workspace.ScalarType == typeof(Complex) ? "Complex" : "Double";
+
+    /// <summary>Gets the uppercase form of <see cref="DomainLabel"/> shown in the switcher-row badge.</summary>
+    public string DomainBadge => DomainLabel.ToUpperInvariant();
+
+    /// <summary>Gets the switcher-row badge tooltip describing this entry's domain.</summary>
+    public string DomainTooltip => Workspace.ScalarType == typeof(Complex)
+        ? "Complex — allows imaginary results"
+        : "Real / Double precision";
 
     /// <summary>
     /// Gets the standard .NET numeric format string this entry's setting maps to (handed straight to
@@ -129,7 +147,6 @@ public partial class WorkspaceEntry : ObservableObject
     /// <param name="digits">The significant-digit count.</param>
     /// <param name="selectCommand">The command that activates this workspace.</param>
     /// <param name="openSettingsCommand">The command that opens this workspace's settings.</param>
-    /// <param name="renameCommand">The command that starts an inline rename.</param>
     /// <param name="removeCommand">The command that removes this workspace.</param>
     public WorkspaceEntry(
         string name,
@@ -138,7 +155,6 @@ public partial class WorkspaceEntry : ObservableObject
         int digits,
         ICommand selectCommand,
         ICommand openSettingsCommand,
-        ICommand renameCommand,
         ICommand removeCommand)
     {
         _name = name;
@@ -147,7 +163,6 @@ public partial class WorkspaceEntry : ObservableObject
         _digits = digits;
         SelectCommand = selectCommand;
         OpenSettingsCommand = openSettingsCommand;
-        RenameCommand = renameCommand;
         RemoveCommand = removeCommand;
     }
 }
@@ -203,6 +218,27 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>Gets the sample quantities shown in the settings dialog's live preview.</summary>
     [ObservableProperty]
     private IReadOnlyList<PreviewSample> _preview = [];
+
+    /// <summary>Gets or sets whether the "New workspace" dialog is open.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseNewWorkspaceCommand))]
+    private bool _newWorkspaceOpen;
+
+    /// <summary>Gets or sets the name typed in the "New workspace" dialog.</summary>
+    [ObservableProperty]
+    private string _newWorkspaceName = string.Empty;
+
+    /// <summary>Gets or sets the domain chosen in the "New workspace" dialog.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNewDouble))]
+    [NotifyPropertyChangedFor(nameof(IsNewComplex))]
+    private WorkspaceDomain _newWorkspaceDomain;
+
+    /// <summary>Gets whether the Double domain is selected in the new-workspace dialog.</summary>
+    public bool IsNewDouble => NewWorkspaceDomain is WorkspaceDomain.Double;
+
+    /// <summary>Gets whether the Complex domain is selected in the new-workspace dialog.</summary>
+    public bool IsNewComplex => NewWorkspaceDomain is WorkspaceDomain.Complex;
 
     /// <summary>Gets the theme-toggle glyph: a moon in light mode (switch to dark), a sun in dark mode.</summary>
     public MaterialIconKind ThemeToggleIcon =>
@@ -280,16 +316,46 @@ public partial class SettingsViewModel : ViewModelBase
             SelectedWorkspace = entry;
     }
 
-    /// <summary>Creates a fresh, seeded workspace, appends it to the switcher, and activates it.</summary>
+    /// <summary>
+    /// Opens the "New workspace" dialog, seeding it with the next free "Untitled N" name and the
+    /// default Complex domain. Creation is deferred to <see cref="CreateNewWorkspace"/>.
+    /// </summary>
     [RelayCommand]
-    private void AddWorkspace()
+    private void OpenNewWorkspace()
     {
-        var workspace = WorkspaceState.CreateDefaultWorkspace();
-        var entry = MakeEntry(UniqueName("Untitled"), workspace);
+        NewWorkspaceName = UniqueName("Untitled");
+        NewWorkspaceDomain = WorkspaceDomain.Complex;
+        NewWorkspaceOpen = true;
+    }
+
+    /// <summary>Sets the domain selected in the new-workspace dialog (the Double/Complex control).</summary>
+    /// <param name="domain">The domain to select.</param>
+    [RelayCommand]
+    private void SetNewWorkspaceDomain(WorkspaceDomain domain) => NewWorkspaceDomain = domain;
+
+    /// <summary>
+    /// Creates a fresh, seeded workspace against the chosen domain, appends it to the switcher,
+    /// activates it, and closes the dialog.
+    /// </summary>
+    [RelayCommand]
+    private void CreateNewWorkspace()
+    {
+        IWorkspace workspace = NewWorkspaceDomain == WorkspaceDomain.Complex
+            ? WorkspaceState.CreateComplexWorkspace()
+            : WorkspaceState.CreateDefaultWorkspace();
+        string name = string.IsNullOrWhiteSpace(NewWorkspaceName)
+            ? UniqueName("Untitled")
+            : NewWorkspaceName.Trim();
+        var entry = MakeEntry(name, workspace);
         Workspaces.Add(entry);
         SelectedWorkspace = entry;   // fires OnSelectedWorkspaceChanged → applies + saves preferences
         SaveWorkspaces();            // persist the new (empty) workspace into the list immediately
+        NewWorkspaceOpen = false;
     }
+
+    /// <summary>Closes the new-workspace dialog without creating (× button, scrim click, Cancel, or Esc).</summary>
+    [RelayCommand(CanExecute = nameof(NewWorkspaceOpen))]
+    private void CloseNewWorkspace() => NewWorkspaceOpen = false;
 
     /// <summary>
     /// Removes a workspace, guarding against deleting the last one. If the removed entry was active,
@@ -316,28 +382,6 @@ public partial class SettingsViewModel : ViewModelBase
 
         SaveWorkspaces();
         Save();
-    }
-
-    /// <summary>Starts (or, if already editing, commits) an inline rename of a workspace row.</summary>
-    /// <param name="entry">The workspace being renamed.</param>
-    [RelayCommand]
-    private void RenameWorkspace(WorkspaceEntry? entry)
-    {
-        if (entry is null)
-            return;
-        entry.IsEditing = !entry.IsEditing;
-        if (!entry.IsEditing)
-            SaveWorkspaces();
-    }
-
-    /// <summary>Commits an in-progress rename (Enter or focus loss on the inline text box).</summary>
-    /// <param name="entry">The workspace whose rename is being committed.</param>
-    public void CommitRename(WorkspaceEntry? entry)
-    {
-        if (entry is null || !entry.IsEditing)
-            return;
-        entry.IsEditing = false;
-        SaveWorkspaces();
     }
 
     /// <summary>Opens the settings dialog for a workspace.</summary>
@@ -519,7 +563,6 @@ public partial class SettingsViewModel : ViewModelBase
             digits,
             selectCommand: new RelayCommand(() => SelectWorkspace(entry)),
             openSettingsCommand: new RelayCommand(() => OpenWorkspaceSettings(entry)),
-            renameCommand: new RelayCommand(() => RenameWorkspace(entry)),
             removeCommand: new RelayCommand(() => RemoveWorkspace(entry), () => Workspaces.Count > 1));
         return entry;
     }
