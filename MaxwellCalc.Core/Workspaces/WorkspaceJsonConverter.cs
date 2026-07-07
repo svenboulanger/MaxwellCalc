@@ -57,7 +57,7 @@ public class WorkspaceJsonConverter : JsonConverter<IWorkspace>
         return workspace;
     }
 
-    private static Type FindType(string typeName)
+    private static Type? FindType(string typeName)
     {
         var result = Type.GetType(typeName);
         if (result is not null)
@@ -122,6 +122,10 @@ public class WorkspaceJsonConverter<T>(Func<IWorkspace<T>> factory) : JsonConver
             // Values
             switch (propertyName)
             {
+                case "unit_categories":
+                    ReadUnitCategories(workspace, ref reader, subOptions);
+                    break;
+
                 case "input_units":
                     ReadInputUnits(workspace, ref reader, subOptions);
                     break;
@@ -153,6 +157,37 @@ public class WorkspaceJsonConverter<T>(Func<IWorkspace<T>> factory) : JsonConver
             reader.Read();
         }
         return workspace;
+    }
+
+    private void ReadUnitCategories(IWorkspace<T> workspace, ref Utf8JsonReader reader, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
+            throw new JsonException("Expected an array for unit categories");
+        reader.Read();
+        
+        while (reader.TokenType != JsonTokenType.EndArray)
+        {
+            // Another array, with first the unit, and then the category
+            if (reader.TokenType != JsonTokenType.StartArray)
+                throw new JsonException("Expected an array for a unit category");
+            reader.Read();
+
+            // Read the unit
+            var unit = JsonSerializer.Deserialize<Unit>(ref reader, options);
+            reader.Read();
+
+            // Read the category
+            if (reader.TokenType != JsonTokenType.String)
+                throw new JsonException("Expected a category name");
+            string category = reader.GetString() ?? string.Empty;
+            reader.Read();
+
+            if (reader.TokenType != JsonTokenType.EndArray)
+                throw new JsonException("Expected only two elements for a unit category");
+            reader.Read();
+
+            workspace.UnitCategories[unit] = category;
+        }
     }
 
     private void ReadInputUnits(IWorkspace<T> workspace, ref Utf8JsonReader reader, JsonSerializerOptions options)
@@ -329,6 +364,17 @@ public class WorkspaceJsonConverter<T>(Func<IWorkspace<T>> factory) : JsonConver
         subOptions.Converters.Add(new VariableJsonConverter<T>());
 
         writer.WriteStartObject();
+
+        // Write the unit categories
+        writer.WriteStartArray("unit_categories");
+        foreach (var pair in value.UnitCategories)
+        {
+            writer.WriteStartArray();
+            JsonSerializer.Serialize(writer, pair.Key, subOptions);
+            writer.WriteStringValue(pair.Value);
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
 
         // Start with the input units
         writer.WriteStartObject("input_units");

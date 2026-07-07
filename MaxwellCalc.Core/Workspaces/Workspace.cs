@@ -22,6 +22,21 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
     private readonly IReadOnlyObservableDictionary<OutputUnitKey, string> _mappedOutputUnits;
 
     /// <inheritdoc />
+    public Dictionary<Unit, string> UnitCategories { get; } = new()
+    {
+        { Unit.UnitMeter, "length" },
+        { Unit.UnitAmperes, "current" },
+        { Unit.UnitCandela, "luminous intensity" },
+        { Unit.UnitArea, "area" },
+        { Unit.UnitVolume, "volume" },
+        { Unit.UnitKelvin, "temperature" },
+        { Unit.UnitKilogram, "mass" },
+        { Unit.UnitMole, "amount of substance" },
+        { Unit.UnitRadian, "angle" },
+        { Unit.UnitSeconds, "time" },
+    };
+
+    /// <inheritdoc />
     public Type ScalarType => typeof(T);
 
     /// <inheritdoc />

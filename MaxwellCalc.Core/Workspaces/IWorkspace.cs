@@ -14,6 +14,11 @@ namespace MaxwellCalc.Core.Workspaces;
 public interface IWorkspace : IDiagnosticsHandler
 {
     /// <summary>
+    /// Gets a dictionary that can give a category for a given (combination of) base unit(s). For example, "m^2" might be of the category "area".
+    /// </summary>
+    public Dictionary<Unit, string> UnitCategories { get; }
+
+    /// <summary>
     /// Gets the scalar type for the workspace. The workspace should also implement the <see cref="IWorkspace{T}"/> interface
     /// with this type being the scalar type.
     /// </summary>
