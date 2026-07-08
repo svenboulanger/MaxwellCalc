@@ -64,6 +64,50 @@ public partial class ShellViewModel : ViewModelBase
             if (e.PropertyName is nameof(WorkspaceState.WorkspaceName))
                 OnPropertyChanged(nameof(WorkspaceName));
         };
+
+        // Only one overlay may be open at a time. The command palettes (⌘K / ⌘O) are opened by
+        // window-level key bindings that fire even while another overlay's scrim is already up, so
+        // without this a second palette would stack on the first. Whenever any overlay reports that
+        // it has opened, close the others (the just-opened one is exempted so it stays open). This
+        // covers every entry point — hotkeys, access-bar chips, and the workspace flyout — without
+        // any binding needing to know about the others.
+        CommandPalette.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(CommandPaletteViewModel.PaletteOpen) && CommandPalette.PaletteOpen)
+                CloseOverlays(except: CommandPalette.CloseCommand);
+        };
+        SavedSheets.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(SavedSheetsViewModel.PaletteOpen) && SavedSheets.PaletteOpen)
+                CloseOverlays(except: SavedSheets.CloseCommand);
+        };
+        Settings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(SettingsViewModel.WorkspaceSettingsOpen) && Settings.WorkspaceSettingsOpen)
+                CloseOverlays(except: Settings.CloseWorkspaceSettingsCommand);
+            else if (e.PropertyName is nameof(SettingsViewModel.NewWorkspaceOpen) && Settings.NewWorkspaceOpen)
+                CloseOverlays(except: Settings.CloseNewWorkspaceCommand);
+        };
+    }
+
+    /// <summary>
+    /// Closes every open overlay except the one whose close command is passed as <paramref name="except"/>
+    /// (pass <c>null</c> to close them all). Each overlay's close is guarded by its own <c>CanExecute</c>,
+    /// so overlays that aren't showing are left untouched; closing an already-closed overlay is a no-op and
+    /// raises no further open-state change, so this doesn't re-enter.
+    /// </summary>
+    private void CloseOverlays(ICommand? except = null)
+    {
+        Close(CommandPalette.CloseCommand);
+        Close(SavedSheets.CloseCommand);
+        Close(Settings.CloseWorkspaceSettingsCommand);
+        Close(Settings.CloseNewWorkspaceCommand);
+
+        void Close(ICommand command)
+        {
+            if (!ReferenceEquals(command, except) && command.CanExecute(null))
+                command.Execute(null);
+        }
     }
 
     /// <summary>
@@ -76,20 +120,8 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private void ClearSheet()
     {
-        Close(CommandPalette.CloseCommand);
-        Close(SavedSheets.CloseCommand);
-        Close(Settings.CloseWorkspaceSettingsCommand);
-        Close(Settings.CloseNewWorkspaceCommand);
-
+        CloseOverlays();
         Sheet.ClearSheet();
-
-        // Each overlay's close is guarded (CanExecute is false when it isn't open), so closing them all
-        // unconditionally only dismisses the ones actually showing.
-        static void Close(ICommand command)
-        {
-            if (command.CanExecute(null))
-                command.Execute(null);
-        }
     }
 
     /// <summary>
