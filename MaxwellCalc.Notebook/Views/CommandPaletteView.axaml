@@ -179,14 +179,17 @@
 		</Style>
 
 		<!-- Header search box: chrome-less in every state. FluentTheme's focus style forces a border
-		     thickness back onto the template part, so strip both thickness and brush on hover/focus. -->
+		     thickness back onto the template part and swaps in a darker fill (TextControlBackground*),
+		     so strip thickness, border brush and background on hover/focus. -->
 		<Style Selector="TextBox#PART_Search:pointerover /template/ Border#PART_BorderElement">
 			<Setter Property="BorderThickness" Value="0" />
 			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Background" Value="Transparent" />
 		</Style>
 		<Style Selector="TextBox#PART_Search:focus /template/ Border#PART_BorderElement">
 			<Setter Property="BorderThickness" Value="0" />
 			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Background" Value="Transparent" />
 		</Style>
 
 		<!-- The "=" separator between the two fields. -->
