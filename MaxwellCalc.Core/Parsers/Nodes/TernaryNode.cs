@@ -1,7 +1,4 @@
-﻿using MaxwellCalc.Core.Domains;
-using MaxwellCalc.Core.Units;
-using MaxwellCalc.Core.Workspaces;
-using System;
+﻿using System;
 
 namespace MaxwellCalc.Core.Parsers.Nodes;
 

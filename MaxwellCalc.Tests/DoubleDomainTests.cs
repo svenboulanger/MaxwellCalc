@@ -1,6 +1,5 @@
 ﻿using MaxwellCalc.Core.Domains;
 using MaxwellCalc.Core.Units;
-using System.Numerics;
 
 namespace MaxwellCalc.Tests;
 

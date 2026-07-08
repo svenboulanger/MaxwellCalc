@@ -4,12 +4,7 @@ using MaxwellCalc.Core.Parsers.Nodes;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Core.Workspaces.Variables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MaxwellCalc.Tests;
 

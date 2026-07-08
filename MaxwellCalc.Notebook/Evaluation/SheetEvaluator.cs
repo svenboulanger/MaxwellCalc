@@ -1,6 +1,5 @@
 using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Parsers.Nodes;
-using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Core.Workspaces.Variables;
 using System;

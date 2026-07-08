@@ -6,7 +6,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Material.Icons;
 using Material.Icons.Avalonia;
-using MaxwellCalc.Notebook.ViewModels;
 using System.Linq;
 
 namespace MaxwellCalc.Notebook.Views;

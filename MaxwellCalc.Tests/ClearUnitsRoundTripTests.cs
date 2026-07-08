@@ -1,6 +1,5 @@
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Notebook.ViewModels;
-using System.Linq;
 using System.Text.Json;
 
 namespace MaxwellCalc.Tests;

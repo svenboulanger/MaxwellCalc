@@ -4,7 +4,6 @@ using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
-using MaxwellCalc.Notebook.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
