@@ -1,7 +1,6 @@
 ﻿using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Workspaces;
 using System;
-using System.ComponentModel;
 using System.Linq;
 
 namespace MaxwellCalc.Core.Units;
