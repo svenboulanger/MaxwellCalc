@@ -329,6 +329,21 @@ public partial class SheetViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Returns keyboard focus to the sheet, targeting the line that last held focus (or the first line
+    /// if none has yet). Called when an overlay closes so the user lands straight back on the sheet
+    /// without reaching for the mouse. No-op when the sheet has no lines.
+    /// </summary>
+    public void FocusSelectedLine()
+    {
+        if (Lines.Count == 0)
+            return;
+
+        int index = Math.Clamp(FocusedLineIndex ?? 0, 0, Lines.Count - 1);
+        FocusedLineIndex = index;
+        FocusRequested?.Invoke(index);
+    }
+
+    /// <summary>
     /// Re-evaluates the whole sheet against the active workspace. Public entry point for callers that
     /// mutate the workspace out-of-band (e.g. the settings view model applying a unit preset, Step 12)
     /// and need the gutter to refresh.

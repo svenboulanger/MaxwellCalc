@@ -213,7 +213,7 @@
 					<Button Classes="caption" ToolTip.Tip="Settings">
 						<materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" />
 						<Button.Flyout>
-							<Flyout Placement="BottomEdgeAlignedRight">
+							<Flyout Placement="BottomEdgeAlignedRight" Closed="OnTitleBarFlyoutClosed">
 								<StackPanel Width="230" Spacing="12" Margin="4,6">
 									<TextBlock Classes="settingsLabel" Text="UNIT COLOR" />
 									<StackPanel Orientation="Horizontal" Spacing="10">
@@ -307,7 +307,7 @@
 						     popup boundary back to the shell. Select and the gear also close the flyout
 						     (code-behind); rename/delete keep it open so the list stays visible. -->
 						<Button.Flyout>
-							<Flyout Placement="TopEdgeAlignedLeft">
+							<Flyout Placement="TopEdgeAlignedLeft" Closed="OnTitleBarFlyoutClosed">
 								<StackPanel Width="252" Spacing="1" Margin="4,6">
 									<TextBlock Classes="settingsLabel" Text="WORKSPACES" Margin="7,2,0,6" />
 									<ItemsControl ItemsSource="{Binding Settings.Workspaces}">

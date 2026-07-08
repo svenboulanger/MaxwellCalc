@@ -33,6 +33,18 @@ public partial class ShellWindow : Window
         });
     }
 
+    // Dismissing a title-bar flyout (the settings cog or the workspace switcher) returns keyboard focus to
+    // the sheet. Unlike the scrim overlays, a Flyout closes without flipping any view-model flag (Escape,
+    // click-away, or re-clicking the button), so ShellViewModel's overlay-close focus restore never sees
+    // it; we route it here instead. The switcher's rows can open an overlay (workspace settings / new
+    // workspace) as they close, so we defer to RestoreSheetFocusIfAllClosed, which no-ops when an overlay
+    // ended up open — focus only returns to the sheet when the flyout is dismissed without opening anything.
+    private void OnTitleBarFlyoutClosed(object? sender, System.EventArgs e)
+    {
+        if (DataContext is ViewModels.ShellViewModel shell)
+            shell.RestoreSheetFocusIfAllClosed();
+    }
+
     // The whole title bar is the window drag handle (SystemDecorations="BorderOnly" gives a native
     // resize border but no native caption, so moving/maximizing are wired explicitly). Double-click
     // toggles maximize; skip the drag when the press lands on a caption button so its click isn't

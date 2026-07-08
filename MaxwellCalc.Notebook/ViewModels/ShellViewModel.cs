@@ -71,23 +71,70 @@ public partial class ShellViewModel : ViewModelBase
         // it has opened, close the others (the just-opened one is exempted so it stays open). This
         // covers every entry point — hotkeys, access-bar chips, and the workspace flyout — without
         // any binding needing to know about the others.
+        //
+        // The mirror image also holds: whenever an overlay reports that it has closed and none remain
+        // open, keyboard focus is returned to the sheet (the last selected line). This covers every
+        // close path — Escape, scrim clicks, and the overlays' own close buttons — from one place, so
+        // dismissing any dialog lands the user straight back on the sheet without reaching for the mouse.
+        // The false transitions fired while switching between overlays leave another overlay open, so
+        // focus is only restored once the last one is gone.
         CommandPalette.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName is nameof(CommandPaletteViewModel.PaletteOpen) && CommandPalette.PaletteOpen)
+            if (e.PropertyName is not nameof(CommandPaletteViewModel.PaletteOpen))
+                return;
+            if (CommandPalette.PaletteOpen)
                 CloseOverlays(except: CommandPalette.CloseCommand);
+            else
+                RestoreSheetFocusIfAllClosed();
         };
         SavedSheets.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName is nameof(SavedSheetsViewModel.PaletteOpen) && SavedSheets.PaletteOpen)
+            if (e.PropertyName is not nameof(SavedSheetsViewModel.PaletteOpen))
+                return;
+            if (SavedSheets.PaletteOpen)
                 CloseOverlays(except: SavedSheets.CloseCommand);
+            else
+                RestoreSheetFocusIfAllClosed();
         };
         Settings.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName is nameof(SettingsViewModel.WorkspaceSettingsOpen) && Settings.WorkspaceSettingsOpen)
-                CloseOverlays(except: Settings.CloseWorkspaceSettingsCommand);
-            else if (e.PropertyName is nameof(SettingsViewModel.NewWorkspaceOpen) && Settings.NewWorkspaceOpen)
-                CloseOverlays(except: Settings.CloseNewWorkspaceCommand);
+            if (e.PropertyName is nameof(SettingsViewModel.WorkspaceSettingsOpen))
+            {
+                if (Settings.WorkspaceSettingsOpen)
+                    CloseOverlays(except: Settings.CloseWorkspaceSettingsCommand);
+                else
+                    RestoreSheetFocusIfAllClosed();
+            }
+            else if (e.PropertyName is nameof(SettingsViewModel.NewWorkspaceOpen))
+            {
+                if (Settings.NewWorkspaceOpen)
+                    CloseOverlays(except: Settings.CloseNewWorkspaceCommand);
+                else
+                    RestoreSheetFocusIfAllClosed();
+            }
         };
+    }
+
+    /// <summary>
+    /// Gets whether any overlay is currently open.
+    /// </summary>
+    private bool AnyOverlayOpen =>
+        CommandPalette.PaletteOpen
+        || SavedSheets.PaletteOpen
+        || Settings.WorkspaceSettingsOpen
+        || Settings.NewWorkspaceOpen;
+
+    /// <summary>
+    /// Returns keyboard focus to the sheet's last selected line, but only once no overlay is left open.
+    /// Called on every overlay's close transition (the guard means switching directly from one overlay to
+    /// another, which closes the first while the second is up, doesn't steal focus back to the sheet), and
+    /// from the title-bar flyouts' <c>Closed</c> handlers — so dismissing a flyout without opening anything
+    /// lands on the sheet, while a flyout row that opened an overlay leaves that overlay focused.
+    /// </summary>
+    public void RestoreSheetFocusIfAllClosed()
+    {
+        if (!AnyOverlayOpen)
+            Sheet.FocusSelectedLine();
     }
 
     /// <summary>
