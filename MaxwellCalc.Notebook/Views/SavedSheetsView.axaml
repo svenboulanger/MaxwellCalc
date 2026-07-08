@@ -1,0 +1,428 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MaxwellCalc.Notebook.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="820" d:DesignHeight="620"
+             x:Class="MaxwellCalc.Notebook.Views.SavedSheetsView"
+             x:DataType="vm:SavedSheetsViewModel">
+
+	<!-- Saved Sheets command palette (⌘O). A dimmed full-window scrim (closes on click) with a centered
+	     card: a search header, a scrolling list of saved sheets (each recallable, renamable, deletable),
+	     and a footer that saves the current sheet under a name — with a subtle overwrite confirm when the
+	     name already exists. Recall replaces only the sheet's lines; the workspace is untouched. -->
+	<UserControl.Styles>
+		<!-- A saved-sheet list row: subtle hover, rounded, flashes an activeTint after a save. -->
+		<Style Selector="Border.sheetRow">
+			<Setter Property="Padding" Value="12,9" />
+			<Setter Property="CornerRadius" Value="9" />
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="Border.sheetRow:pointerover">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<!-- Flashing wins over hover so a just-saved row keeps its tint. -->
+		<Style Selector="Border.sheetRow.flashing">
+			<Setter Property="Background" Value="{DynamicResource ActiveTintBrush}" />
+		</Style>
+		<Style Selector="Border.sheetRow.flashing:pointerover">
+			<Setter Property="Background" Value="{DynamicResource ActiveTintBrush}" />
+		</Style>
+
+		<!-- "↵ recall" hint: hidden until the row is hovered. -->
+		<Style Selector="TextBlock.recallHint">
+			<Setter Property="Opacity" Value="0" />
+			<Setter Property="Transitions">
+				<Transitions>
+					<DoubleTransition Property="Opacity" Duration="0:0:0.1" />
+				</Transitions>
+			</Setter>
+		</Style>
+		<Style Selector="Border.sheetRow:pointerover TextBlock.recallHint">
+			<Setter Property="Opacity" Value="1" />
+		</Style>
+
+		<!-- Chrome-less recall button covering the glyph + name/meta block. -->
+		<Style Selector="Button.recall">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="CornerRadius" Value="0" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.recall /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="Button.recall:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+
+		<!-- Leading ▤ glyph. -->
+		<Style Selector="TextBlock.sheetGlyph">
+			<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Width" Value="14" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!-- Sheet name / meta. -->
+		<Style Selector="TextBlock.sheetName">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13.5" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		</Style>
+		<Style Selector="TextBlock.sheetMeta">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="Margin" Value="0,1,0,0" />
+		</Style>
+
+		<!-- Small faint icon buttons (rename ✎ / delete ×). -->
+		<Style Selector="Button.rowIcon">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="4" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.rowIcon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+		<Style Selector="Button.rowIcon:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+		<Style Selector="Button.rowIcon.delete:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+		</Style>
+
+		<!-- Inline-rename field: accent border. -->
+		<Style Selector="TextBox.renameField">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="9,6" />
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<Style Selector="TextBox.renameField:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+		</Style>
+		<Style Selector="TextBox.renameField:focus /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+		</Style>
+
+		<!-- Small accent "Save" button used by the inline rename. -->
+		<Style Selector="Button.smallAccent">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="11,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.smallAccent /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+
+		<!-- Empty-state text. -->
+		<Style Selector="TextBlock.emptyState">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+
+		<!-- Header search box: chrome-less in every state. FluentTheme's focus style forces a border
+		     thickness back onto the template part, so strip both thickness and brush on hover/focus. -->
+		<Style Selector="TextBox#PART_Search:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+		</Style>
+		<Style Selector="TextBox#PART_Search:focus /template/ Border#PART_BorderElement">
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+		</Style>
+
+		<!-- Footer name field. -->
+		<Style Selector="TextBox.nameField">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+			<Setter Property="Background" Value="{DynamicResource CardBrush}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="10,7" />
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<Style Selector="TextBox.nameField:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+		</Style>
+		<Style Selector="TextBox.nameField:focus /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+		</Style>
+
+		<!-- Footer "Save current sheet" accent label. -->
+		<Style Selector="TextBlock.saveLabel">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="Medium" />
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!-- Primary Save / Overwrite button. Disabled (faint) when empty. -->
+		<Style Selector="Button.saveBtn">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="14,7" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.saveBtn /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.saveBtn:disabled">
+			<Setter Property="Background" Value="{DynamicResource ChipBrush}" />
+		</Style>
+		<Style Selector="Button.saveBtn:disabled /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ChipBrush}" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+		</Style>
+
+		<!-- Outline Cancel button (armed confirm). -->
+		<Style Selector="Button.cancelBtn">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="11,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.cancelBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+
+		<!-- Red danger Overwrite button (armed confirm). -->
+		<Style Selector="Button.dangerBtn">
+			<Setter Property="Background" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="13,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.dangerBtn /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ErrBrush}" />
+		</Style>
+
+		<!-- Overwrite hint line. -->
+		<Style Selector="TextBlock.overwriteHint">
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Margin" Value="0,6,0,0" />
+		</Style>
+	</UserControl.Styles>
+
+	<!-- Full-window scrim. Closes when clicked directly (handled in code-behind); hidden when closed. -->
+	<Border Name="Scrim"
+			IsVisible="{Binding PaletteOpen}"
+			Background="{DynamicResource OverlayBrush}"
+			PointerPressed="OnScrimPressed">
+
+		<!-- Card: pinned near the top (margin-top ~70), up to 560px wide, clamped to the window height. -->
+		<Grid Name="Frame" Margin="24,70,24,24">
+			<Border MaxWidth="560"
+					MaxHeight="{Binding #Frame.Bounds.Height}"
+					HorizontalAlignment="Stretch" VerticalAlignment="Top"
+					Background="{DynamicResource CardBrush}"
+					BorderBrush="{DynamicResource ChipBorderBrush}"
+					BorderThickness="1"
+					CornerRadius="{DynamicResource CardCornerRadius}"
+					BoxShadow="{DynamicResource OverlayShadow}"
+					ClipToBounds="True">
+				<Grid RowDefinitions="Auto,*,Auto">
+
+					<!-- ============================ HEADER (search) ============================ -->
+					<Border Grid.Row="0" Padding="18,14"
+							BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1">
+						<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="11">
+							<materialIcons:MaterialIcon Grid.Column="0" Kind="Magnify"
+														Width="16" Height="16"
+														Foreground="{DynamicResource FaintBrush}"
+														VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" Name="PART_Search"
+									 Text="{Binding Search, Mode=TwoWay}"
+									 PlaceholderText="Search saved sheets…"
+									 FontFamily="{DynamicResource MonoFontFamily}"
+									 FontSize="15"
+									 Foreground="{DynamicResource InkBrush}"
+									 Background="Transparent"
+									 BorderThickness="0"
+									 Padding="0"
+									 VerticalAlignment="Center"
+									 VerticalContentAlignment="Center" />
+							<TextBlock Grid.Column="2" Text="Sheets"
+									   FontFamily="{DynamicResource UiFontFamily}"
+									   FontSize="11"
+									   Foreground="{DynamicResource FaintBrush}"
+									   VerticalAlignment="Center" />
+						</Grid>
+					</Border>
+
+					<!-- ============================ BODY (list) ============================ -->
+					<Panel Grid.Row="1">
+						<ScrollViewer HorizontalScrollBarVisibility="Disabled">
+							<ItemsControl ItemsSource="{Binding Filtered}" Margin="8,6,8,10">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="vm:SavedSheetItem">
+										<Border Classes="sheetRow" Classes.flashing="{Binding IsFlashing}">
+											<Panel>
+												<!-- Normal row content (recall + rename/delete). -->
+												<Grid IsVisible="{Binding IsNotRenaming}"
+													  ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+													<Button Grid.Column="0" Classes="recall"
+															Command="{Binding ((vm:SavedSheetsViewModel)DataContext).RecallCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+															CommandParameter="{Binding}"
+															ToolTip.Tip="Recall this sheet">
+														<Grid ColumnDefinitions="Auto,*" ColumnSpacing="11">
+															<TextBlock Grid.Column="0" Classes="sheetGlyph" Text="▤" />
+															<StackPanel Grid.Column="1" VerticalAlignment="Center">
+																<TextBlock Classes="sheetName" Text="{Binding Name}" />
+																<TextBlock Classes="sheetMeta" Text="{Binding Meta}" />
+															</StackPanel>
+														</Grid>
+													</Button>
+
+													<TextBlock Grid.Column="1" Classes="recallHint" Text="↵ recall"
+															   FontFamily="{DynamicResource UiFontFamily}"
+															   FontSize="10.5"
+															   Foreground="{DynamicResource FaintBrush}"
+															   VerticalAlignment="Center" />
+
+													<Button Grid.Column="2" Classes="rowIcon"
+															Command="{Binding ((vm:SavedSheetsViewModel)DataContext).StartRenameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+															CommandParameter="{Binding}"
+															ToolTip.Tip="Rename">
+														<materialIcons:MaterialIcon Kind="Pencil" Width="13" Height="13" />
+													</Button>
+													<Button Grid.Column="3" Classes="rowIcon delete"
+															Command="{Binding ((vm:SavedSheetsViewModel)DataContext).DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+															CommandParameter="{Binding}"
+															ToolTip.Tip="Delete">
+														<materialIcons:MaterialIcon Kind="Close" Width="15" Height="15" />
+													</Button>
+												</Grid>
+
+												<!-- Inline rename. -->
+												<Grid IsVisible="{Binding IsRenaming}"
+													  ColumnDefinitions="*,Auto" ColumnSpacing="6">
+													<TextBox Grid.Column="0" Classes="renameField"
+															 Name="RenameBox"
+															 Text="{Binding RenameDraft, Mode=TwoWay}"
+															 AttachedToVisualTree="OnRenameBoxAttached"
+															 KeyDown="OnRenameKeyDown"
+															 LostFocus="OnRenameLostFocus" />
+													<Button Grid.Column="1" Classes="smallAccent" Content="Save"
+															Command="{Binding ((vm:SavedSheetsViewModel)DataContext).CommitRenameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+															CommandParameter="{Binding}" />
+												</Grid>
+											</Panel>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+
+						<!-- Empty states. -->
+						<TextBlock Classes="emptyState" Margin="18,30"
+								   VerticalAlignment="Top"
+								   IsVisible="{Binding IsEmpty}"
+								   Text="No saved sheets yet. Name the current sheet below to save it." />
+						<TextBlock Classes="emptyState" Margin="18,24"
+								   VerticalAlignment="Top"
+								   IsVisible="{Binding HasNoMatches}"
+								   Text="{Binding NoMatchText}" />
+					</Panel>
+
+					<!-- ============================ FOOTER (save zone) ============================ -->
+					<Border Grid.Row="2"
+							Background="{DynamicResource SurfBrush}"
+							BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0"
+							CornerRadius="{DynamicResource CardFooterCornerRadius}"
+							Padding="16,11">
+						<StackPanel>
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
+								<TextBlock Grid.Column="0" Classes="saveLabel" Text="Save current sheet" />
+								<TextBox Grid.Column="1" Name="PART_Name" Classes="nameField"
+										 Text="{Binding NameDraft, Mode=TwoWay}"
+										 PlaceholderText="name…"
+										 KeyDown="OnNameKeyDown" />
+
+								<!-- Single Save / Overwrite button (not armed). -->
+								<Button Grid.Column="2" Classes="saveBtn"
+										IsVisible="{Binding ShowPrimaryButton}"
+										Content="{Binding PrimarySaveLabel}"
+										Command="{Binding PrimarySaveCommand}" />
+
+								<!-- Armed confirm: Cancel + red Overwrite. -->
+								<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
+											IsVisible="{Binding ShowArmedControls}">
+									<Button Classes="cancelBtn" Content="Cancel"
+											Command="{Binding CancelOverwriteCommand}" />
+									<Button Classes="dangerBtn" Content="Overwrite"
+											Command="{Binding PrimarySaveCommand}" />
+								</StackPanel>
+							</Grid>
+
+							<TextBlock Classes="overwriteHint"
+									   IsVisible="{Binding ShowOverwriteHint}"
+									   Text="{Binding OverwriteHintText}" />
+						</StackPanel>
+					</Border>
+				</Grid>
+			</Border>
+		</Grid>
+	</Border>
+</UserControl>

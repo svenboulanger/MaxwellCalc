@@ -24,6 +24,11 @@ public partial class ShellViewModel : ViewModelBase
     public CommandPaletteViewModel CommandPalette { get; }
 
     /// <summary>
+    /// Gets the Saved Sheets command palette (⌘O / the "Sheets" chip): the named line-snapshot library.
+    /// </summary>
+    public SavedSheetsViewModel SavedSheets { get; }
+
+    /// <summary>
     /// Gets the user preferences (theme, unit hue, auto-caption) and workspace switcher.
     /// </summary>
     public SettingsViewModel Settings { get; }
@@ -39,16 +44,19 @@ public partial class ShellViewModel : ViewModelBase
     /// <param name="workspaceState">The shared workspace state.</param>
     /// <param name="sheet">The notebook sheet view model.</param>
     /// <param name="commandPalette">The command-palette overlay view model.</param>
+    /// <param name="savedSheets">The Saved Sheets command palette.</param>
     /// <param name="settings">The user preferences and workspace switcher.</param>
     public ShellViewModel(
         WorkspaceState workspaceState,
         SheetViewModel sheet,
         CommandPaletteViewModel commandPalette,
+        SavedSheetsViewModel savedSheets,
         SettingsViewModel settings)
     {
         WorkspaceState = workspaceState;
         Sheet = sheet;
         CommandPalette = commandPalette;
+        SavedSheets = savedSheets;
         Settings = settings;
         WorkspaceState.PropertyChanged += (_, e) =>
         {

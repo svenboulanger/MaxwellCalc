@@ -153,11 +153,16 @@
 	<Window.KeyBindings>
 		<KeyBinding Gesture="Ctrl+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
 		<KeyBinding Gesture="Meta+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
-		<!-- Esc first tries to close the new-workspace dialog, then the workspace-settings dialog (each
-		     guarded by its CanExecute); when neither is open those bindings are skipped and the command
-		     palette's Esc handler runs instead. -->
+		<!-- ⌘O / Ctrl+O opens the Saved Sheets palette. -->
+		<KeyBinding Gesture="Ctrl+O" Command="{Binding SavedSheets.OpenCommand}" />
+		<KeyBinding Gesture="Meta+O" Command="{Binding SavedSheets.OpenCommand}" />
+		<!-- Esc first tries to close the new-workspace dialog, then the workspace-settings dialog, then the
+		     Saved Sheets palette (each guarded by its CanExecute, so it only fires when that overlay is
+		     open — the top-most overlay closes first); when none of those are open the command palette's
+		     (ungated) Esc handler runs. -->
 		<KeyBinding Gesture="Escape" Command="{Binding Settings.CloseNewWorkspaceCommand}" />
 		<KeyBinding Gesture="Escape" Command="{Binding Settings.CloseWorkspaceSettingsCommand}" />
+		<KeyBinding Gesture="Escape" Command="{Binding SavedSheets.CloseCommand}" />
 		<KeyBinding Gesture="Escape" Command="{Binding CommandPalette.CloseCommand}" />
 	</Window.KeyBindings>
 
@@ -372,21 +377,42 @@
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Functions" Count="{Binding CommandPalette.Functions.Count}"
 								   Command="{Binding CommandPalette.OpenFunctionsCommand}" />
+
+					<!-- Thin divider before the Saved Sheets chip: this is a separate library, not part of
+					     the workspace's variables / units / functions. -->
+					<Border Width="1" Height="20" Background="{DynamicResource LineBrush}"
+							VerticalAlignment="Center" Margin="2,0" />
+
+					<controls:Chip Glyph="▤"
+								   GlyphForeground="{DynamicResource AccentBrush}"
+								   Label="Sheets" Count="{Binding SavedSheets.CountLabel}"
+								   Command="{Binding SavedSheets.OpenCommand}" />
 				</StackPanel>
 
-				<!-- ⌘K key-hint pill at far right. -->
-				<Border Grid.Column="2"
-						Background="{DynamicResource ChipBrush}"
-						BorderBrush="{DynamicResource ChipBorderBrush}"
-						BorderThickness="1"
-						CornerRadius="{DynamicResource ChipCornerRadius}"
-						Padding="9,4"
-						VerticalAlignment="Center">
-					<TextBlock Text="⌘K"
-							   FontFamily="{DynamicResource MonoFontFamily}"
-							   FontSize="11.5"
-							   Foreground="{DynamicResource MutBrush}" />
-				</Border>
+				<!-- ⌘K (Units) + ⌘O (Saved Sheets) key-hint pills at far right. -->
+				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
+							VerticalAlignment="Center">
+					<Border Background="{DynamicResource ChipBrush}"
+							BorderBrush="{DynamicResource ChipBorderBrush}"
+							BorderThickness="1"
+							CornerRadius="{DynamicResource PillCornerRadius}"
+							Padding="7,3">
+						<TextBlock Text="⌘K"
+								   FontFamily="{DynamicResource MonoFontFamily}"
+								   FontSize="11"
+								   Foreground="{DynamicResource MutBrush}" />
+					</Border>
+					<Border Background="{DynamicResource ChipBrush}"
+							BorderBrush="{DynamicResource ChipBorderBrush}"
+							BorderThickness="1"
+							CornerRadius="{DynamicResource PillCornerRadius}"
+							Padding="7,3">
+						<TextBlock Text="⌘O"
+								   FontFamily="{DynamicResource MonoFontFamily}"
+								   FontSize="11"
+								   Foreground="{DynamicResource MutBrush}" />
+					</Border>
+				</StackPanel>
 			</Grid>
 		</Border>
 	</Grid>
@@ -394,6 +420,10 @@
 		<!-- Command-palette overlay, resolved to CommandPaletteView via the ViewLocator. It manages its
 		     own visibility (scrim IsVisible = PaletteOpen), so it stays here spanning the whole window. -->
 		<ContentControl Content="{Binding CommandPalette}" />
+
+		<!-- Saved Sheets overlay (⌘O), resolved to SavedSheetsView. Layered above the command palette so
+		     that when both are open the top-most (this one) closes first on Esc / scrim click. -->
+		<ContentControl Content="{Binding SavedSheets}" />
 
 		<!-- Workspace-settings dialog (Step 12). Bound directly to the SettingsViewModel; manages its own
 		     visibility (scrim IsVisible = WorkspaceSettingsOpen) and layers above the palette. -->
