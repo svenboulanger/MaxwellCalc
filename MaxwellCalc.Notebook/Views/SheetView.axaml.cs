@@ -76,6 +76,12 @@ public partial class SheetView : UserControl
             sheet.MergeWithPrevious(index);
     }
 
+    private void OnMergeForwardRequested(object? sender, EventArgs e)
+    {
+        if (Resolve(sender, out var sheet, out _, out int index))
+            sheet.MergeWithNext(index);
+    }
+
     private void OnNavigateUpRequested(object? sender, EventArgs e)
     {
         if (Resolve(sender, out var sheet, out var box, out int index))

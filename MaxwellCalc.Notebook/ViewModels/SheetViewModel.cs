@@ -266,6 +266,38 @@ public partial class SheetViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Merges the next line into the line at <paramref name="index"/> (Delete at the last column): the
+    /// next line's text is appended to the current line, the next line is removed, and focus stays on
+    /// the current line with the caret at the join point. No-op for the last line.
+    /// </summary>
+    /// <param name="index">The index of the line the next line is merged into.</param>
+    public void MergeWithNext(int index)
+    {
+        if (index < 0 || index >= Lines.Count - 1)
+            return;
+
+        var current = Lines[index];
+        var next = Lines[index + 1];
+        int joinAt = (current.Text ?? string.Empty).Length;
+
+        _suppressEvaluation = true;
+        try
+        {
+            current.Text = (current.Text ?? string.Empty) + (next.Text ?? string.Empty);
+            current.CaretIndex = joinAt;
+            Lines.RemoveAt(index + 1);
+        }
+        finally
+        {
+            _suppressEvaluation = false;
+        }
+
+        Evaluate();
+        FocusedLineIndex = index;
+        FocusRequested?.Invoke(index);
+    }
+
+    /// <summary>
     /// Moves focus to the previous line (Up arrow), preserving the caret column where the target line
     /// is long enough. No-op on the first line.
     /// </summary>

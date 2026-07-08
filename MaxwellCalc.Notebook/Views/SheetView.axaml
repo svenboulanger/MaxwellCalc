@@ -69,6 +69,7 @@
 									LostFocus="OnEditorLostFocus"
 									EnterPressed="OnEnterPressed"
 									MergeBackRequested="OnMergeBackRequested"
+									MergeForwardRequested="OnMergeForwardRequested"
 									NavigateUpRequested="OnNavigateUpRequested"
 									NavigateDownRequested="OnNavigateDownRequested" />
 

@@ -52,6 +52,13 @@ public class HighlightedExpressionBox : TemplatedControl
     /// </summary>
     public event EventHandler? MergeBackRequested;
 
+    /// <summary>
+    /// Raised when Delete is pressed with the caret at the last column and nothing selected. The sheet
+    /// merges the next line into this one, leaving the caret at the join point (the forward mirror of
+    /// <see cref="MergeBackRequested"/>).
+    /// </summary>
+    public event EventHandler? MergeForwardRequested;
+
     /// <summary>Raised when the Up arrow is pressed: the sheet moves focus to the previous line.</summary>
     public event EventHandler? NavigateUpRequested;
 
@@ -195,6 +202,15 @@ public class HighlightedExpressionBox : TemplatedControl
             // otherwise let the TextBox delete normally.
             case Key.Back when _editor is { CaretIndex: 0 } && _editor.SelectionStart == _editor.SelectionEnd:
                 MergeBackRequested?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+                break;
+
+            // Only merge forward when the caret sits after the last character with no active selection;
+            // otherwise let the TextBox delete normally.
+            case Key.Delete when _editor is not null
+                                 && _editor.CaretIndex == (_editor.Text ?? string.Empty).Length
+                                 && _editor.SelectionStart == _editor.SelectionEnd:
+                MergeForwardRequested?.Invoke(this, EventArgs.Empty);
                 e.Handled = true;
                 break;
 
