@@ -130,6 +130,10 @@ public partial class SheetView : UserControl
             if (host.ContainerFromIndex(index) is not Control container)
                 return;
             container.FindDescendantOfType<HighlightedExpressionBox>()?.FocusEditor();
+            // Focusing the inner TextBox scrolls only the textbox into view. Bring the whole row
+            // container into view afterwards so the full line panel (padding, caption, hairline)
+            // is visible, not just the editor.
+            container.BringIntoView();
         }, DispatcherPriority.Loaded);
     }
 }
