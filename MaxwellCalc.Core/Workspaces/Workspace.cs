@@ -312,6 +312,12 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
                         result = Resolver.Default;
                         return true;
                     }
+                    else if (binary.Left is UnitNode unit)
+                    {
+                        PostDiagnosticMessage(new($"Cannot assign to a unit '{unit.Content}'"));
+                        result = Resolver.Default;
+                        return false;
+                    }
                     else
                     {
                         PostDiagnosticMessage(new($"Can only assign to variables or user functions"));

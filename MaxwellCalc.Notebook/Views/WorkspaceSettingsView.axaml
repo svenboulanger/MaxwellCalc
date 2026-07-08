@@ -337,7 +337,7 @@
 												   FontFamily="{DynamicResource UiFontFamily}"
 												   FontSize="12.5" FontWeight="SemiBold"
 												   Foreground="{DynamicResource InkBrush}" />
-										<TextBlock Classes="caption" Text="astronomical, magnetic &amp; energy units" />
+										<TextBlock Classes="caption" Text="Standard units" />
 									</StackPanel>
 									<Button Grid.Column="1" Classes="preset"
 											Command="{Binding AddPhysicsUnitsCommand}" Content="Add units" />
@@ -349,7 +349,7 @@
 												   FontFamily="{DynamicResource UiFontFamily}"
 												   FontSize="12.5" FontWeight="SemiBold"
 												   Foreground="{DynamicResource InkBrush}" />
-										<TextBlock Classes="caption" Text="sub-pF caps, siemens, amp-hours" />
+										<TextBlock Classes="caption" Text="Volt, ampere, ohm, etc." />
 									</StackPanel>
 									<Button Grid.Column="1" Classes="preset"
 											Command="{Binding AddElectronicsUnitsCommand}" Content="Add units" />
