@@ -33,8 +33,7 @@ public static class UnitHelper
         // Set the input and output unit
         workspace.InputUnits[inputUnit] = new(result.Scalar, baseUnits);
         var unit = new Unit((inputUnit, 1));
-        if (unit != baseUnits)
-            workspace.OutputUnits[new(unit, baseUnits)] = result.Scalar;
+        workspace.OutputUnits[new(unit, baseUnits)] = result.Scalar;
 
         // Reset
         workspace.Restore(oldState);
@@ -256,11 +255,8 @@ public static class UnitHelper
         }
         {
             var nUnit = GetUnit("");
-            if (nUnit != baseUnits)
-            {
-                if (!workspace.TryRegisterOutputUnit(GetUnit(""), new Quantity<string>("1", baseUnits)))
-                    return false;
-            }
+            if (!workspace.TryRegisterOutputUnit(GetUnit(""), new Quantity<string>("1", baseUnits)))
+                return false;
         }
         if (kilo)
         {
