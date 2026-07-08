@@ -61,6 +61,16 @@ public enum ScalarFormat
     Scientific,
 }
 
+/// <summary>Which kind of unit a "Clear units" row targets (Workspace settings → Clear units).</summary>
+public enum ClearUnitKind
+{
+    /// <summary>The input units (symbols resolved to base SI on input).</summary>
+    Input,
+
+    /// <summary>The output units (candidates the app auto-picks from for display).</summary>
+    Output,
+}
+
 /// <summary>
 /// One entry in the workspace switcher: a named workspace, its per-workspace display settings (scalar
 /// format + significant digits, Step 12), and the per-entry commands the switcher rows bind to. The
@@ -218,6 +228,46 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>Gets the sample quantities shown in the settings dialog's live preview.</summary>
     [ObservableProperty]
     private IReadOnlyList<PreviewSample> _preview = [];
+
+    /// <summary>
+    /// Gets or sets which "Clear units" row, if any, is armed for confirmation. Only one row can be armed
+    /// at a time; set on the first "Clear all" click, cleared on Cancel, on a successful clear, and when
+    /// the dialog closes.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInputClearArmed))]
+    [NotifyPropertyChangedFor(nameof(IsOutputClearArmed))]
+    private ClearUnitKind? _clearConfirm;
+
+    /// <summary>Gets the number of input units defined in the edited workspace.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(InputUnitCaption))]
+    [NotifyPropertyChangedFor(nameof(HasInputUnits))]
+    private int _inputUnitCount;
+
+    /// <summary>Gets the number of output units defined in the edited workspace.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OutputUnitCaption))]
+    [NotifyPropertyChangedFor(nameof(HasOutputUnits))]
+    private int _outputUnitCount;
+
+    /// <summary>Gets whether the input-units row is armed for confirmation.</summary>
+    public bool IsInputClearArmed => ClearConfirm is ClearUnitKind.Input;
+
+    /// <summary>Gets whether the output-units row is armed for confirmation.</summary>
+    public bool IsOutputClearArmed => ClearConfirm is ClearUnitKind.Output;
+
+    /// <summary>Gets the "N unit(s) defined" caption under the input-units row.</summary>
+    public string InputUnitCaption => $"{InputUnitCount} {(InputUnitCount == 1 ? "unit" : "units")} defined";
+
+    /// <summary>Gets the "N unit(s) defined" caption under the output-units row.</summary>
+    public string OutputUnitCaption => $"{OutputUnitCount} {(OutputUnitCount == 1 ? "unit" : "units")} defined";
+
+    /// <summary>Gets whether the edited workspace has any input units (drives the button's enabled state).</summary>
+    public bool HasInputUnits => InputUnitCount > 0;
+
+    /// <summary>Gets whether the edited workspace has any output units (drives the button's enabled state).</summary>
+    public bool HasOutputUnits => OutputUnitCount > 0;
 
     /// <summary>Gets or sets whether the "New workspace" dialog is open.</summary>
     [ObservableProperty]
@@ -395,7 +445,9 @@ public partial class SettingsViewModel : ViewModelBase
         DetachSettingsTarget();
         SettingsTarget = entry;
         SettingsTarget.PropertyChanged += OnSettingsTargetChanged;
+        ClearConfirm = null;
         RefreshPreview();
+        RefreshUnitCounts();
         WorkspaceSettingsOpen = true;
     }
 
@@ -404,6 +456,8 @@ public partial class SettingsViewModel : ViewModelBase
     private void CloseWorkspaceSettings()
     {
         DetachSettingsTarget();
+        // Never leave a row armed, so the dialog never reopens mid-confirmation.
+        ClearConfirm = null;
         WorkspaceSettingsOpen = false;
         // Persist any name / format / digit edits made in the dialog (edits to a non-active workspace
         // don't route through the active-entry change handler, so save the whole list here).
@@ -436,6 +490,42 @@ public partial class SettingsViewModel : ViewModelBase
             target.Digits = Math.Max(1, target.Digits - 1);
     }
 
+    /// <summary>Arms a "Clear units" row for confirmation (the first "Clear all" click).</summary>
+    /// <param name="kind">Which row (input or output) to arm.</param>
+    [RelayCommand]
+    private void ArmClearUnits(ClearUnitKind kind) => ClearConfirm = kind;
+
+    /// <summary>Disarms the armed "Clear units" row without clearing anything (the "Cancel" button).</summary>
+    [RelayCommand]
+    private void CancelClearUnits() => ClearConfirm = null;
+
+    /// <summary>
+    /// Removes every input or output unit from the edited workspace (the confirm "Clear all" button),
+    /// then persists and re-renders. Scoped to the edited workspace only; other workspaces are untouched.
+    /// </summary>
+    /// <param name="kind">Which units to clear.</param>
+    [RelayCommand]
+    private void ClearUnits(ClearUnitKind kind)
+    {
+        if (SettingsTarget?.Workspace is { } workspace)
+        {
+            if (kind == ClearUnitKind.Input)
+            {
+                // Snapshot the keys first: removal mutates the dictionary we would otherwise enumerate.
+                foreach (var key in workspace.InputUnits.Keys.ToList())
+                    workspace.TryRemoveInputUnit(key);
+            }
+            else
+            {
+                foreach (var key in workspace.OutputUnits.Keys.ToList())
+                    workspace.TryRemoveOutputUnit(key);
+            }
+        }
+
+        ClearConfirm = null;
+        AfterUnitsChanged();
+    }
+
     /// <summary>Registers the common physics / general unit bundle into the edited workspace.</summary>
     [RelayCommand]
     private void AddPhysicsUnits()
@@ -451,7 +541,7 @@ public partial class SettingsViewModel : ViewModelBase
             default:
                 return;
         }
-        AfterPresetApplied();
+        AfterUnitsChanged();
     }
 
     /// <summary>Registers the common electronics unit bundle (fF, aF, siemens, amp-hours, …).</summary>
@@ -469,7 +559,7 @@ public partial class SettingsViewModel : ViewModelBase
             default:
                 return;
         }
-        AfterPresetApplied();
+        AfterUnitsChanged();
     }
 
     /// <summary>Flips between light and dark (the title-bar theme button).</summary>
@@ -625,14 +715,24 @@ public partial class SettingsViewModel : ViewModelBase
             .ToList();
     }
 
-    // After a unit preset is applied to the edited workspace: re-evaluate the sheet (in case the edited
-    // workspace is the active one), refresh the preview, and persist the enlarged workspace.
-    private void AfterPresetApplied()
+    // After the edited workspace's units change (a preset added, or a "Clear units" wipe): re-evaluate the
+    // sheet (in case the edited workspace is the active one, so output-unit resolution refreshes), update
+    // the unit counts and preview, and persist the changed workspace.
+    private void AfterUnitsChanged()
     {
         _sheet.Recompute();
+        RefreshUnitCounts();
         RefreshPreview();
         SaveWorkspaces();
         Save();
+    }
+
+    // Recomputes the input/output unit counts shown in the "Clear units" rows from the edited workspace.
+    private void RefreshUnitCounts()
+    {
+        var workspace = SettingsTarget?.Workspace;
+        InputUnitCount = workspace?.InputUnits.Count ?? 0;
+        OutputUnitCount = workspace?.OutputUnits.Count ?? 0;
     }
 
     private void ApplyTheme()

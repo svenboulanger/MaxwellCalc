@@ -104,6 +104,81 @@
 			<Setter Property="Background" Value="{DynamicResource ConstPillBackground}" />
 		</Style>
 
+		<!-- "Clear all" destructive outline button (idle state). Reuses the app's error color (ErrBrush,
+		     the same token calculation errors use). Disabled when the count is 0: neutral chip border +
+		     faint text at half opacity. -->
+		<Style Selector="Button.clearIdle">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="13,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.clearIdle:pointerover">
+			<Setter Property="Opacity" Value="0.82" />
+		</Style>
+		<Style Selector="Button.clearIdle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="Button.clearIdle:disabled">
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+			<Setter Property="Opacity" Value="0.5" />
+			<Setter Property="Cursor" Value="Arrow" />
+		</Style>
+		<Style Selector="Button.clearIdle:disabled /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+
+		<!-- "Cancel" neutral outline button (armed state). -->
+		<Style Selector="Button.clearCancel">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ChipBorderBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="11,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="{DynamicResource MutBrush}" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.clearCancel:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource LineBrush}" />
+		</Style>
+
+		<!-- "Clear all" destructive solid button (armed / confirm state). -->
+		<Style Selector="Button.clearConfirm">
+			<Setter Property="Background" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="{DynamicResource InputCornerRadius}" />
+			<Setter Property="Padding" Value="13,6" />
+			<Setter Property="FontFamily" Value="{DynamicResource UiFontFamily}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.clearConfirm /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.clearConfirm:pointerover">
+			<Setter Property="Opacity" Value="0.9" />
+		</Style>
+		<Style Selector="Button.clearConfirm:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ErrBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+
 		<!-- × close button. -->
 		<Style Selector="Button.close">
 			<Setter Property="Background" Value="Transparent" />
@@ -278,6 +353,74 @@
 									</StackPanel>
 									<Button Grid.Column="1" Classes="preset"
 											Command="{Binding AddElectronicsUnitsCommand}" Content="Add units" />
+								</Grid>
+							</StackPanel>
+
+							<!-- Clear all units. Two rows (input / output), each guarded by an inline
+							     two-step confirm: the first "Clear all" arms the row (ClearConfirm), then a
+							     Cancel / Clear all pair either backs out or wipes every unit of that kind
+							     from the edited workspace. Only one row can be armed at a time. -->
+							<StackPanel Spacing="8">
+								<TextBlock Classes="label" Text="Clear units" />
+								<TextBlock Classes="caption"
+										   Text="Remove every input or output unit from this workspace." />
+
+								<!-- Input units. -->
+								<Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+									<StackPanel Grid.Column="0" VerticalAlignment="Center">
+										<TextBlock Text="Input units"
+												   FontFamily="{DynamicResource UiFontFamily}"
+												   FontSize="12.5" FontWeight="SemiBold"
+												   Foreground="{DynamicResource InkBrush}" />
+										<TextBlock Classes="caption" Text="{Binding InputUnitCaption}" />
+									</StackPanel>
+									<Panel Grid.Column="1" VerticalAlignment="Center">
+										<Button Classes="clearIdle"
+												IsVisible="{Binding !IsInputClearArmed}"
+												IsEnabled="{Binding HasInputUnits}"
+												Command="{Binding ArmClearUnitsCommand}"
+												CommandParameter="{x:Static vm:ClearUnitKind.Input}"
+												Content="Clear all" />
+										<StackPanel Orientation="Horizontal" Spacing="6"
+													IsVisible="{Binding IsInputClearArmed}">
+											<Button Classes="clearCancel"
+													Command="{Binding CancelClearUnitsCommand}"
+													Content="Cancel" />
+											<Button Classes="clearConfirm"
+													Command="{Binding ClearUnitsCommand}"
+													CommandParameter="{x:Static vm:ClearUnitKind.Input}"
+													Content="Clear all" />
+										</StackPanel>
+									</Panel>
+								</Grid>
+
+								<!-- Output units. -->
+								<Grid ColumnDefinitions="*,Auto">
+									<StackPanel Grid.Column="0" VerticalAlignment="Center">
+										<TextBlock Text="Output units"
+												   FontFamily="{DynamicResource UiFontFamily}"
+												   FontSize="12.5" FontWeight="SemiBold"
+												   Foreground="{DynamicResource InkBrush}" />
+										<TextBlock Classes="caption" Text="{Binding OutputUnitCaption}" />
+									</StackPanel>
+									<Panel Grid.Column="1" VerticalAlignment="Center">
+										<Button Classes="clearIdle"
+												IsVisible="{Binding !IsOutputClearArmed}"
+												IsEnabled="{Binding HasOutputUnits}"
+												Command="{Binding ArmClearUnitsCommand}"
+												CommandParameter="{x:Static vm:ClearUnitKind.Output}"
+												Content="Clear all" />
+										<StackPanel Orientation="Horizontal" Spacing="6"
+													IsVisible="{Binding IsOutputClearArmed}">
+											<Button Classes="clearCancel"
+													Command="{Binding CancelClearUnitsCommand}"
+													Content="Cancel" />
+											<Button Classes="clearConfirm"
+													Command="{Binding ClearUnitsCommand}"
+													CommandParameter="{x:Static vm:ClearUnitKind.Output}"
+													Content="Clear all" />
+										</StackPanel>
+									</Panel>
 								</Grid>
 							</StackPanel>
 
