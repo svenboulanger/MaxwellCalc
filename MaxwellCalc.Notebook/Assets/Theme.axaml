@@ -177,6 +177,22 @@
 				</Setter>
 			</ControlTheme>
 
+			<!-- ===================== UNIT VIEW THEME ===================== -->
+			<!-- Bare-unit renderer (no scalar): unit symbols in the unit hue with superscript exponents.
+			     Used for left-hand unit labels — e.g. the output-unit command palette rows. Metrics match
+			     the palette's "mono" text so it lines up with the surrounding rows. -->
+			<ControlTheme x:Key="{x:Type controls:UnitView}" TargetType="controls:UnitView">
+				<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+				<Setter Property="FontSize" Value="13.5" />
+				<Setter Property="FontWeight" Value="Medium" />
+				<Setter Property="Foreground" Value="{DynamicResource UnitHueBrush}" />
+				<Setter Property="Template">
+					<ControlTemplate>
+						<TextBlock Name="PART_Text" VerticalAlignment="Center" />
+					</ControlTemplate>
+				</Setter>
+			</ControlTheme>
+
 			<!-- Chrome-less TextBox theme for the editor surface inside the HighlightedExpressionBox:
 			     strips the border/background in every state so only the caret and selection show over
 			     the colored backdrop. Kept as its own theme because a ControlTheme's nested styles may

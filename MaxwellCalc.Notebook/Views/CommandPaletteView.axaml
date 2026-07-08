@@ -415,9 +415,8 @@
 													<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
 														<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
 																	VerticalAlignment="Center">
-															<TextBlock Classes="mono" FontWeight="Medium"
-																	   Foreground="{DynamicResource UnitHueBrush}"
-																	   Text="{Binding Label}" />
+															<controls:UnitView Value="{Binding Key.OutputUnit}"
+																			   VerticalAlignment="Center" />
 															<TextBlock Classes="mono" Foreground="{DynamicResource FaintBrush}"
 																	   Text="=" />
 															<controls:QuantityView Value="{Binding Definition}"
