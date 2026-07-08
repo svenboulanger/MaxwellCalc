@@ -40,6 +40,27 @@ public partial class ShellViewModel : ViewModelBase
     public string WorkspaceName => WorkspaceState.WorkspaceName;
 
     /// <summary>
+    /// The hotkey modifier symbol shown in the access-bar tooltips. We render the ⌘ symbol on every
+    /// platform (the design's convention) even though the Windows/Linux gesture is the Ctrl key.
+    /// </summary>
+    private const string Mod = "⌘";
+
+    /// <summary>Tooltip for the Variables chip (⌘J / Ctrl+J).</summary>
+    public string VariablesTooltip => $"Browse and manage workspace variables and constants ({Mod}J)";
+
+    /// <summary>Tooltip for the Units chip (⌘U / Ctrl+U).</summary>
+    public string UnitsTooltip => $"Browse input and output units ({Mod}U)";
+
+    /// <summary>Tooltip for the Functions chip (⌘F / Ctrl+F).</summary>
+    public string FunctionsTooltip => $"Browse built-in and user functions ({Mod}F)";
+
+    /// <summary>Tooltip for the Sheets chip (⌘O / Ctrl+O).</summary>
+    public string SheetsTooltip => $"Save and load sheets ({Mod}O)";
+
+    /// <summary>Tooltip for the Clear sheet chip (⌘N / Ctrl+N).</summary>
+    public string ClearSheetTooltip => $"Start a fresh sheet ({Mod}N)";
+
+    /// <summary>
     /// Creates a new <see cref="ShellViewModel"/>.
     /// </summary>
     /// <param name="workspaceState">The shared workspace state.</param>

@@ -147,18 +147,26 @@
 		</Style>
 	</Window.Styles>
 
-	<!-- Global shortcuts: ⌘K / Ctrl+K opens the command palette on the Units section; Esc closes it
-	     (a no-op when already closed). The line editor only handles unmodified Enter/Backspace/arrows,
-	     so Ctrl+K bubbles up to here. -->
+	<!-- Global shortcuts: every access-bar chip has its own window-level hotkey, opening the same overlay
+	     (or running the same action) as clicking it. The line editor only handles unmodified
+	     Enter/Backspace/arrows (it ignores any keypress carrying a modifier), so these all bubble up to
+	     here even while a sheet line has focus. Esc closes whichever overlay is open (a no-op otherwise).
+	     Each binds both the Windows/Linux (Ctrl) and macOS (Meta / ⌘) gesture. -->
 	<Window.KeyBindings>
-		<KeyBinding Gesture="Ctrl+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
-		<KeyBinding Gesture="Meta+K" Command="{Binding CommandPalette.OpenUnitsCommand}" />
+		<!-- ⌘J / Ctrl+J opens the command palette on the Variables section. -->
+		<KeyBinding Gesture="Ctrl+J" Command="{Binding CommandPalette.OpenVariablesCommand}" />
+		<KeyBinding Gesture="Meta+J" Command="{Binding CommandPalette.OpenVariablesCommand}" />
+		<!-- ⌘U / Ctrl+U opens the command palette on the Units section (Input tab). -->
+		<KeyBinding Gesture="Ctrl+U" Command="{Binding CommandPalette.OpenUnitsCommand}" />
+		<KeyBinding Gesture="Meta+U" Command="{Binding CommandPalette.OpenUnitsCommand}" />
+		<!-- ⌘F / Ctrl+F opens the command palette on the Functions section. -->
+		<KeyBinding Gesture="Ctrl+F" Command="{Binding CommandPalette.OpenFunctionsCommand}" />
+		<KeyBinding Gesture="Meta+F" Command="{Binding CommandPalette.OpenFunctionsCommand}" />
 		<!-- ⌘O / Ctrl+O opens the Saved Sheets palette. -->
 		<KeyBinding Gesture="Ctrl+O" Command="{Binding SavedSheets.OpenCommand}" />
 		<KeyBinding Gesture="Meta+O" Command="{Binding SavedSheets.OpenCommand}" />
 		<!-- ⌘N / Ctrl+N clears the current sheet back to one empty, focused line (no confirmation). It
-		     closes any open overlay first and fires regardless of which line editor has focus (Ctrl+N
-		     bubbles up here, like ⌘K / ⌘O). -->
+		     closes any open overlay first and fires regardless of which line editor has focus. -->
 		<KeyBinding Gesture="Ctrl+N" Command="{Binding ClearSheetCommand}" />
 		<KeyBinding Gesture="Meta+N" Command="{Binding ClearSheetCommand}" />
 		<!-- Esc first tries to close the new-workspace dialog, then the workspace-settings dialog, then the
@@ -282,11 +290,11 @@
 				BorderBrush="{DynamicResource LineBrush}"
 				BorderThickness="0,1,0,0"
 				Padding="{DynamicResource AccessBarPadding}">
-			<Grid ColumnDefinitions="Auto,*,Auto">
-
-				<!-- Physics ▾ button + divider + chips (gap 9). -->
-				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9"
-							VerticalAlignment="Center">
+			<!-- Physics ▾ button + divider + chips (gap 9). All left-aligned: the static key-hint pills
+			     that used to sit at the far right are gone — every chip now carries its own hotkey and a
+			     descriptive tooltip ending in that hotkey. -->
+			<StackPanel Orientation="Horizontal" Spacing="9"
+						VerticalAlignment="Center">
 					<Button Name="WorkspaceSwitcherButton"
 							Background="{DynamicResource AccentBrush}"
 							Foreground="White"
@@ -373,15 +381,18 @@
 					<controls:Chip Glyph="x" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Variables" Count="{Binding CommandPalette.Variables.Count}"
-								   Command="{Binding CommandPalette.OpenVariablesCommand}" />
+								   Command="{Binding CommandPalette.OpenVariablesCommand}"
+								   ToolTip.Tip="{Binding VariablesTooltip}" />
 					<controls:Chip Glyph="m"
 								   GlyphForeground="{DynamicResource UnitHueBrush}"
 								   Label="Units" Count="{Binding CommandPalette.InputUnits.Count}"
-								   Command="{Binding CommandPalette.OpenUnitsCommand}" />
+								   Command="{Binding CommandPalette.OpenUnitsCommand}"
+								   ToolTip.Tip="{Binding UnitsTooltip}" />
 					<controls:Chip Glyph="f" GlyphFontStyle="Italic"
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Functions" Count="{Binding CommandPalette.Functions.Count}"
-								   Command="{Binding CommandPalette.OpenFunctionsCommand}" />
+								   Command="{Binding CommandPalette.OpenFunctionsCommand}"
+								   ToolTip.Tip="{Binding FunctionsTooltip}" />
 
 					<!-- Thin divider before the Saved Sheets chip: this is a separate library, not part of
 					     the workspace's variables / units / functions. -->
@@ -391,7 +402,8 @@
 					<controls:Chip Glyph="▤"
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Sheets" Count="{Binding SavedSheets.CountLabel}"
-								   Command="{Binding SavedSheets.OpenCommand}" />
+								   Command="{Binding SavedSheets.OpenCommand}"
+								   ToolTip.Tip="{Binding SheetsTooltip}" />
 
 					<!-- Clear sheet (⌘N / Ctrl+N): wipes the sheet to one empty focused line. Styled as a
 					     neutral chip, not a destructive button — the action is cheap and instantly
@@ -400,45 +412,8 @@
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Clear sheet"
 								   Command="{Binding ClearSheetCommand}"
-								   ToolTip.Tip="Clear sheet" />
-				</StackPanel>
-
-				<!-- ⌘K (Units) + ⌘O (Saved Sheets) key-hint pills at far right. -->
-				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
-							VerticalAlignment="Center">
-					<Border Background="{DynamicResource ChipBrush}"
-							BorderBrush="{DynamicResource ChipBorderBrush}"
-							BorderThickness="1"
-							CornerRadius="{DynamicResource PillCornerRadius}"
-							Padding="7,3">
-						<TextBlock Text="⌘K"
-								   FontFamily="{DynamicResource MonoFontFamily}"
-								   FontSize="11"
-								   Foreground="{DynamicResource MutBrush}" />
-					</Border>
-					<Border Background="{DynamicResource ChipBrush}"
-							BorderBrush="{DynamicResource ChipBorderBrush}"
-							BorderThickness="1"
-							CornerRadius="{DynamicResource PillCornerRadius}"
-							Padding="7,3">
-						<TextBlock Text="⌘O"
-								   FontFamily="{DynamicResource MonoFontFamily}"
-								   FontSize="11"
-								   Foreground="{DynamicResource MutBrush}" />
-					</Border>
-					<Border Background="{DynamicResource ChipBrush}"
-							BorderBrush="{DynamicResource ChipBorderBrush}"
-							BorderThickness="1"
-							CornerRadius="{DynamicResource PillCornerRadius}"
-							Padding="7,3"
-							ToolTip.Tip="Clear sheet">
-						<TextBlock Text="⌘N"
-								   FontFamily="{DynamicResource MonoFontFamily}"
-								   FontSize="11"
-								   Foreground="{DynamicResource MutBrush}" />
-					</Border>
-				</StackPanel>
-			</Grid>
+								   ToolTip.Tip="{Binding ClearSheetTooltip}" />
+			</StackPanel>
 		</Border>
 	</Grid>
 
