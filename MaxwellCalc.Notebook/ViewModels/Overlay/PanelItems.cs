@@ -69,13 +69,22 @@ public sealed record InputUnitItem
 public abstract record OutputRow;
 
 /// <summary>
-/// A section header row in the Output-units list: the physical-quantity label (Length, Mass, …) shown
-/// above the units in that group.
+/// A section header row in the Output-units list: the physical-quantity label (Length, Mass, …).
+/// Carries the base <see cref="Unit"/> it maps to so the header can be renamed (writing back to
+/// <c>workspace.UnitCategories</c>). <see cref="IsEditing"/> is part of the record's value identity,
+/// so toggling it makes the CollectionReconciler swap the realized container — which re-runs the
+/// template (and the rename field's Loaded autofocus).
 /// </summary>
 public sealed record OutputHeaderRow : OutputRow
 {
-    /// <summary>Gets the physical-quantity label for the group.</summary>
+    /// <summary>Gets the physical-quantity label for the group (display, upper-cased).</summary>
     public required string Label { get; init; }
+
+    /// <summary>Gets the base unit this category is keyed by in <c>UnitCategories</c>.</summary>
+    public required Unit CategoryKey { get; init; }
+
+    /// <summary>Gets whether this header is currently in inline-edit mode.</summary>
+    public bool IsEditing { get; init; }
 }
 
 /// <summary>

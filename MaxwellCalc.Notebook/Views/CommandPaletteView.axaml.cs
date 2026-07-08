@@ -1,8 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using MaxwellCalc.Notebook.ViewModels;
+using MaxwellCalc.Notebook.ViewModels.Overlay;
 using System;
 using System.ComponentModel;
 
@@ -61,6 +63,18 @@ public partial class CommandPaletteView : UserControl
                 search.SelectAll();
             }
         }, DispatcherPriority.Loaded);
+    }
+
+    // Autofocus the inline rename field when a category header enters edit mode. Because IsEditing is
+    // part of OutputHeaderRow's value identity, the reconciler realizes a fresh container (and TextBox)
+    // when editing begins, so this Loaded fires exactly then. Focus + select the current name.
+    private void OnRenameFieldLoaded(object? sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox tb && tb.DataContext is OutputHeaderRow { IsEditing: true })
+        {
+            tb.Focus();
+            tb.SelectAll();
+        }
     }
 
     // Close on a click that lands on the scrim itself; clicks inside the card report the card (or a

@@ -97,6 +97,19 @@
 			<Setter Property="Foreground" Value="{DynamicResource ErrBrush}" />
 		</Style>
 
+		<!-- Ghost icon button for the ✎ rename pencil in a category header. -->
+		<Style Selector="Button.headerIcon">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="3" />
+			<Setter Property="CornerRadius" Value="5" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+		</Style>
+		<Style Selector="Button.headerIcon:pointerover">
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+		</Style>
+
 		<!-- Segmented Input/Output tab buttons. -->
 		<Style Selector="Button.tab">
 			<Setter Property="Background" Value="Transparent" />
@@ -408,7 +421,38 @@
 										</ItemsControl.ItemsPanel>
 										<ItemsControl.DataTemplates>
 											<DataTemplate DataType="overlay:OutputHeaderRow">
-												<TextBlock Classes="sectionLabel" Text="{Binding Label}" />
+												<Panel Margin="0,14,0,7">
+
+													<!-- DISPLAY MODE -->
+													<Grid IsVisible="{Binding !IsEditing}"
+														  ColumnDefinitions="Auto,Auto" ColumnSpacing="7">
+														<TextBlock Grid.Column="0" Classes="sectionLabel" Margin="0"
+																   VerticalAlignment="Center" Text="{Binding Label}" />
+														<Button Grid.Column="1" Classes="headerIcon"
+																ToolTip.Tip="Rename category"
+																Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.BeginRenameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+																CommandParameter="{Binding}">
+															<materialIcons:MaterialIcon Kind="Pencil" Width="13" Height="13" />
+														</Button>
+													</Grid>
+
+													<!-- EDIT MODE -->
+													<Grid IsVisible="{Binding IsEditing}"
+														  ColumnDefinitions="*,Auto" ColumnSpacing="7">
+														<TextBox Grid.Column="0" Classes="addField"
+																 Loaded="OnRenameFieldLoaded"
+																 Text="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.CategoryDraft, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}">
+															<TextBox.KeyBindings>
+																<KeyBinding Gesture="Enter"
+																			Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.CommitRenameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+																<KeyBinding Gesture="Escape"
+																			Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.CancelRenameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+															</TextBox.KeyBindings>
+														</TextBox>
+														<Button Grid.Column="1" Classes="add" Content="Save"
+																Command="{Binding ((vm:CommandPaletteViewModel)DataContext).OutputUnits.CommitRenameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+													</Grid>
+												</Panel>
 											</DataTemplate>
 											<DataTemplate DataType="overlay:OutputUnitItem">
 												<Border Classes="paletteRow">

@@ -4,6 +4,7 @@ using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Notebook.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -34,6 +35,14 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     /// <summary>Gets or sets the footer's definition field (value in base units).</summary>
     [ObservableProperty]
     private string _newDefinition = string.Empty;
+
+    /// <summary>The base unit of the category currently being renamed, or null when not editing.</summary>
+    [ObservableProperty]
+    private Unit? _editingCategoryKey;
+
+    /// <summary>The text bound to the inline rename field.</summary>
+    [ObservableProperty]
+    private string _categoryDraft = string.Empty;
 
     /// <summary>Gets or sets the inline error shown when an add fails.</summary>
     [ObservableProperty]
@@ -109,28 +118,122 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     /// <inheritdoc />
     protected override int Compare(OutputUnitItem a, OutputUnitItem b)
     {
-        // Order by physical-quantity group first, then by unit label, so grouping is contiguous.
+        // Order by the STABLE default category so renaming a group doesn't move it in the list.
         int byGroup = StringComparer.OrdinalIgnoreCase.Compare(
-            CategoryLabel(a.Definition.Unit),
-            CategoryLabel(b.Definition.Unit));
+            DefaultCategoryLabel(a.Definition.Unit),
+            DefaultCategoryLabel(b.Definition.Unit));
         if (byGroup != 0)
             return byGroup;
         return StringComparer.OrdinalIgnoreCase.Compare(a.Label, b.Label);
     }
 
     /// <inheritdoc />
-    protected override void OnItemsChanged()
+    protected override void OnItemsChanged() => RebuildRows();
+
+    /// <summary>
+    /// Flattens the (default-category-then-label sorted) items into header + unit rows, tagging each
+    /// header with its rename/edit state, then reconciles in place. Re-called after a rename/reset since
+    /// UnitCategories isn't observable.
+    /// </summary>
+    private void RebuildRows()
     {
-        // Flatten the (already category-then-label sorted) items into header + unit rows, then reconcile
-        // in place so an add/remove only touches the affected rows — see CollectionReconciler.
         var rows = new List<OutputRow>(Items.Count);
-        foreach (var group in Items.GroupBy(item => CategoryLabel(item.Definition.Unit)))
+        // Group by the base unit itself so each header maps 1:1 to a UnitCategories key.
+        foreach (var group in Items.GroupBy(item => item.Definition.Unit))
         {
-            rows.Add(new OutputHeaderRow { Label = group.Key });
+            Unit key = group.Key;
+            rows.Add(new OutputHeaderRow
+            {
+                Label = CategoryLabel(key),
+                CategoryKey = key,
+                IsEditing = EditingCategoryKey is { } editing && editing.Equals(key),
+            });
             foreach (var item in group)
                 rows.Add(item);
         }
         CollectionReconciler.Reconcile(Rows, rows);
+    }
+
+    /// <summary>Enters inline-edit mode for a category header (the ✎ pencil).</summary>
+    [RelayCommand]
+    private void BeginRename(OutputHeaderRow row)
+    {
+        EditingCategoryKey = row.CategoryKey;
+        // Seed with the raw stored name (case preserved), not row.Label — the label is upper-cased purely
+        // for display, but editing operates on the real under-the-hood value.
+        CategoryDraft = RawCategoryName(row.CategoryKey);
+        RebuildRows();
+    }
+
+    /// <summary>Commits the inline rename (Save button / Enter).</summary>
+    [RelayCommand]
+    private void CommitRename()
+    {
+        if (EditingCategoryKey is not { } key)
+            return;
+
+        var workspace = WorkspaceState.Workspace;
+        string name = CategoryDraft.Trim();
+        if (workspace is not null)
+        {
+            // Empty, or an exact (case-sensitive) match of the built-in default, clears the override;
+            // otherwise store the new name verbatim so its casing is preserved under the hood.
+            if (name.Length == 0 ||
+                string.Equals(name, DefaultCategoryName(key), StringComparison.Ordinal))
+            {
+                ResetCategoryEntry(workspace, key);
+            }
+            else
+            {
+                workspace.UnitCategories[key] = name;
+            }
+        }
+
+        EditingCategoryKey = null;
+        CategoryDraft = string.Empty;
+        RebuildRows();
+    }
+
+    /// <summary>Cancels inline editing without saving (Esc).</summary>
+    [RelayCommand]
+    private void CancelRename()
+    {
+        EditingCategoryKey = null;
+        CategoryDraft = string.Empty;
+        RebuildRows();
+    }
+
+    // Restore the seeded default (or remove the entry entirely when the unit had no built-in category).
+    // Used by CommitRename when the typed name is empty or matches the built-in default.
+    private static void ResetCategoryEntry(IWorkspace workspace, Unit key)
+    {
+        if (DefaultCategories.TryGetValue(key, out var seeded))
+            workspace.UnitCategories[key] = seeded;
+        else
+            workspace.UnitCategories.Remove(key);
+    }
+
+    // Built-in category names, captured once from a pristine workspace. Used to (a) order groups by a
+    // STABLE key so a rename doesn't re-sort the list, and (b) restore the default on Reset.
+    private static readonly Dictionary<Unit, string> DefaultCategories =
+        WorkspaceState.CreateDefaultWorkspace().UnitCategories;
+
+    /// <summary>The built-in (pre-rename) label for a base unit, upper-cased; base-unit string as fallback.</summary>
+    private static string DefaultCategoryLabel(Unit baseUnit)
+    {
+        if (DefaultCategories.TryGetValue(baseUnit, out var category))
+            return category.ToUpperInvariant();
+        string key = baseUnit.ToString();
+        return key.Length == 0 ? "Dimensionless" : key;
+    }
+
+    /// <summary>The built-in (pre-rename) name for a base unit with its original casing; base-unit string as fallback.</summary>
+    private static string DefaultCategoryName(Unit baseUnit)
+    {
+        if (DefaultCategories.TryGetValue(baseUnit, out var category))
+            return category;
+        string key = baseUnit.ToString();
+        return key.Length == 0 ? "Dimensionless" : key;
     }
 
     /// <summary>
@@ -146,6 +249,22 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
         var categories = WorkspaceState.Workspace?.UnitCategories;
         if (categories is not null && categories.TryGetValue(baseUnit, out var category))
             return category.ToUpperInvariant();
+        string key = baseUnit.ToString();
+        return key.Length == 0 ? "Dimensionless" : key;
+    }
+
+    /// <summary>
+    /// Gets the underlying category name with its original casing (what the inline rename field edits),
+    /// as opposed to <see cref="CategoryLabel"/> which upper-cases it for display. Falls back to the base
+    /// unit's own string when it has no category entry.
+    /// </summary>
+    /// <param name="baseUnit">The base unit.</param>
+    /// <returns>The stored category name, or the base unit's string when it has no category.</returns>
+    private string RawCategoryName(Unit baseUnit)
+    {
+        var categories = WorkspaceState.Workspace?.UnitCategories;
+        if (categories is not null && categories.TryGetValue(baseUnit, out var category))
+            return category;
         string key = baseUnit.ToString();
         return key.Length == 0 ? "Dimensionless" : key;
     }
