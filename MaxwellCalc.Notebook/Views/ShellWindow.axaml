@@ -156,6 +156,11 @@
 		<!-- ⌘O / Ctrl+O opens the Saved Sheets palette. -->
 		<KeyBinding Gesture="Ctrl+O" Command="{Binding SavedSheets.OpenCommand}" />
 		<KeyBinding Gesture="Meta+O" Command="{Binding SavedSheets.OpenCommand}" />
+		<!-- ⌘N / Ctrl+N clears the current sheet back to one empty, focused line (no confirmation). It
+		     closes any open overlay first and fires regardless of which line editor has focus (Ctrl+N
+		     bubbles up here, like ⌘K / ⌘O). -->
+		<KeyBinding Gesture="Ctrl+N" Command="{Binding ClearSheetCommand}" />
+		<KeyBinding Gesture="Meta+N" Command="{Binding ClearSheetCommand}" />
 		<!-- Esc first tries to close the new-workspace dialog, then the workspace-settings dialog, then the
 		     Saved Sheets palette (each guarded by its CanExecute, so it only fires when that overlay is
 		     open — the top-most overlay closes first); when none of those are open the command palette's
@@ -387,6 +392,15 @@
 								   GlyphForeground="{DynamicResource AccentBrush}"
 								   Label="Sheets" Count="{Binding SavedSheets.CountLabel}"
 								   Command="{Binding SavedSheets.OpenCommand}" />
+
+					<!-- Clear sheet (⌘N / Ctrl+N): wipes the sheet to one empty focused line. Styled as a
+					     neutral chip, not a destructive button — the action is cheap and instantly
+					     recoverable. The ⌦ (delete-forward) glyph renders in the accent color. -->
+					<controls:Chip Glyph="⌦"
+								   GlyphForeground="{DynamicResource AccentBrush}"
+								   Label="Clear sheet"
+								   Command="{Binding ClearSheetCommand}"
+								   ToolTip.Tip="Clear sheet" />
 				</StackPanel>
 
 				<!-- ⌘K (Units) + ⌘O (Saved Sheets) key-hint pills at far right. -->
@@ -408,6 +422,17 @@
 							CornerRadius="{DynamicResource PillCornerRadius}"
 							Padding="7,3">
 						<TextBlock Text="⌘O"
+								   FontFamily="{DynamicResource MonoFontFamily}"
+								   FontSize="11"
+								   Foreground="{DynamicResource MutBrush}" />
+					</Border>
+					<Border Background="{DynamicResource ChipBrush}"
+							BorderBrush="{DynamicResource ChipBorderBrush}"
+							BorderThickness="1"
+							CornerRadius="{DynamicResource PillCornerRadius}"
+							Padding="7,3"
+							ToolTip.Tip="Clear sheet">
+						<TextBlock Text="⌘N"
 								   FontFamily="{DynamicResource MonoFontFamily}"
 								   FontSize="11"
 								   Foreground="{DynamicResource MutBrush}" />

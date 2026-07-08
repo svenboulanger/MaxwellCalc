@@ -128,6 +128,32 @@ public partial class SheetViewModel : ViewModelBase
         Evaluate();
     }
 
+    /// <summary>
+    /// Clears the sheet back to a single empty, focused line (the "Clear sheet" chip and ⌘N / Ctrl+N) and
+    /// persists immediately. Only the current sheet's editor lines are reset — the active workspace and its
+    /// units, variables, functions and settings, and the Saved Sheets library, are all left untouched.
+    /// There is deliberately no confirmation: clearing is cheap and recoverable by retyping or recalling a
+    /// saved sheet.
+    /// </summary>
+    public void ClearSheet()
+    {
+        _suppressEvaluation = true;
+        try
+        {
+            Lines.Clear();
+            Lines.Add(new LineViewModel { CaretIndex = 0 });
+        }
+        finally
+        {
+            _suppressEvaluation = false;
+        }
+
+        Evaluate();
+        Save();
+        FocusedLineIndex = 0;
+        FocusRequested?.Invoke(0);
+    }
+
     // ---- Persistence (Step 11) ---------------------------------------------------------------
 
     /// <summary>
