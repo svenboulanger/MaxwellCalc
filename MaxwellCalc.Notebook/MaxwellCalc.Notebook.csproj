@@ -30,5 +30,7 @@
 
   <ItemGroup>
     <AvaloniaResource Remove="maxwell_calc.ico" />
+    <!-- Runtime window/taskbar icon (the .ico above is the Win32 exe icon only). -->
+    <AvaloniaResource Include="Assets\maxwell-icon.png" />
   </ItemGroup>
 </Project>
