@@ -209,6 +209,7 @@ public static class UnitHelper
     {
         if (outputUnit.Dimension is null || baseUnits.Dimension is null)
             throw new ArgumentException("Dimension cannot be null", nameof(outputUnit));
+        Fraction dimPower = outputUnit.Dimension.First(u => u.Key == dimension).Value * power;
 
         if (power != 1)
             baseUnits = new Unit([.. baseUnits.Dimension.Select(p => (p.Key, p.Value * power))]);
@@ -220,37 +221,37 @@ public static class UnitHelper
             => new([.. outputUnit.Dimension.Select(p => (p.Key == dimension ? $"{prefix}{p.Key}" : p.Key, p.Value * power))]);
         if (atto)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("a"), new Quantity<string>($"1e-{18 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("a"), new Quantity<string>($"1e-{18 * dimPower}", baseUnits)))
                 return false;
         }
         if (femto)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("f"), new Quantity<string>($"1e-{15 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("f"), new Quantity<string>($"1e-{15 * dimPower}", baseUnits)))
                 return false;
         }
         if (pico)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("p"), new Quantity<string>($"1e-{12 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("p"), new Quantity<string>($"1e-{12 * dimPower}", baseUnits)))
                 return false;
         }
         if (nano)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("n"), new Quantity<string>($"1e-{9 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("n"), new Quantity<string>($"1e-{9 * dimPower}", baseUnits)))
                 return false;
         }
         if (micro)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("u"), new Quantity<string>($"1e-{6 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("u"), new Quantity<string>($"1e-{6 * dimPower}", baseUnits)))
                 return false;
         }
         if (milli)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("m"), new Quantity<string>($"1e-{3 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("m"), new Quantity<string>($"1e-{3 * dimPower}", baseUnits)))
                 return false;
         }
         if (centi)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>($"1e-{2 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>($"1e-{2 * dimPower}", baseUnits)))
                 return false;
         }
         {
@@ -260,27 +261,27 @@ public static class UnitHelper
         }
         if (kilo)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>($"1e{3 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>($"1e{3 * dimPower}", baseUnits)))
                 return false;
         }
         if (mega)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("M"), new Quantity<string>($"1e{6 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("M"), new Quantity<string>($"1e{6 * dimPower}", baseUnits)))
                 return false;
         }
         if (giga)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("G"), new Quantity<string>($"1e{9 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("G"), new Quantity<string>($"1e{9 * dimPower}", baseUnits)))
                 return false;
         }
         if (tera)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("T"), new Quantity<string>($"1e{12 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("T"), new Quantity<string>($"1e{12 * dimPower}", baseUnits)))
                 return false;
         }
         if (peta)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("P"), new Quantity<string>($"1e{15 * power}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("P"), new Quantity<string>($"1e{15 * dimPower}", baseUnits)))
                 return false;
         }
         return true;
@@ -361,7 +362,7 @@ public static class UnitHelper
 
         // Ampere squared (variance)
         workspace.TryRegisterModifierOutputUnits(Unit.UnitAmperes, Unit.UnitAmperes, Unit.Ampere, "current squared",
-            pico: true, nano: true, micro: true, milli: true, kilo: true, power: 2);
+            femto: true, pico: true, nano: true, micro: true, milli: true, kilo: true, power: 2);
 
         // Kelvin
         workspace.TryRegisterModifierInputOutputUnits(Unit.Kelvin, Unit.UnitKelvin, "temperature",
@@ -375,7 +376,7 @@ public static class UnitHelper
         workspace.TryRegisterModifierInputOutputUnits(Unit.Candela, Unit.UnitCandela, "luminous intensity");
 
         // Candela squared
-        workspace.TryRegisterModifierOutputUnits(Unit.UnitCandela, Unit.UnitCandela, "luminous intensity squared",
+        workspace.TryRegisterModifierOutputUnits(Unit.UnitCandela, Unit.UnitCandela, Unit.Candela, "luminous intensity squared",
             power: 2);
 
         // Angle
@@ -468,6 +469,7 @@ public static class UnitHelper
 
         // Volts per second - slew rate
         u = new(("V", 1), (Unit.Second, -1));
+        bu = new Unit((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -4), (Unit.Ampere, -1));
         workspace.TryRegisterModifierOutputUnits(u, bu, "V", "slew rate");
         workspace.TryRegisterModifierOutputUnits(u, bu, "V", "slew rate squared",
             power: 2);
@@ -550,6 +552,22 @@ public static class UnitHelper
         workspace.TryRegisterOutputUnit(new(("pA", 1), ("cm", -2)), new("1e-8", bu), "current density");
         workspace.TryRegisterOutputUnit(new(("nA", 1), ("cm", -2)), new("1e-5", bu));
         workspace.TryRegisterOutputUnit(new(("uA", 1), ("cm", -2)), new("1e-2", bu));
+
+        // Ampere noise power spectral density
+        u = new((Unit.Ampere, 1), ("Hz", new Fraction(-1, 2)));
+        bu = new Unit((Unit.Ampere, 1), (Unit.Second, new Fraction(1, 2)));
+        workspace.TryRegisterModifierOutputUnits(u, bu, Unit.Ampere, "ampere noise power spectral density",
+            femto: true, pico: true, nano: true, micro: true, milli: true);
+        workspace.TryRegisterModifierOutputUnits(u, bu, Unit.Ampere, "ampere noise spectral density",
+            femto: true, pico: true, nano: true, micro: true, milli: true, power: 2);
+
+        // Voltage noise power spectral density
+        u = new(("V", 1), ("Hz", new Fraction(-1, 2)));
+        bu = new Unit((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -3 + new Fraction(1, 2)), (Unit.Ampere, -1));
+        workspace.TryRegisterModifierOutputUnits(u, bu, "V", "volt noise power spectral density",
+            femto: true, pico: true, nano: true, micro: true, milli: true);
+        workspace.TryRegisterModifierOutputUnits(u, bu, "V", "volt noise power spectral density",
+            femto: true, pico: true, nano: true, micro: true, milli: true, power: 2);
 
         // Bits
         bu = new Unit(("bit", 1));
