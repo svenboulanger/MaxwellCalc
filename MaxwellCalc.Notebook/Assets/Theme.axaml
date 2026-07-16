@@ -38,6 +38,9 @@
 					<SolidColorBrush x:Key="OverlayBrush" Color="#29141412" />   <!-- rgba(20,20,18,.16) -->
 					<SolidColorBrush x:Key="AccentBrush" Color="#1666AA" />      <!-- oklch(0.5 0.13 250) -->
 					<SolidColorBrush x:Key="ConstPillBackground" Color="#1A2A78D6" /><!-- rgba(42,120,214,.1) -->
+					<!-- Editor selection wash: translucent so the highlighted tokens show through the
+					     selection rectangle (the editor sits over the colored backdrop). -->
+					<SolidColorBrush x:Key="EditorSelectionBrush" Color="#4D2A78D6" /><!-- rgba(42,120,214,.3) -->
 
 					<!-- Unit-hue presets: oklch(0.52 0.13 H). Wash = same hue at ~0.12 alpha. -->
 					<SolidColorBrush x:Key="UnitHueAmberBrush" Color="#9D5300" />   <!-- H=60 -->
@@ -70,6 +73,9 @@
 					<SolidColorBrush x:Key="OverlayBrush" Color="#80000000" />   <!-- rgba(0,0,0,.5) -->
 					<SolidColorBrush x:Key="AccentBrush" Color="#67B0F9" />      <!-- oklch(0.74 0.13 250) -->
 					<SolidColorBrush x:Key="ConstPillBackground" Color="#2978AAFF" /><!-- rgba(120,170,255,.16) -->
+					<!-- Editor selection wash: translucent so the highlighted tokens show through the
+					     selection rectangle (the editor sits over the colored backdrop). -->
+					<SolidColorBrush x:Key="EditorSelectionBrush" Color="#4D78AAFF" /><!-- rgba(120,170,255,.3) -->
 
 					<!-- Unit-hue presets: oklch(0.82 0.11 H). Wash = same hue at ~0.16 alpha. -->
 					<SolidColorBrush x:Key="UnitHueAmberBrush" Color="#F9B379" />   <!-- H=60 -->
@@ -198,6 +204,18 @@
 			     the colored backdrop. Kept as its own theme because a ControlTheme's nested styles may
 			     cross only one template boundary. -->
 			<ControlTheme x:Key="EditorTextBoxTheme" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+				<!-- Keep the editor text transparent in EVERY state so the colored PART_Display shows
+				     through. The base Fluent TextBox theme forces an opaque Foreground on :pointerover
+				     and :focus (StyleTrigger priority), which outranks the template attribute and would
+				     otherwise paint solid text over the highlight while typing or hovering. -->
+				<Setter Property="Foreground" Value="Transparent" />
+				<Setter Property="SelectionForegroundBrush" Value="Transparent" />
+				<Style Selector="^:pointerover">
+					<Setter Property="Foreground" Value="Transparent" />
+				</Style>
+				<Style Selector="^:focus">
+					<Setter Property="Foreground" Value="Transparent" />
+				</Style>
 				<Style Selector="^ /template/ Border#PART_BorderElement">
 					<Setter Property="Background" Value="Transparent" />
 					<Setter Property="BorderThickness" Value="0" />
@@ -245,7 +263,7 @@
 									 FontSize="{TemplateBinding FontSize}"
 									 Foreground="Transparent"
 									 CaretBrush="{DynamicResource AccentBrush}"
-									 SelectionBrush="{DynamicResource TextControlSelectionHighlightColor}"
+									 SelectionBrush="{DynamicResource EditorSelectionBrush}"
 									 SelectionForegroundBrush="Transparent"
 									 Background="Transparent"
 									 BorderThickness="0"
