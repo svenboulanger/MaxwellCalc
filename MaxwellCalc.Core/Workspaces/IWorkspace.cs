@@ -127,6 +127,16 @@ public interface IWorkspace : IDiagnosticsHandler
     public bool TryAssignInputUnit(string key, INode node);
 
     /// <summary>
+    /// Tries to register a brand-new base unit under <paramref name="symbol"/>. A base unit is its own
+    /// dimension with no derivation from SI (e.g. electrons, DN, pixels): the symbol resolves to one of
+    /// itself on input and is offered back as an output unit so quantities carrying the dimension render
+    /// with the symbol. Fails if the symbol is already an input unit.
+    /// </summary>
+    /// <param name="symbol">The symbol of the new base unit.</param>
+    /// <returns>Returns <c>true</c> if the base unit was registered; otherwise, <c>false</c>.</returns>
+    public bool TryAssignBaseUnit(string symbol);
+
+    /// <summary>
     /// Tries to remove an output unit from the workspace.
     /// </summary>
     /// <param name="key">The output unit pair.</param>

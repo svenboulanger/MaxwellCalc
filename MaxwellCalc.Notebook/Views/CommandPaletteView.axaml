@@ -581,7 +581,7 @@
 										</TextBox.KeyBindings>
 									</TextBox>
 									<TextBlock Grid.Column="2" Classes="addSeparator" Text="=" />
-									<TextBox Grid.Column="3" Classes="addField" Text="{Binding NewDefinition}" PlaceholderText="value in base units">
+									<TextBox Grid.Column="3" Classes="addField" Text="{Binding NewDefinition}" PlaceholderText="value in base units — blank for a new base unit">
 										<TextBox.KeyBindings>
 											<KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
 										</TextBox.KeyBindings>

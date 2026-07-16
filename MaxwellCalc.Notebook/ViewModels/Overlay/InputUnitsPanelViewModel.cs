@@ -42,14 +42,16 @@ public sealed partial class InputUnitsPanelViewModel : FilteredPanelViewModel<In
     }
 
     /// <summary>
-    /// Adds an input unit from the footer fields. The definition is parsed under a restricted workspace
-    /// (units allowed but not resolved to input/output units) then assigned via
-    /// <c>TryAssignInputUnit</c>, mirroring the old <c>InputUnitsViewModel.AddInputUnit</c> flow.
+    /// Adds an input unit from the footer fields. With a definition, it is parsed under a restricted
+    /// workspace (units allowed but not resolved to input/output units) then assigned via
+    /// <c>TryAssignInputUnit</c>, mirroring the old <c>InputUnitsViewModel.AddInputUnit</c> flow. With the
+    /// definition left blank, the symbol is registered as a brand-new base unit (its own dimension, no SI
+    /// derivation — e.g. electrons, DN, pixels) via <c>TryAssignBaseUnit</c>.
     /// </summary>
     [RelayCommand]
     private void Add()
     {
-        if (string.IsNullOrWhiteSpace(NewSymbol) || string.IsNullOrWhiteSpace(NewDefinition))
+        if (string.IsNullOrWhiteSpace(NewSymbol))
             return;
 
         string symbol = NewSymbol.Trim();
@@ -59,19 +61,28 @@ public sealed partial class InputUnitsPanelViewModel : FilteredPanelViewModel<In
             return;
         }
 
-        ErrorMessage = RunWithDiagnostics(workspace =>
+        // A blank definition means "this symbol is a fundamental unit of its own" — there is nothing to
+        // express it in terms of, so register it as a new base dimension rather than a derived unit.
+        if (string.IsNullOrWhiteSpace(NewDefinition))
         {
-            var oldState = workspace.Restrict(false, false, true, false, false);
-            try
+            ErrorMessage = RunWithDiagnostics(workspace => workspace.TryAssignBaseUnit(symbol));
+        }
+        else
+        {
+            ErrorMessage = RunWithDiagnostics(workspace =>
             {
-                var node = Parser.Parse(new Lexer(NewDefinition), workspace);
-                return node is not null && workspace.TryAssignInputUnit(symbol, node);
-            }
-            finally
-            {
-                workspace.Restore(oldState);
-            }
-        });
+                var oldState = workspace.Restrict(false, false, true, false, false);
+                try
+                {
+                    var node = Parser.Parse(new Lexer(NewDefinition), workspace);
+                    return node is not null && workspace.TryAssignInputUnit(symbol, node);
+                }
+                finally
+                {
+                    workspace.Restore(oldState);
+                }
+            });
+        }
 
         if (ErrorMessage is null)
         {

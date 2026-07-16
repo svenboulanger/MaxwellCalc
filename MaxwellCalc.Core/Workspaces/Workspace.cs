@@ -537,7 +537,7 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         {
             if (InputUnits.TryGetValue(unit.Content.ToString(), out result))
                 return true;
-            PostDiagnosticMessage(new($"Could not recognize unit '{unit}'."));
+            PostDiagnosticMessage(new($"Could not recognize unit '{unit.Content}'."));
             return false;
         }
 
@@ -669,6 +669,30 @@ public class Workspace<T> : IWorkspace<T> where T : struct, IFormattable
         {
             ResolveInputUnits = oldResolveInputUnits;
         }
+    }
+
+    /// <inheritdoc />
+    public bool TryAssignBaseUnit(string symbol)
+    {
+        symbol = symbol?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(symbol))
+        {
+            PostDiagnosticMessage(new("A base unit needs a symbol."));
+            return false;
+        }
+        if (InputUnits.ContainsKey(symbol))
+        {
+            PostDiagnosticMessage(new($"'{symbol}' is already a unit."));
+            return false;
+        }
+
+        // A base unit is its own dimension. Register it both as an input unit (so the symbol resolves to
+        // one of itself) and as an output unit mapping the dimension back to the symbol (so results carrying
+        // it render as e.g. "5 e"), mirroring how UnitHelper.TryRegisterInputOutputUnit registers SI units.
+        var dimension = new Unit((symbol, 1));
+        InputUnits[symbol] = new Quantity<T>(Resolver.One, dimension);
+        OutputUnits[new OutputUnitKey(dimension, dimension)] = Resolver.One;
+        return true;
     }
 
     /// <inheritdoc />
