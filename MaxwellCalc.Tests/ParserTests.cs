@@ -12,7 +12,7 @@ public class ParserTests
     public void When_Expression_Expect_Reference(string expression, Quantity<double> expected)
     {
         var dws = new Workspace<double>(new DoubleDomain());
-        dws.RegisterCommonUnits();
+        dws.RegisterCommonPhysicsUnits();
 
         // Parse
         var lexer = new Lexer(expression);

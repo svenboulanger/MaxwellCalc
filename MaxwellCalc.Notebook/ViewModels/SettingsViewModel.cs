@@ -533,10 +533,10 @@ public partial class SettingsViewModel : ViewModelBase
         switch (SettingsTarget?.Workspace)
         {
             case IWorkspace<double> real:
-                real.RegisterCommonUnits();
+                real.RegisterCommonPhysicsUnits();
                 break;
             case IWorkspace<Complex> complex:
-                complex.RegisterCommonUnits();
+                complex.RegisterCommonPhysicsUnits();
                 break;
             default:
                 return;

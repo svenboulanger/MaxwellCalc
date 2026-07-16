@@ -58,7 +58,7 @@ public partial class WorkspaceState : ViewModelBase
     public static Workspace<double> CreateDefaultWorkspace()
     {
         var workspace = new Workspace<double>(new DoubleDomain()) { AnswerVariable = "ans" };
-        workspace.RegisterCommonUnits();
+        workspace.RegisterCommonPhysicsUnits();
         workspace.RegisterConstants(typeof(DoubleMathHelper));
         workspace.RegisterBuiltInMethods(typeof(DoubleMathHelper));
         return workspace;
@@ -72,7 +72,7 @@ public partial class WorkspaceState : ViewModelBase
     public static Workspace<Complex> CreateComplexWorkspace()
     {
         var workspace = new Workspace<Complex>(new ComplexDomain()) { AnswerVariable = "ans" };
-        workspace.RegisterCommonUnits();
+        workspace.RegisterCommonPhysicsUnits();
         workspace.RegisterConstants(typeof(ComplexMathHelper));
         workspace.RegisterBuiltInMethods(typeof(ComplexMathHelper));
         return workspace;

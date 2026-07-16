@@ -290,8 +290,10 @@ public static class UnitHelper
     /// Registers common units.
     /// </summary>
     /// <param name="workspace">The workspace.</param>
-    public static void RegisterCommonUnits<T>(this IWorkspace<T> workspace) where T : IFormattable
+    public static void RegisterCommonPhysicsUnits<T>(this IWorkspace<T> workspace) where T : IFormattable
     {
+        Unit u, bu;
+
         // Length
         workspace.TryRegisterModifierInputOutputUnits(Unit.Meter, Unit.UnitMeter, "length",
             nano: true, micro: true, milli: true, centi: true, kilo: true);
@@ -380,7 +382,26 @@ public static class UnitHelper
         workspace.UnitCategories[Unit.UnitRadian] = "angle";
         workspace.TryRegisterInputOutputUnit("rad", Unit.UnitRadian, "1");
 
+        // Angle squared
         workspace.TryRegisterOutputUnit(new Unit((Unit.Radian, 2)), new Quantity<string>("1", new((Unit.Radian, 2))), "angle squared");
+
+        // Joules
+        u = new(("J", 1));
+        bu = new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2));
+        workspace.TryRegisterModifierInputOutputUnits("J", bu, "energy",
+            pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true);
+        workspace.TryRegisterModifierOutputUnits(u, bu, "J", "energy squared",
+            pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true, power: 2);
+
+        // Joules seconds (Planck constant)
+        u = new(("J", 1), (Unit.Second, 1));
+        bu = new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -1));
+        workspace.TryRegisterModifierOutputUnits(u, bu, "J", "Planck constant units");
+
+        // Joules per Kelvin (Boltzmann constant)
+        u = new(("J", 1), (Unit.Kelvin, -1));
+        bu = new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2), (Unit.Kelvin, -1));
+        workspace.TryRegisterModifierOutputUnits(u, bu, "J", "Boltzmann constant units");
     }
 
     /// <summary>
@@ -458,19 +479,6 @@ public static class UnitHelper
             pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true);
         workspace.TryRegisterModifierOutputUnits(u, bu, "W", "power squared",
             pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true, power: 2);
-
-        // Joules
-        u = new(("J", 1));
-        bu = new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2));
-        workspace.TryRegisterModifierInputOutputUnits("J", bu, "energy",
-            pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true);
-        workspace.TryRegisterModifierOutputUnits(u, bu, "J", "energy squared",
-            pico: true, nano: true, micro: true, milli: true, kilo: true, mega: true, giga: true, power: 2);
-
-        // Joules seconds (Planck constant)
-        u = new(("J", 1), (Unit.Second, 1));
-        bu = new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -1));
-        workspace.TryRegisterModifierOutputUnits(u, bu, "J", "Planck constant units");
 
         // Farad
         u = new(("F", 1));
