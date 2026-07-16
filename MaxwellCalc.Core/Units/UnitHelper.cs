@@ -221,37 +221,37 @@ public static class UnitHelper
             => new([.. outputUnit.Dimension.Select(p => (p.Key == dimension ? $"{prefix}{p.Key}" : p.Key, p.Value * power))]);
         if (atto)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("a"), new Quantity<string>($"1e-{18 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("a"), new Quantity<string>($"10^({-18 * dimPower})", baseUnits)))
                 return false;
         }
         if (femto)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("f"), new Quantity<string>($"1e-{15 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("f"), new Quantity<string>($"10^({-15 * dimPower})", baseUnits)))
                 return false;
         }
         if (pico)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("p"), new Quantity<string>($"1e-{12 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("p"), new Quantity<string>($"10^({-12 * dimPower})", baseUnits)))
                 return false;
         }
         if (nano)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("n"), new Quantity<string>($"1e-{9 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("n"), new Quantity<string>($"10^({-9 * dimPower})", baseUnits)))
                 return false;
         }
         if (micro)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("u"), new Quantity<string>($"1e-{6 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("u"), new Quantity<string>($"10^({-6 * dimPower})", baseUnits)))
                 return false;
         }
         if (milli)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("m"), new Quantity<string>($"1e-{3 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("m"), new Quantity<string>($"10^({-3 * dimPower})", baseUnits)))
                 return false;
         }
         if (centi)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>($"1e-{2 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("c"), new Quantity<string>($"10^({-2 * dimPower})", baseUnits)))
                 return false;
         }
         {
@@ -261,27 +261,27 @@ public static class UnitHelper
         }
         if (kilo)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>($"1e{3 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("k"), new Quantity<string>($"10^({3 * dimPower})", baseUnits)))
                 return false;
         }
         if (mega)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("M"), new Quantity<string>($"1e{6 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("M"), new Quantity<string>($"10^({6 * dimPower})", baseUnits)))
                 return false;
         }
         if (giga)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("G"), new Quantity<string>($"1e{9 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("G"), new Quantity<string>($"10^({9 * dimPower})", baseUnits)))
                 return false;
         }
         if (tera)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("T"), new Quantity<string>($"1e{12 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("T"), new Quantity<string>($"10^({12 * dimPower})", baseUnits)))
                 return false;
         }
         if (peta)
         {
-            if (!workspace.TryRegisterOutputUnit(GetUnit("P"), new Quantity<string>($"1e{15 * dimPower}", baseUnits)))
+            if (!workspace.TryRegisterOutputUnit(GetUnit("P"), new Quantity<string>($"10^({15 * dimPower})", baseUnits)))
                 return false;
         }
         return true;
