@@ -37,12 +37,29 @@ public partial class CommandPaletteView : UserControl
         base.OnDataContextChanged(e);
 
         if (_viewModel is not null)
+        {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _viewModel.OutputUnits.RevealRowRequested -= OnOutputRowRevealRequested;
+        }
 
         _viewModel = DataContext as CommandPaletteViewModel;
 
         if (_viewModel is not null)
+        {
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _viewModel.OutputUnits.RevealRowRequested += OnOutputRowRevealRequested;
+        }
+    }
+
+    // After a category rename re-sorts the output list, scroll the renamed group back into view. Posted at
+    // Loaded priority so the reconciled Rows have been laid out before ScrollIntoView measures them.
+    private void OnOutputRowRevealRequested(int index)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (this.FindControl<ItemsControl>("OutputUnitsList") is { } list && index >= 0 && index < list.ItemCount)
+                list.ScrollIntoView(index);
+        }, DispatcherPriority.Loaded);
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

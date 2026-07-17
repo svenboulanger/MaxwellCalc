@@ -415,7 +415,8 @@
 							     quantity followed by that group's unit rows (matched to templates by type). -->
 							<Panel IsVisible="{Binding IsOutputTab}">
 								<ScrollViewer HorizontalScrollBarVisibility="Disabled">
-									<ItemsControl ItemsSource="{Binding OutputUnits.Rows}"
+									<ItemsControl x:Name="OutputUnitsList"
+												  ItemsSource="{Binding OutputUnits.Rows}"
 												  Margin="{DynamicResource AddRowPadding}">
 										<ItemsControl.ItemsPanel>
 											<ItemsPanelTemplate>

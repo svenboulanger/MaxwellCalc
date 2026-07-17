@@ -52,6 +52,16 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     /// <summary>
+    /// Raised after a rename re-sorts and rebuilds <see cref="Rows"/>, carrying the new index of the
+    /// renamed category header so the view can scroll it back into view. A rename can move the group far
+    /// down the alphabetical order (past the viewport), so without this the renamed group would vanish.
+    /// </summary>
+    public event Action<int>? RevealRowRequested;
+
+    /// <summary>The category whose header should be revealed on the next rebuild, or null.</summary>
+    private Unit? _pendingRevealKey;
+
+    /// <summary>
     /// Creates a new <see cref="OutputUnitsPanelViewModel"/>.
     /// </summary>
     /// <param name="workspaceState">The shared workspace state.</param>
@@ -112,15 +122,16 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     /// <inheritdoc />
     protected override bool Matches(OutputUnitItem item, string filter)
         => item.Label.Contains(filter, StringComparison.OrdinalIgnoreCase)
-        || item.Definition.Unit.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase);
+        || item.Definition.Unit.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase)
+        || CategoryLabel(item.Definition.Unit).Contains(filter, StringComparison.OrdinalIgnoreCase);
 
     /// <inheritdoc />
     protected override int Compare(OutputUnitItem a, OutputUnitItem b)
     {
-        // Order by the STABLE default category so renaming a group doesn't move it in the list.
+        // Order alphabetically by the category as displayed (a rename re-sorts), then by unit label.
         int byGroup = StringComparer.OrdinalIgnoreCase.Compare(
-            DefaultCategoryLabel(a.Definition.Unit),
-            DefaultCategoryLabel(b.Definition.Unit));
+            CategoryLabel(a.Definition.Unit),
+            CategoryLabel(b.Definition.Unit));
         if (byGroup != 0)
             return byGroup;
         return StringComparer.OrdinalIgnoreCase.Compare(a.Label, b.Label);
@@ -151,6 +162,20 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
                 rows.Add(item);
         }
         CollectionReconciler.Reconcile(Rows, rows);
+
+        // After a rename re-sort, ask the view to scroll the renamed group back into view.
+        if (_pendingRevealKey is { } revealKey)
+        {
+            _pendingRevealKey = null;
+            for (int i = 0; i < Rows.Count; i++)
+            {
+                if (Rows[i] is OutputHeaderRow header && header.CategoryKey.Equals(revealKey))
+                {
+                    RevealRowRequested?.Invoke(i);
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>Enters inline-edit mode for a category header (the ✎ pencil).</summary>
@@ -190,7 +215,11 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
 
         EditingCategoryKey = null;
         CategoryDraft = string.Empty;
-        RebuildRows();
+        // A rename changes the category label the list is ordered by, so re-sort (not just re-group):
+        // ScheduleRebuild re-runs the full sort/filter and lands the group in its new alphabetical spot.
+        // Flag the group so RebuildRows asks the view to scroll it back into view after the re-sort.
+        _pendingRevealKey = key;
+        ScheduleRebuild();
     }
 
     /// <summary>Cancels inline editing without saving (Esc).</summary>
@@ -216,15 +245,6 @@ public sealed partial class OutputUnitsPanelViewModel : FilteredPanelViewModel<O
     // STABLE key so a rename doesn't re-sort the list, and (b) restore the default on Reset.
     private static readonly Dictionary<Unit, string> DefaultCategories =
         WorkspaceState.CreateDefaultWorkspace().UnitCategories;
-
-    /// <summary>The built-in (pre-rename) label for a base unit, upper-cased; base-unit string as fallback.</summary>
-    private static string DefaultCategoryLabel(Unit baseUnit)
-    {
-        if (DefaultCategories.TryGetValue(baseUnit, out var category))
-            return category.ToUpperInvariant();
-        string key = baseUnit.ToString();
-        return key.Length == 0 ? "Dimensionless" : key;
-    }
 
     /// <summary>The built-in (pre-rename) name for a base unit with its original casing; base-unit string as fallback.</summary>
     private static string DefaultCategoryName(Unit baseUnit)
