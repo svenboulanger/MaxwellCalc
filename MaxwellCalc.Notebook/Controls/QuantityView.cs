@@ -2,8 +2,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Media;
+using Avalonia.Threading;
 using MaxwellCalc.Core.Units;
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -24,7 +28,14 @@ public class QuantityView : TemplatedControl
     // or the "e-05" in "3e-05". The mantissa in front is left as ordinary scalar text.
     private static readonly Regex ExponentPattern = new(@"[eE]([+-]?\d+)", RegexOptions.Compiled);
 
+    // How long the "Copied!" tooltip stays up after a click, before reverting to the hint.
+    private static readonly TimeSpan CopiedFeedbackDuration = TimeSpan.FromSeconds(1.1);
+
     private TextBlock? _output;
+
+    // Pending revert of the "Copied!" tooltip back to the hint; disposed/replaced on each copy so
+    // rapid clicks don't leave the feedback stuck or revert early.
+    private IDisposable? _feedbackReset;
 
     /// <summary>Identifies the <see cref="Value"/> property.</summary>
     public static readonly StyledProperty<Quantity<string>> ValueProperty =
@@ -33,6 +44,10 @@ public class QuantityView : TemplatedControl
     /// <summary>Identifies the <see cref="UnitForeground"/> property.</summary>
     public static readonly StyledProperty<IBrush?> UnitForegroundProperty =
         AvaloniaProperty.Register<QuantityView, IBrush?>(nameof(UnitForeground));
+
+    /// <summary>Identifies the <see cref="CopyOnClick"/> property.</summary>
+    public static readonly StyledProperty<bool> CopyOnClickProperty =
+        AvaloniaProperty.Register<QuantityView, bool>(nameof(CopyOnClick));
 
     /// <summary>Gets or sets the quantity to render.</summary>
     public Quantity<string> Value
@@ -46,6 +61,18 @@ public class QuantityView : TemplatedControl
     {
         get => GetValue(UnitForegroundProperty);
         set => SetValue(UnitForegroundProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether clicking the quantity copies it to the clipboard in its original text
+    /// form — <c>e</c>-exponent scalar and <c>^</c>-notation units, e.g. <c>1.5e21 m^2 s^-1</c>.
+    /// When on, the control shows a hand cursor and a "Click to copy" hint. Off by default so the
+    /// read-only uses (command palette, settings) are unaffected.
+    /// </summary>
+    public bool CopyOnClick
+    {
+        get => GetValue(CopyOnClickProperty);
+        set => SetValue(CopyOnClickProperty, value);
     }
 
     /// <inheritdoc />
@@ -67,6 +94,61 @@ public class QuantityView : TemplatedControl
         {
             Render();
         }
+        else if (change.Property == CopyOnClickProperty)
+        {
+            // A hand cursor and a hint make the affordance discoverable; clear both when disabled.
+            Cursor = CopyOnClick ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
+            ToolTip.SetTip(this, CopyOnClick ? "Click to copy" : null);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+
+        if (!CopyOnClick)
+            return;
+
+        // Only fire for the primary button released while still over the control (a genuine click).
+        if (e.InitialPressMouseButton != MouseButton.Left)
+            return;
+        if (!new Rect(Bounds.Size).Contains(e.GetPosition(this)))
+            return;
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null)
+            return;
+
+        _ = clipboard.SetTextAsync(BuildPlainText());
+        ShowCopiedFeedback();
+        e.Handled = true;
+    }
+
+    // Builds the original text form of the quantity: the scalar exactly as Core formatted it (already
+    // in e-exponent notation) followed by the unit in ^-notation (Unit.ToString(), space-separated),
+    // e.g. "1.5e21 m^2 s^-1". Unitless quantities are just the scalar.
+    private string BuildPlainText()
+    {
+        string scalar = Value.Scalar ?? string.Empty;
+        string unit = Value.Unit.ToString();
+        return unit.Length > 0 ? $"{scalar} {unit}" : scalar;
+    }
+
+    // Flashes the tooltip to "Copied!" for a moment, then reverts to the hint. Replacing any pending
+    // revert keeps rapid clicks from reverting early or leaving the confirmation stuck open.
+    private void ShowCopiedFeedback()
+    {
+        _feedbackReset?.Dispose();
+
+        ToolTip.SetTip(this, "Copied!");
+        ToolTip.SetIsOpen(this, true);
+
+        _feedbackReset = DispatcherTimer.RunOnce(() =>
+        {
+            ToolTip.SetIsOpen(this, false);
+            ToolTip.SetTip(this, CopyOnClick ? "Click to copy" : null);
+        }, CopiedFeedbackDuration);
     }
 
     // Rebuilds the inline runs from the current Value.

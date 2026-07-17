@@ -82,9 +82,11 @@
 									<TextBlock Text="const" />
 								</Border>
 
-								<!-- value / assignment: the formatted quantity. -->
+								<!-- value / assignment: the formatted quantity. Clicking copies it to the
+								     clipboard in original text form (e-exponent scalar, ^-notation units). -->
 								<controls:QuantityView Value="{Binding Quantity}"
-													   IsVisible="{Binding HasValue}" />
+													   IsVisible="{Binding HasValue}"
+													   CopyOnClick="True" />
 
 								<!-- function definition. -->
 								<Border Classes="funcPill" IsVisible="{Binding IsFuncDef}">
