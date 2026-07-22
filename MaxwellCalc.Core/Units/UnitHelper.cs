@@ -486,9 +486,9 @@ public static class UnitHelper
         u = new(("F", 1));
         bu = new((Unit.Kilogram, -1), (Unit.Meter, -2), (Unit.Second, 4), (Unit.Ampere, 2));
         workspace.TryRegisterModifierInputOutputUnits("F", bu, "capacitance",
-            femto: true, pico: true, micro: true, milli: true);
+            femto: true, pico: true, nano: true, micro: true, milli: true);
         workspace.TryRegisterModifierOutputUnits(u, bu, "F", "capacitance squared",
-            femto: true, pico: true, micro: true, milli: true, power: 2);
+            femto: true, pico: true, nano: true, micro: true, milli: true, power: 2);
 
         // Farad per meter
         u = new(("F", 1), (Unit.Meter, -1));
@@ -512,9 +512,9 @@ public static class UnitHelper
         u = new(("H", 1));
         bu = new((Unit.Kilogram, 1), (Unit.Meter, 2), (Unit.Second, -2), (Unit.Ampere, -2));
         workspace.TryRegisterModifierInputOutputUnits("H", bu, "inductance",
-            nano: true, micro: true, milli: true);
+            pico: true, nano: true, micro: true, milli: true);
         workspace.TryRegisterModifierOutputUnits(u, bu, "H", "inductance squared",
-            nano: true, micro: true, milli: true, power: 2);
+            pico: true, nano: true, micro: true, milli: true, power: 2);
 
         // Weber
         u = new(("Wb", 1));

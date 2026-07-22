@@ -1,16 +1,26 @@
-# MaxwellCalc
+# MaxwellNotebook
 
-MaxwellCalc is a calculator application that has support for scientific units. The idea is loosely based on [SpeedCrunch](https://heldercorreia.bitbucket.io/speedcrunch/), but has some differences that are practical in nature.
+MaxwellNotebook is a calculator application that has support for scientific units. The idea is loosely based on [SpeedCrunch](https://heldercorreia.bitbucket.io/speedcrunch/), but has some differences that are practical in nature. By now, there are many other calculators that can also deal with units, but I wanted one that I can trust to behave predictably and correctly.
 
-The project uses the .NET framework with Avalonia for the UI.
+The project uses the .NET framework with Avalonia for the UI. The UI design was created using Claude Design. A worksheet is transient and never modifies the underlying workspace (you can define variables and functions, but they will not be stored in the workspace). You can modify the underlying workspace through the palettes accessible through the buttons at the bottom.
 
 <p align="center"><img src="screenshot.png" /></p>
 
+The unit system is supposed to be straightforward:
+
+- **Input units** are converted to *base units* (usually SI units, like `m`, `s`, `cd`, etc., but this can be any of your choosing).
+  - If you want to add a *base unit*, go to "Units", and enter a name without a value for it.
+  - After this, you can specify other units that resolve to this base unit.
+- The computations are done using *base units*.
+  - Only rational powers of base units are supported.
+- **Output units** are the possibilities that MaxwellCalc considers for showing you output.
+  - By default, it will select the output unit that gives you the smallest scalar above `1.0`.
+  - If there are no output units for the given combination of base units, it will simply return all the base units.
+  - You can always override the output unit by using the `... in ...` operator. For example `1fF in pF` will give the result in `pF` even if it would not be chosen by default. You can also use any expression after the `in` operator, like `1C in q` with `q` the elementary charge and `C` the coulomb unit, will result in `6.2415e18 q` even though `q` is not strictly a unit.
+
 ## Setup
 
-There are no binaries right now. You simply have to compile the project for the platform that you're interested in.
-
-To get started, simply open the executable and start working. If you would like to quickly insert commonly used units and constants, go to the units or constants pane and right-click in the list of units or constants. You can then select `Add common input and output units`, `Add electrical input and output units` for units, or `Add common constants` to quickly add a set of units/constants that are common in physics and/or electronics engineering.
+There are no binaries right now. You simply have to compile the project for the platform that you're interested in. To add common units for physics or electronics, go to the blue workspace button in the bottom left, and click the cog icon next to the workspace you are using. In this pane you can add units for common (scientific) situations.
 
 ## Features
 
