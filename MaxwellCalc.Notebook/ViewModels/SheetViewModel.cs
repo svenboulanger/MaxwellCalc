@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Core.Units;
+using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Notebook.Evaluation;
 using System;
 using System.Collections.Generic;
@@ -30,6 +32,17 @@ public partial class SheetViewModel : ViewModelBase
     private readonly WorkspaceState _workspaceState;
     private readonly string _sheetFile;
     private bool _suppressEvaluation;
+
+    // Subscriptions to the active workspace's input/output unit dictionaries. Adding or removing a unit
+    // (via the command palette, Step 9) changes how sheet lines parse — a symbol that was an error becomes
+    // a valid input unit — and how their results display, so the sheet must re-evaluate. Neither dictionary
+    // is one the evaluation pass mutates (it only snapshots variables and functions), so re-evaluating in
+    // response is safe and cannot re-enter. Re-attached whenever the active workspace switches.
+    private IReadOnlyObservableDictionary<string, Quantity<string>>? _inputUnits;
+    private IReadOnlyObservableDictionary<OutputUnitKey, string>? _outputUnits;
+    private EventHandler<DictionaryChangedEventArgs<string, Quantity<string>>>? _inputUnitsHandler;
+    private EventHandler<DictionaryChangedEventArgs<OutputUnitKey, string>>? _outputUnitsHandler;
+    private bool _evaluateQueued;
 
     private static readonly JsonSerializerOptions SaveOptions = new() { WriteIndented = true };
 
@@ -95,6 +108,7 @@ public partial class SheetViewModel : ViewModelBase
         _sheetFile = Path.Combine(Directory.GetCurrentDirectory(), "sheet.json");
         _workspaceState.PropertyChanged += OnWorkspaceStateChanged;
         Lines.CollectionChanged += OnLinesChanged;
+        AttachUnitDictionaries(_workspaceState.Workspace);
 
         // Restore the saved sheet (Step 11); if there is none, start with a single empty line so the
         // sheet is immediately editable.
@@ -355,6 +369,7 @@ public partial class SheetViewModel : ViewModelBase
         if (e.PropertyName is nameof(WorkspaceState.Workspace))
         {
             OnPropertyChanged(nameof(Workspace));
+            AttachUnitDictionaries(_workspaceState.Workspace);
             Evaluate();
         }
         else if (e.PropertyName is nameof(WorkspaceState.OutputFormat))
@@ -363,6 +378,53 @@ public partial class SheetViewModel : ViewModelBase
             // gutter value re-formats with the new format string.
             Evaluate();
         }
+    }
+
+    // Subscribes to the given workspace's input/output unit dictionaries so an add/remove from the command
+    // palette re-evaluates the sheet, first detaching from the previously-attached workspace's dictionaries.
+    private void AttachUnitDictionaries(Core.Workspaces.IWorkspace? workspace)
+    {
+        DetachUnitDictionaries();
+        if (workspace is null)
+            return;
+
+        _inputUnits = workspace.InputUnits;
+        _outputUnits = workspace.OutputUnits;
+        _inputUnitsHandler = (_, _) => ScheduleEvaluate();
+        _outputUnitsHandler = (_, _) => ScheduleEvaluate();
+        _inputUnits.DictionaryChanged += _inputUnitsHandler;
+        _outputUnits.DictionaryChanged += _outputUnitsHandler;
+    }
+
+    // Queues a coalesced re-evaluation. A unit add/remove fires its dictionary event synchronously while the
+    // command palette still has the workspace clamped to a restricted state (variables, functions and output
+    // units disabled while it parses the definition — see TryAssignInputUnit / TryAssignOutputUnit). Posting
+    // at Background priority defers the pass until that restriction has been restored, so the sheet evaluates
+    // against the full workspace; it also folds the two dictionary writes of a new base unit into one pass.
+    private void ScheduleEvaluate()
+    {
+        if (_evaluateQueued)
+            return;
+        _evaluateQueued = true;
+        Avalonia.Threading.Dispatcher.UIThread.Post(
+            () =>
+            {
+                _evaluateQueued = false;
+                Evaluate();
+            },
+            Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    private void DetachUnitDictionaries()
+    {
+        if (_inputUnits is not null && _inputUnitsHandler is not null)
+            _inputUnits.DictionaryChanged -= _inputUnitsHandler;
+        if (_outputUnits is not null && _outputUnitsHandler is not null)
+            _outputUnits.DictionaryChanged -= _outputUnitsHandler;
+        _inputUnits = null;
+        _outputUnits = null;
+        _inputUnitsHandler = null;
+        _outputUnitsHandler = null;
     }
 
     private void OnLinesChanged(object? sender, NotifyCollectionChangedEventArgs e)
