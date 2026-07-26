@@ -198,7 +198,12 @@
 				<Setter Property="Cursor" Value="IBeam" />
 				<Setter Property="Template">
 					<ControlTemplate>
-						<TextBlock Name="PART_Text" TextWrapping="Wrap" VerticalAlignment="Center" />
+						<!-- Transparent Border fills the cell so the whole row area is hit-testable, not
+						     just the drawn glyphs — otherwise clicking blank space beside the resolved
+						     text (e.g. a short prose line) misses the control and never begins editing. -->
+						<Border Background="Transparent">
+							<TextBlock Name="PART_Text" TextWrapping="Wrap" VerticalAlignment="Center" />
+						</Border>
 					</ControlTemplate>
 				</Setter>
 			</ControlTheme>
