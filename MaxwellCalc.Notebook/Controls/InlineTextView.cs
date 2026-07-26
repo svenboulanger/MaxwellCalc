@@ -21,8 +21,8 @@ namespace MaxwellCalc.Notebook.Controls;
 /// Literal spans are drawn in <see cref="TemplatedControl.Foreground"/>; inline value/assignment
 /// results reuse the gutter's quantity layout (<see cref="QuantityInlines"/>) with the scalar in
 /// <see cref="ValueForeground"/> and units in <see cref="UnitForeground"/>; a function definition shows
-/// its signature; and a failed expression shows its raw <c>{…}</c> source in <see cref="ErrorForeground"/>
-/// with the diagnostic as a tooltip.
+/// its signature; and a failed expression shows the diagnostic itself (<c>⚠</c>-prefixed) in
+/// <see cref="ErrorForeground"/>, the same way the result gutter does.
 /// </para>
 /// <para>
 /// The view is interactive even though it is "read-only" text: clicking an inline value/assignment result
@@ -240,21 +240,20 @@ public class InlineTextView : TemplatedControl
                     break;
 
                 case LineKind.Error:
-                    // Show the raw source so the user sees what failed, with the diagnostic on hover.
-                    var errorText = new TextBlock
+                    // Show the diagnostic itself (⚠ prefixed, in the error color) inline, the same way
+                    // the result gutter does — not the raw {…} source in red. Falls back to the raw
+                    // source only when there is no message. Rendered as a plain run so it flows with the
+                    // prose; a click anywhere on it opens the editor (like the funcdef case).
+                    string errorText = !string.IsNullOrEmpty(result.ErrorMessage)
+                        ? "⚠ " + result.ErrorMessage
+                        : segment.RawSource;
+                    inlines.Add(new Run
                     {
-                        Text = segment.RawSource,
+                        Text = errorText,
                         Foreground = ErrorForeground,
-                        FontFamily = FontFamily,
                         FontSize = FontSize,
-                    };
-                    if (!string.IsNullOrEmpty(result.ErrorMessage))
-                        ToolTip.SetTip(errorText, result.ErrorMessage);
-                    inlines.Add(new InlineUIContainer(errorText)
-                    {
-                        BaselineAlignment = BaselineAlignment.TextBottom,
                     });
-                    AddRegion(raw, ref rendered, 1, isLiteral: false);
+                    AddRegion(raw, ref rendered, errorText.Length, isLiteral: false);
                     break;
             }
         }
