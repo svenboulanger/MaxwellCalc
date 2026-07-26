@@ -21,6 +21,11 @@ public static class Parser
         if (lexer.Type == TokenTypes.EndOfLine)
             return null;
         var node = ParseAssignment(lexer, workspace);
+
+        // A null node means a deeper parse already posted a diagnostic; don't report it twice.
+        if (node is null)
+            return null;
+
         if (lexer.Type != TokenTypes.EndOfLine)
         {
             workspace.PostDiagnosticMessage(new($"Unrecognized token at column {lexer.Index + 1}."));
