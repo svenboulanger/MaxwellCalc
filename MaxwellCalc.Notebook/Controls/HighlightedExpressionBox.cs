@@ -34,6 +34,7 @@ namespace MaxwellCalc.Notebook.Controls;
 public class HighlightedExpressionBox : TemplatedControl
 {
     private TextBlock? _display;
+    private ScrollViewer? _displayScroll;
     private TextBox? _editor;
     private readonly List<Action> _unsubscribe = [];
     private IWorkspace? _hooked;
@@ -153,15 +154,23 @@ public class HighlightedExpressionBox : TemplatedControl
         base.OnApplyTemplate(e);
 
         if (_editor is not null)
+        {
             _editor.RemoveHandler(KeyDownEvent, OnEditorKeyDown);
+            _editor.RemoveHandler(ScrollViewer.ScrollChangedEvent, OnEditorScrollChanged);
+        }
 
         _display = e.NameScope.Find<TextBlock>("PART_Display");
+        _displayScroll = e.NameScope.Find<ScrollViewer>("PART_DisplayScroll");
         _editor = e.NameScope.Find<TextBox>("PART_Editor");
 
         // Handle on the tunnel (preview) route so the notebook keys pre-empt the TextBox's own bubble
         // handling — otherwise the TextBox would consume/act on them before we could.
         if (_editor is not null)
+        {
             _editor.AddHandler(KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
+            // The editor's inner PART_ScrollViewer bubbles ScrollChanged up to the TextBox.
+            _editor.AddHandler(ScrollViewer.ScrollChangedEvent, OnEditorScrollChanged);
+        }
 
         Render();
     }
@@ -224,6 +233,16 @@ public class HighlightedExpressionBox : TemplatedControl
                 e.Handled = true;
                 break;
         }
+    }
+
+    // Scrolls the colored backdrop to the editor's horizontal offset so each glyph in the display sits
+    // under the matching glyph in the editor, even after a long line scrolls. The display lives in its
+    // own ScrollViewer (which lays the TextBlock out at full width, unlike a width-constrained
+    // TextBlock that would clip the overflow), so mirroring the offset keeps the two in lockstep.
+    private void OnEditorScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (_displayScroll is not null && e.Source is ScrollViewer editorScroll)
+            _displayScroll.Offset = editorScroll.Offset.WithY(0);
     }
 
     /// <inheritdoc />

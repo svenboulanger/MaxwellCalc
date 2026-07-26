@@ -247,12 +247,20 @@
 				<Setter Property="Template">
 					<ControlTemplate>
 						<Grid>
-							<!-- Colored, non-interactive backdrop rebuilt on each keystroke. -->
-							<TextBlock Name="PART_Display"
-									   FontFamily="{TemplateBinding FontFamily}"
-									   FontSize="{TemplateBinding FontSize}"
-									   TextWrapping="NoWrap"
-									   VerticalAlignment="Center" />
+							<!-- Colored, non-interactive backdrop rebuilt on each keystroke. It lives in a
+							     ScrollViewer that lays the TextBlock out at its full (unclipped) width and
+							     clips to the viewport; the code-behind mirrors the editor's horizontal
+							     offset onto this so a long line's highlight stays aligned with the caret. -->
+							<ScrollViewer Name="PART_DisplayScroll"
+										  HorizontalScrollBarVisibility="Hidden"
+										  VerticalScrollBarVisibility="Disabled"
+										  IsHitTestVisible="False">
+								<TextBlock Name="PART_Display"
+										   FontFamily="{TemplateBinding FontFamily}"
+										   FontSize="{TemplateBinding FontSize}"
+										   TextWrapping="NoWrap"
+										   VerticalAlignment="Center" />
+							</ScrollViewer>
 							<!-- Real editable surface: text transparent (the backdrop shows the color),
 							     caret = accent, selection = a translucent wash so the colors show through. -->
 							<TextBox Name="PART_Editor"
