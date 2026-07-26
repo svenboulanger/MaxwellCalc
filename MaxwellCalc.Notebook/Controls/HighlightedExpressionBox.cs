@@ -268,6 +268,18 @@ public class HighlightedExpressionBox : TemplatedControl
     {
         base.OnPropertyChanged(change);
 
+        if (change.Property == IsVisibleProperty)
+        {
+            // On a text line this editor is created collapsed and only revealed when the row is
+            // edited. Its template is applied during the reveal layout pass, so the colored backdrop
+            // (PART_Display) built in OnApplyTemplate runs mid-measure and isn't laid out until a later
+            // pass — and since the real text on PART_Editor is transparent, the whole row reads as
+            // empty until then. Re-highlight once out-of-band after the reveal settles.
+            if (change.GetNewValue<bool>())
+                ScheduleRender();
+            return;
+        }
+
         if (change.Property == WorkspaceProperty)
         {
             if (_isAttached)

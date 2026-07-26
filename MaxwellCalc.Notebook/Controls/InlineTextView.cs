@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Avalonia.Threading;
 using MaxwellCalc.Notebook.Evaluation;
 using System.Collections.Generic;
 
@@ -23,6 +24,7 @@ namespace MaxwellCalc.Notebook.Controls;
 public class InlineTextView : TemplatedControl
 {
     private TextBlock? _output;
+    private bool _renderQueued;
 
     /// <summary>Identifies the <see cref="Segments"/> property.</summary>
     public static readonly StyledProperty<IReadOnlyList<TextSegment>?> SegmentsProperty =
@@ -80,6 +82,21 @@ public class InlineTextView : TemplatedControl
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+
+        if (change.Property == IsVisibleProperty)
+        {
+            // A text line's rendered view is created collapsed and only revealed when the line goes
+            // idle (see LineViewModel.ShowInlineText). The template is applied during the layout pass
+            // that reveals it, so the OnApplyTemplate render below runs mid-measure and its freshly
+            // built inline runs are not laid out until some later, unrelated pass — leaving the row
+            // blank and near-zero height (so it can't even be clicked to edit) until the sheet is
+            // re-evaluated. Re-render once out-of-band, after the reveal layout has settled, so the
+            // runs measure normally — the same path a re-evaluation's Segments change already takes.
+            if (change.GetNewValue<bool>())
+                ScheduleRender();
+            return;
+        }
+
         if (change.Property == SegmentsProperty ||
             change.Property == ValueForegroundProperty ||
             change.Property == UnitForegroundProperty ||
@@ -90,6 +107,22 @@ public class InlineTextView : TemplatedControl
         {
             Render();
         }
+    }
+
+    // Coalesces a re-render onto the dispatcher so it runs after the current layout pass (when the
+    // template has been applied and the row laid out), rather than synchronously mid-measure.
+    private void ScheduleRender()
+    {
+        if (_renderQueued)
+            return;
+        _renderQueued = true;
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                _renderQueued = false;
+                Render();
+            },
+            DispatcherPriority.Loaded);
     }
 
     // Rebuilds the inline runs from the current segments.
