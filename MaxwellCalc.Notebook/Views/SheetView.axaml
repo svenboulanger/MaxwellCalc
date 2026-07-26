@@ -83,6 +83,7 @@
 								<controls:InlineTextView
 										IsVisible="{Binding ShowInlineText}"
 										Segments="{Binding Segments}"
+										Text="{Binding Text}"
 										PointerPressed="OnInlineTextPressed" />
 							</Panel>
 

@@ -68,10 +68,12 @@ public partial class SheetView : UserControl
         }
     }
 
-    // Clicking a rendered text line switches it into raw-text editing and focuses its editor.
+    // Clicking a rendered text line either copies an inline result (if the click landed on one — the view
+    // handles the copy itself) or switches the line into raw-text editing with the caret at the source
+    // column under the click (reverse-mapped from the rendered prose by the view).
     private void OnInlineTextPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not Control { DataContext: LineViewModel line })
+        if (sender is not InlineTextView view || view.DataContext is not LineViewModel line)
             return;
         if (DataContext is not SheetViewModel sheet)
             return;
@@ -80,7 +82,10 @@ public partial class SheetView : UserControl
         if (index < 0)
             return;
 
-        sheet.BeginEdit(index);
+        // A null result means the click hit an inline value and the view already copied it; leave the line
+        // idle. Otherwise open the editor at the returned caret column.
+        if (view.ResolveClick(e.GetPosition(view)) is { } caret)
+            sheet.BeginEdit(index, caret);
         e.Handled = true;
     }
 

@@ -356,17 +356,20 @@ public partial class SheetViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Enters raw-text editing for the line at <paramref name="index"/>, placing the caret at the end,
-    /// and moves focus to its editor. Called when the user clicks a rendered text line.
+    /// Enters raw-text editing for the line at <paramref name="index"/> and moves focus to its editor,
+    /// placing the caret at <paramref name="caretIndex"/> (clamped to the text; a negative value, the
+    /// default, lands it at the end). Called when the user clicks a rendered text line.
     /// </summary>
     /// <param name="index">The line to edit.</param>
-    public void BeginEdit(int index)
+    /// <param name="caretIndex">The target caret column, or negative to place it at the end.</param>
+    public void BeginEdit(int index, int caretIndex = -1)
     {
         if (index < 0 || index >= Lines.Count)
             return;
 
         var line = Lines[index];
-        line.CaretIndex = (line.Text ?? string.Empty).Length;
+        int length = (line.Text ?? string.Empty).Length;
+        line.CaretIndex = caretIndex < 0 ? length : Math.Min(caretIndex, length);
         FocusLine(index);
     }
 
