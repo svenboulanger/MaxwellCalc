@@ -58,20 +58,33 @@
 					<StackPanel Spacing="2">
 						<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
 
-							<!-- Editor (left, fills): inline syntax highlighting driven by the active
-							     workspace, which lives on the SheetViewModel (the view's DataContext).
-							     The Enter/Backspace/Arrow events drive the notebook keyboard model. -->
-							<controls:HighlightedExpressionBox Grid.Column="0"
-									Text="{Binding Text, Mode=TwoWay}"
-									CaretIndex="{Binding CaretIndex, Mode=TwoWay}"
-									Workspace="{Binding ((vm:SheetViewModel)DataContext).Workspace, RelativeSource={RelativeSource AncestorType=UserControl}}"
-									GotFocus="OnEditorGotFocus"
-									LostFocus="OnEditorLostFocus"
-									EnterPressed="OnEnterPressed"
-									MergeBackRequested="OnMergeBackRequested"
-									MergeForwardRequested="OnMergeForwardRequested"
-									NavigateUpRequested="OnNavigateUpRequested"
-									NavigateDownRequested="OnNavigateDownRequested" />
+							<!-- Left cell (fills): the raw-text editor and, for an idle prose line, its
+							     rendered form. Exactly one is visible — ShowEditor is always true for a
+							     normal line and true for a text line only while it is being edited. -->
+							<Panel Grid.Column="0">
+								<!-- Editor: inline syntax highlighting driven by the active workspace, which
+								     lives on the SheetViewModel (the view's DataContext). The
+								     Enter/Backspace/Arrow events drive the notebook keyboard model. -->
+								<controls:HighlightedExpressionBox
+										IsVisible="{Binding ShowEditor}"
+										Text="{Binding Text, Mode=TwoWay}"
+										CaretIndex="{Binding CaretIndex, Mode=TwoWay}"
+										Workspace="{Binding ((vm:SheetViewModel)DataContext).Workspace, RelativeSource={RelativeSource AncestorType=UserControl}}"
+										GotFocus="OnEditorGotFocus"
+										LostFocus="OnEditorLostFocus"
+										EnterPressed="OnEnterPressed"
+										MergeBackRequested="OnMergeBackRequested"
+										MergeForwardRequested="OnMergeForwardRequested"
+										NavigateUpRequested="OnNavigateUpRequested"
+										NavigateDownRequested="OnNavigateDownRequested" />
+
+								<!-- Rendered prose (idle text line): literal text mixed with inline {…}
+								     results. Clicking it swaps back to the editor above. -->
+								<controls:InlineTextView
+										IsVisible="{Binding ShowInlineText}"
+										Segments="{Binding Segments}"
+										PointerPressed="OnInlineTextPressed" />
+							</Panel>
 
 							<!-- Result gutter (right). Exactly one branch is visible per line. -->
 							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"

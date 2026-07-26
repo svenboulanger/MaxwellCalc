@@ -164,8 +164,7 @@ public partial class SheetViewModel : ViewModelBase
 
         Evaluate();
         Save();
-        FocusedLineIndex = 0;
-        FocusRequested?.Invoke(0);
+        FocusLine(0);
     }
 
     // ---- Persistence (Step 11) ---------------------------------------------------------------
@@ -243,8 +242,7 @@ public partial class SheetViewModel : ViewModelBase
         }
 
         Evaluate();
-        FocusedLineIndex = index + 1;
-        FocusRequested?.Invoke(index + 1);
+        FocusLine(index + 1);
     }
 
     /// <summary>
@@ -275,8 +273,7 @@ public partial class SheetViewModel : ViewModelBase
         }
 
         Evaluate();
-        FocusedLineIndex = index - 1;
-        FocusRequested?.Invoke(index - 1);
+        FocusLine(index - 1);
     }
 
     /// <summary>
@@ -307,8 +304,7 @@ public partial class SheetViewModel : ViewModelBase
         }
 
         Evaluate();
-        FocusedLineIndex = index;
-        FocusRequested?.Invoke(index);
+        FocusLine(index);
     }
 
     /// <summary>
@@ -338,8 +334,40 @@ public partial class SheetViewModel : ViewModelBase
 
         var target = Lines[toIndex];
         target.CaretIndex = Math.Min(caretColumn, (target.Text ?? string.Empty).Length);
-        FocusedLineIndex = toIndex;
-        FocusRequested?.Invoke(toIndex);
+        FocusLine(toIndex);
+    }
+
+    /// <summary>
+    /// Moves keyboard focus to the line at <paramref name="index"/>, first switching a text line into
+    /// its editable state (a rendered text line has no editor to focus until then). Shared by the
+    /// keyboard model and by click-to-edit.
+    /// </summary>
+    /// <param name="index">The line to focus.</param>
+    private void FocusLine(int index)
+    {
+        if (index < 0 || index >= Lines.Count)
+            return;
+
+        if (Lines[index].IsText)
+            Lines[index].IsEditing = true;
+
+        FocusedLineIndex = index;
+        FocusRequested?.Invoke(index);
+    }
+
+    /// <summary>
+    /// Enters raw-text editing for the line at <paramref name="index"/>, placing the caret at the end,
+    /// and moves focus to its editor. Called when the user clicks a rendered text line.
+    /// </summary>
+    /// <param name="index">The line to edit.</param>
+    public void BeginEdit(int index)
+    {
+        if (index < 0 || index >= Lines.Count)
+            return;
+
+        var line = Lines[index];
+        line.CaretIndex = (line.Text ?? string.Empty).Length;
+        FocusLine(index);
     }
 
     /// <summary>
@@ -353,8 +381,7 @@ public partial class SheetViewModel : ViewModelBase
             return;
 
         int index = Math.Clamp(FocusedLineIndex ?? 0, 0, Lines.Count - 1);
-        FocusedLineIndex = index;
-        FocusRequested?.Invoke(index);
+        FocusLine(index);
     }
 
     /// <summary>
@@ -475,7 +502,8 @@ public partial class SheetViewModel : ViewModelBase
     {
         var variables = new List<SheetVariable>();
         var functions = new List<string>();
-        foreach (var result in results)
+
+        void Collect(LineResult result)
         {
             switch (result.Kind)
             {
@@ -489,6 +517,23 @@ public partial class SheetViewModel : ViewModelBase
                         functions.Add(signature);
                     break;
             }
+        }
+
+        foreach (var result in results)
+        {
+            // Inline {…} assignments / definitions on a text line count too, so they surface in the
+            // command palette's "from sheet" rows just like their whole-line counterparts.
+            if (result.Kind == LineKind.Text && result.Segments is { } segments)
+            {
+                foreach (var segment in segments)
+                {
+                    if (segment.Expression is { } inline)
+                        Collect(inline);
+                }
+                continue;
+            }
+
+            Collect(result);
         }
 
         if (SheetVariables.SequenceEqual(variables) && SheetFunctions.SequenceEqual(functions))

@@ -78,9 +78,63 @@ public static class SheetEvaluator
     }
 
     /// <summary>
-    /// Evaluates a single line against the (live, being-threaded) workspace.
+    /// Evaluates a single line against the (live, being-threaded) workspace. A line whose first
+    /// non-whitespace character is the text marker (<c>#</c>) is prose with inline <c>{…}</c>
+    /// expressions; anything else is a single expression.
     /// </summary>
     private static LineResult EvaluateLine<T>(IWorkspace<T> workspace, string text, string? format)
+        where T : struct, IFormattable
+    {
+        if (text.Trim().Length == 0)
+            return LineResult.Empty;
+
+        if (TextLineParser.TryGetMarker(text, out int markerIndex))
+            return EvaluateTextLine(workspace, text, markerIndex, format);
+
+        return EvaluateExpression(workspace, text, format);
+    }
+
+    /// <summary>
+    /// Evaluates a prose line: literal spans pass through verbatim (un-escaped), and each inline
+    /// <c>{…}</c> expression is evaluated against the live workspace via <see cref="EvaluateExpression"/>.
+    /// Because the pass threads one workspace, an inline assignment or function definition binds into
+    /// the transient scope and is visible to later segments and later lines (and rolled back at pass end).
+    /// </summary>
+    private static LineResult EvaluateTextLine<T>(IWorkspace<T> workspace, string text, int markerIndex, string? format)
+        where T : struct, IFormattable
+    {
+        int contentStart = TextLineParser.GetContentStart(text, markerIndex);
+        var segments = new List<TextSegment>();
+
+        foreach (var span in TextLineParser.ScanSegments(text, contentStart))
+        {
+            if (span.Kind == TextSpanKind.Literal)
+            {
+                segments.Add(new TextSegment(
+                    TextLineParser.Unescape(text.Substring(span.Start, span.Length)), null, string.Empty));
+                continue;
+            }
+
+            // Expression span: [Start, Start+Length) includes the surrounding braces.
+            string raw = text.Substring(span.Start, span.Length);
+            string inner = text.Substring(span.Start + 1, span.Length - 2);
+
+            // An empty/whitespace {} carries nothing to evaluate — show the braces as literal text.
+            if (inner.Trim().Length == 0)
+                segments.Add(new TextSegment(raw, null, string.Empty));
+            else
+                segments.Add(new TextSegment(null, EvaluateExpression(workspace, inner, format), raw));
+        }
+
+        return LineResult.Text(segments);
+    }
+
+    /// <summary>
+    /// Evaluates one expression string against the (live, being-threaded) workspace, returning a
+    /// Value / Assign / FuncDef / Error result. Shared by ordinary expression lines and by each inline
+    /// <c>{…}</c> segment of a text line.
+    /// </summary>
+    private static LineResult EvaluateExpression<T>(IWorkspace<T> workspace, string text, string? format)
         where T : struct, IFormattable
     {
         string trimmed = text.Trim();

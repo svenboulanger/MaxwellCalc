@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using MaxwellCalc.Core.Dictionaries;
 using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Workspaces;
+using MaxwellCalc.Notebook.Evaluation;
 using System;
 using System.Collections.Generic;
 
@@ -360,7 +361,44 @@ public class HighlightedExpressionBox : TemplatedControl
         if (text.Length == 0)
             return;
 
-        var tokens = Tokenize(text);
+        // A "# …" prose line is highlighted as literal text with its inline {…} expressions colored;
+        // everything else is highlighted as a single expression.
+        if (TextLineParser.TryGetMarker(text, out int markerIndex))
+            RenderTextLine(inlines, text, markerIndex);
+        else
+            AppendExpression(inlines, text);
+    }
+
+    // Highlights a prose line: the marker (and its trivia) faint, each literal span in ink, the {…}
+    // braces in the keyword accent, and each brace body classified like an ordinary expression. Every
+    // character of the raw text is emitted so the backdrop stays aligned with the caret.
+    private void RenderTextLine(InlineCollection inlines, string text, int markerIndex)
+    {
+        int contentStart = TextLineParser.GetContentStart(text, markerIndex);
+
+        // Leading trivia + the marker + one consumed space: faint, like punctuation.
+        inlines.Add(MakeRun(text.Substring(0, contentStart), PunctuationForeground, FontWeight.Normal));
+
+        foreach (var span in TextLineParser.ScanSegments(text, contentStart))
+        {
+            if (span.Kind == TextSpanKind.Literal)
+            {
+                inlines.Add(MakeRun(text.Substring(span.Start, span.Length), Foreground, FontWeight.Normal));
+                continue;
+            }
+
+            // Expression span: opening brace, classified body, closing brace.
+            inlines.Add(MakeRun("{", KeywordForeground, FontWeight.SemiBold));
+            AppendExpression(inlines, text.Substring(span.Start + 1, span.Length - 2));
+            inlines.Add(MakeRun("}", KeywordForeground, FontWeight.SemiBold));
+        }
+    }
+
+    // Tokenizes an expression fragment and appends its classified runs (with the skipped whitespace
+    // trivia) to the display. The fragment may be a whole line or the body of a {…} region.
+    private void AppendExpression(InlineCollection inlines, string fragment)
+    {
+        var tokens = Tokenize(fragment);
         int cursor = 0;
         for (int i = 0; i < tokens.Count; i++)
         {
@@ -368,16 +406,16 @@ public class HighlightedExpressionBox : TemplatedControl
 
             // Leading trivia (spaces/tabs) the lexer skipped between tokens.
             if (token.Start > cursor)
-                inlines.Add(MakeRun(text.Substring(cursor, token.Start - cursor), Foreground, FontWeight.Normal));
+                inlines.Add(MakeRun(fragment.Substring(cursor, token.Start - cursor), Foreground, FontWeight.Normal));
 
             var (brush, weight) = Classify(tokens, i);
-            inlines.Add(MakeRun(text.Substring(token.Start, token.Length), brush, weight));
+            inlines.Add(MakeRun(fragment.Substring(token.Start, token.Length), brush, weight));
             cursor = token.Start + token.Length;
         }
 
         // Trailing whitespace after the last token.
-        if (cursor < text.Length)
-            inlines.Add(MakeRun(text.Substring(cursor), Foreground, FontWeight.Normal));
+        if (cursor < fragment.Length)
+            inlines.Add(MakeRun(fragment.Substring(cursor), Foreground, FontWeight.Normal));
     }
 
     private Run MakeRun(string text, IBrush? brush, FontWeight weight) => new()

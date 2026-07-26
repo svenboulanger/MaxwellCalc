@@ -45,21 +45,43 @@ public partial class SheetView : UserControl
             _sheet.FocusRequested += OnFocusRequested;
     }
 
-    // Track which line holds focus so the auto-caption can be shown only under the focused row.
+    // Track which line holds focus so the auto-caption can be shown only under the focused row. A text
+    // line also enters its editable state while focused (so its raw source shows in the editor).
     private void OnEditorGotFocus(object? sender, FocusChangedEventArgs e)
     {
         if (sender is Control { DataContext: LineViewModel line })
         {
             line.IsFocused = true;
+            line.IsEditing = true;
             if (DataContext is SheetViewModel sheet)
                 sheet.FocusedLineIndex = sheet.Lines.IndexOf(line);
         }
     }
 
+    // Leaving the editor collapses a text line back to its rendered form.
     private void OnEditorLostFocus(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: LineViewModel line })
+        {
             line.IsFocused = false;
+            line.IsEditing = false;
+        }
+    }
+
+    // Clicking a rendered text line switches it into raw-text editing and focuses its editor.
+    private void OnInlineTextPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: LineViewModel line })
+            return;
+        if (DataContext is not SheetViewModel sheet)
+            return;
+
+        int index = sheet.Lines.IndexOf(line);
+        if (index < 0)
+            return;
+
+        sheet.BeginEdit(index);
+        e.Handled = true;
     }
 
     // ---- Keyboard model (Step 7) -------------------------------------------------------------

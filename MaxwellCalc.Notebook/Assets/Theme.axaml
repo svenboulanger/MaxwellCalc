@@ -183,6 +183,26 @@
 				</Setter>
 			</ControlTheme>
 
+			<!-- ===================== INLINE TEXT VIEW THEME ===================== -->
+			<!-- Rendered form of a "# …" prose line: literal text in ink, inline {…} results laid out
+			     like the gutter (scalar accent, units the unit hue). Shares the editor's mono metrics so
+			     switching to the raw-text editor on click causes no reflow. Wraps long prose. -->
+			<ControlTheme x:Key="{x:Type controls:InlineTextView}" TargetType="controls:InlineTextView">
+				<Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+				<Setter Property="FontSize" Value="{DynamicResource EditorFontSize}" />
+				<Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+				<Setter Property="ValueForeground" Value="{DynamicResource AccentBrush}" />
+				<Setter Property="UnitForeground" Value="{DynamicResource UnitHueBrush}" />
+				<Setter Property="ErrorForeground" Value="{DynamicResource ErrBrush}" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Cursor" Value="IBeam" />
+				<Setter Property="Template">
+					<ControlTemplate>
+						<TextBlock Name="PART_Text" TextWrapping="Wrap" VerticalAlignment="Center" />
+					</ControlTemplate>
+				</Setter>
+			</ControlTheme>
+
 			<!-- ===================== UNIT VIEW THEME ===================== -->
 			<!-- Bare-unit renderer (no scalar): unit symbols in the unit hue with superscript exponents.
 			     Used for left-hand unit labels — e.g. the output-unit command palette rows. Metrics match

@@ -31,7 +31,30 @@ public partial class LineViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasValue))]
     [NotifyPropertyChangedFor(nameof(IsFuncDef))]
     [NotifyPropertyChangedFor(nameof(IsError))]
+    [NotifyPropertyChangedFor(nameof(IsText))]
+    [NotifyPropertyChangedFor(nameof(ShowEditor))]
+    [NotifyPropertyChangedFor(nameof(ShowInlineText))]
     private LineKind _kind;
+
+    /// <summary>
+    /// Gets the rendered pieces of a <see cref="LineKind.Text"/> line (literal spans interleaved with
+    /// evaluated inline expressions), or <c>null</c> for every other kind.
+    /// </summary>
+    [ObservableProperty]
+    [property: System.Text.Json.Serialization.JsonIgnore]
+    private System.Collections.Generic.IReadOnlyList<TextSegment>? _segments;
+
+    /// <summary>
+    /// Gets or sets whether this line is currently being edited as raw text. A text line shows its
+    /// rendered prose when idle and its editable source while editing; this flag drives the swap and is
+    /// set by the sheet view when the row's editor takes or loses focus. Always effectively <c>true</c>
+    /// for non-text lines (see <see cref="ShowEditor"/>).
+    /// </summary>
+    [ObservableProperty]
+    [property: System.Text.Json.Serialization.JsonIgnore]
+    [NotifyPropertyChangedFor(nameof(ShowEditor))]
+    [NotifyPropertyChangedFor(nameof(ShowInlineText))]
+    private bool _isEditing;
 
     /// <summary>
     /// Gets the formatted quantity for value / assignment lines.
@@ -87,6 +110,22 @@ public partial class LineViewModel : ViewModelBase
     public bool IsError => Kind is LineKind.Error;
 
     /// <summary>
+    /// Gets whether this line is prose with inline expressions (renders through the inline text view).
+    /// </summary>
+    public bool IsText => Kind is LineKind.Text;
+
+    /// <summary>
+    /// Gets whether the raw-text editor should be shown: always for non-text lines, and only while
+    /// editing for a text line (which otherwise shows its rendered prose).
+    /// </summary>
+    public bool ShowEditor => !IsText || IsEditing;
+
+    /// <summary>
+    /// Gets whether the rendered inline-text view should be shown: for an idle (not editing) text line.
+    /// </summary>
+    public bool ShowInlineText => IsText && !IsEditing;
+
+    /// <summary>
     /// Gets whether the auto-selected-output-unit caption should be shown under this row: only when
     /// the line is focused and its output unit was auto-selected. (Step 10 gates this further behind a
     /// user setting, default on.)
@@ -120,5 +159,6 @@ public partial class LineViewModel : ViewModelBase
         IsConstBadge = result.IsConstBadge;
         AutoUnitSelected = result.AutoUnitSelected;
         ErrorMessage = result.ErrorMessage;
+        Segments = result.Segments;
     }
 }

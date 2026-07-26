@@ -1,4 +1,5 @@
 using MaxwellCalc.Core.Units;
+using System.Collections.Generic;
 
 namespace MaxwellCalc.Notebook.Evaluation;
 
@@ -21,7 +22,32 @@ public enum LineKind
 
     /// <summary>The line could not be parsed or evaluated.</summary>
     Error,
+
+    /// <summary>
+    /// The line is prose (starts with the <c>#</c> marker) that mixes literal text with inline
+    /// <c>{…}</c> expressions. Its rendered form is carried in <see cref="LineResult.Segments"/>.
+    /// </summary>
+    Text,
 }
+
+/// <summary>
+/// One piece of a <see cref="LineKind.Text"/> line: either a literal prose span or an evaluated
+/// inline <c>{…}</c> expression. Exactly one of <see cref="Literal"/> / <see cref="Expression"/> is set.
+/// </summary>
+/// <param name="Literal">
+/// The literal prose text (already un-escaped, so <c>{{</c>/<c>}}</c> are collapsed to <c>{</c>/<c>}</c>),
+/// or <c>null</c> when this segment is an inline expression.
+/// </param>
+/// <param name="Expression">
+/// The result of evaluating an inline <c>{…}</c> expression (a Value / Assign / FuncDef / Error), or
+/// <c>null</c> when this segment is literal text. An inline assignment binds into the sheet's transient
+/// scope exactly like an assignment line, so later segments and later lines can reference it.
+/// </param>
+/// <param name="RawSource">The original <c>{…}</c> text (braces included), used to render error segments.</param>
+public readonly record struct TextSegment(
+    string? Literal,
+    LineResult? Expression,
+    string RawSource);
 
 /// <summary>
 /// The immutable outcome of evaluating a single sheet line. Produced by
@@ -37,13 +63,18 @@ public enum LineKind
 /// variable name for an <see cref="LineKind.Assign"/> line, or the <c>name(params)</c> signature for a
 /// <see cref="LineKind.FuncDef"/> line. <c>null</c> for every other kind.
 /// </param>
+/// <param name="Segments">
+/// The rendered pieces of a <see cref="LineKind.Text"/> line (literal spans interleaved with evaluated
+/// inline expressions), or <c>null</c> for every other kind.
+/// </param>
 public readonly record struct LineResult(
     LineKind Kind,
     Quantity<string> Quantity,
     bool IsConstBadge,
     bool AutoUnitSelected,
     string? ErrorMessage,
-    string? DefinedName = null)
+    string? DefinedName = null,
+    IReadOnlyList<TextSegment>? Segments = null)
 {
     /// <summary>
     /// Gets the result for an empty line.
@@ -56,4 +87,12 @@ public readonly record struct LineResult(
     /// <param name="message">The diagnostic message.</param>
     /// <returns>Returns the error result.</returns>
     public static LineResult Error(string message) => new(LineKind.Error, default, false, false, message);
+
+    /// <summary>
+    /// Creates a prose (text) result from its rendered segments.
+    /// </summary>
+    /// <param name="segments">The literal / inline-expression pieces, in order.</param>
+    /// <returns>Returns the text result.</returns>
+    public static LineResult Text(IReadOnlyList<TextSegment> segments) =>
+        new(LineKind.Text, default, false, false, null, null, segments);
 }
