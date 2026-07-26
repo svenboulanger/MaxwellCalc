@@ -292,6 +292,7 @@ public partial class SavedSheetsViewModel : ViewModelBase
         {
             item.Name = name;
             SaveStore();
+            ApplyFilter();
         }
         item.IsRenaming = false;
     }
@@ -381,14 +382,16 @@ public partial class SavedSheetsViewModel : ViewModelBase
 
     partial void OnSearchChanged(string value) => ApplyFilter();
 
-    // Rebuilds Filtered from Library (name substring match), reconciling in place so unchanged rows keep
-    // their containers (and any in-flight flash / rename visual state).
+    // Rebuilds Filtered from Library (name substring match), sorted alphabetically by name and reconciling
+    // in place so unchanged rows keep their containers (and any in-flight flash / rename visual state).
     private void ApplyFilter()
     {
         string query = Search.Trim();
-        var target = query.Length == 0
-            ? Library.ToList()
-            : Library.Where(s => s.Name.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+        var target = (query.Length == 0
+                ? Library
+                : Library.Where(s => s.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
         CollectionReconciler.Reconcile(Filtered, target);
         OnPropertyChanged(nameof(HasNoMatches));
     }
