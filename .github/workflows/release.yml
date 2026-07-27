@@ -47,6 +47,11 @@ jobs:
             -p:DebugSymbols=false \
             --output publish
 
+      - name: Remove native library symbols
+        shell: bash
+        run: |
+          rm -f publish/libSkiaSharp.pdb publish/libHarfBuzzSharp.pdb
+
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
