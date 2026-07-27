@@ -24,6 +24,10 @@ The unit system is supposed to be straightforward:
 
 Binaries are included in the release for Linux, MacOS and Windows. You can also compile the project from source.
 
+Each release is a compressed archive. Extract the whole folder before running, then launch the `MaxwellCalc.Notebook` executable from inside it — the application needs the accompanying files in the same directory.
+
+> **Windows note:** the executable is not code-signed, so Windows SmartScreen may show a "Windows protected your PC" prompt on first launch. Click **More info → Run anyway** to start it.
+
 To add common units for physics or electronics, go to the blue workspace button in the bottom left, and click the cog icon next to the workspace you are using. In this pane you can add units for common (scientific) situations.
 
 ## Features
