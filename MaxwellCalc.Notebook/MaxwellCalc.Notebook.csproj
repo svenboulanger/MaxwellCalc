@@ -9,6 +9,21 @@
     <ApplicationIcon>maxwell_calc.ico</ApplicationIcon>
     <RootNamespace>MaxwellCalc.Notebook</RootNamespace>
     <AssemblyName>MaxwellCalc.Notebook</AssemblyName>
+    <Title>Maxwell.Notebook</Title>
+    <Authors>Sven Boulanger, Claude</Authors>
+    <Company>Sven Boulanger, Claude</Company>
+    <Description>A calculator app that has support for units.</Description>
+    <PackageProjectUrl>https://github.com/svenboulanger/MaxwellCalc</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>maxwell-icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/svenboulanger/MaxwellCalc</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>calculator; units; scientific; science; app; desktop</PackageTags>
+    <NeutralLanguage>en</NeutralLanguage>
+    <AssemblyVersion></AssemblyVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <SignAssembly>False</SignAssembly>
+    <AssemblyTitle>MaxwellCalc.Notebook</AssemblyTitle>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,5 +47,19 @@
     <AvaloniaResource Remove="maxwell_calc.ico" />
     <!-- Runtime window/taskbar icon (the .ico above is the Win32 exe icon only). -->
     <AvaloniaResource Include="Assets\maxwell-icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\maxwell-icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 </Project>
