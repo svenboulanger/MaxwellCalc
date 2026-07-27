@@ -22,7 +22,9 @@ The unit system is supposed to be straightforward:
 
 ## Setup
 
-There are no binaries right now. You simply have to compile the project for the platform that you're interested in. To add common units for physics or electronics, go to the blue workspace button in the bottom left, and click the cog icon next to the workspace you are using. In this pane you can add units for common (scientific) situations.
+Binaries are included in the release for Linux, MacOS and Windows. You can also compile the project from source.
+
+To add common units for physics or electronics, go to the blue workspace button in the bottom left, and click the cog icon next to the workspace you are using. In this pane you can add units for common (scientific) situations.
 
 ## Features
 
