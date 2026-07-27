@@ -1,5 +1,7 @@
 # MaxwellNotebook
 
+<img src="https://github.com/svenboulanger/MaxwellCalc/blob/master/MaxwellCalc.Notebook/Assets/maxwell-icon.png?raw=true" width="128px">
+
 MaxwellNotebook is a calculator application that has support for scientific units. The idea is loosely based on [SpeedCrunch](https://heldercorreia.bitbucket.io/speedcrunch/), but has some differences that are practical in nature. By now, there are many other calculators that can also deal with units, but I wanted one that I can trust to behave predictably and correctly.
 
 The project uses the .NET framework with Avalonia for the UI. The UI design was created using Claude Design. A worksheet is transient and never modifies the underlying workspace (you can define variables and functions, but they will not be stored in the workspace). You can modify the underlying workspace through the palettes accessible through the buttons at the bottom.
@@ -30,3 +32,5 @@ There are no binaries right now. You simply have to compile the project for the 
 - Light and dark themed.
 - Different workspaces are allowed (each with their own set of units, variables, constants, etc.)
 - Special precedence for implicit multiplication (`1m/1s` = `1 m/s` and not `1 m*s`).
+- An expression will show its results on the right side.
+- If you start a row with `#`, you can use inline expressions using `{ }`. For example, `# Adding two plus two is {2 + 2}.`
