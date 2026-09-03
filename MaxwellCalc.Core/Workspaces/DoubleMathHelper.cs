@@ -617,13 +617,46 @@ public static class DoubleMathHelper
     }
 
     /// <summary>
+    /// Calculates the floor of a number.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
+    /// <param name="diagnostics">The diagnostics.</param>
+    /// <param name="result">The result.</param>
+    /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+    [CalculatorDescription("Calculates the largest integer value that is smaller than the argument. The argument is expected to not have units.")]
+    public static bool Floor(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
+    {
+        if (!args.SingleNonUnitArgument(diagnostics, nameof(Factorial), out result))
+            return false;
+        result = new Quantity<double>(Math.Floor(args[0].Scalar), Unit.UnitNone);
+        return true;
+    }
+
+    /// <summary>
+    /// Calculates the ceiling of a number.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
+    /// <param name="diagnostics">The diagnostics.</param>
+    /// <param name="result">The result.</param>
+    /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+    [CalculatorDescription("Calculates the smallest integer value that is larger than the argument. The argument is expected to not have units.")]
+    public static bool Ceiling(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
+    {
+        if (!args.SingleNonUnitArgument(diagnostics, nameof(Factorial), out result))
+            return false;
+        result = new Quantity<double>(Math.Ceiling(args[0].Scalar), Unit.UnitNone);
+        return true;
+
+    }
+
+    /// <summary>
     /// Calculates the factorial of a number.
     /// </summary>
     /// <param name="args">The arguments.</param>
     /// <param name="diagnostics">The diagnostics.</param>
     /// <param name="result">The result.</param>
     /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
-    [CalculatorDescription("Calculates the factorial of a number. The argument is expected to be a positive integer, and to have no units. The argument is expected to have no units.")]
+    [CalculatorDescription("Calculates the factorial of a number. The argument is expected to be a positive integer, and to have no units.")]
     public static bool Factorial(IReadOnlyList<Quantity<double>> args, IDiagnosticsHandler? diagnostics, out Quantity<double> result)
     {
         if (!args.SingleNonUnitArgument(diagnostics, nameof(Factorial), out result))

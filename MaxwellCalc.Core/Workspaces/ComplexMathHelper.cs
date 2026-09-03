@@ -593,6 +593,40 @@ public static class ComplexMathHelper
     }
 
     /// <summary>
+    /// Calculates the floor of a number.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
+    /// <param name="diagnostics">The diagnostics.</param>
+    /// <param name="result">The result.</param>
+    /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+    [CalculatorDescription("Calculates the largest integer value that is smaller than the argument. This is done for the real and imaginary part separately. The argument is expected to not have units.")]
+    public static bool Floor(IReadOnlyList<Quantity<Complex>> args, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
+    {
+        if (!args.SingleNonUnitArgument(diagnostics, nameof(Factorial), out result))
+            return false;
+        var value = args[0].Scalar;
+        result = new Quantity<Complex>(new(Math.Floor(value.Real), Math.Floor(value.Imaginary)), Unit.UnitNone);
+        return true;
+    }
+
+    /// <summary>
+    /// Calculates the ceiling of a number.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
+    /// <param name="diagnostics">The diagnostics.</param>
+    /// <param name="result">The result.</param>
+    /// <returns>Returns <c>true</c> if the function was evaluated; otherwise, <c>false</c>.</returns>
+    [CalculatorDescription("Calculates the smallest integer value that is larger than the argument. This is done for the real and imaginary part separately. The argument is expected to not have units.")]
+    public static bool Ceiling(IReadOnlyList<Quantity<Complex>> args, IDiagnosticsHandler? diagnostics, out Quantity<Complex> result)
+    {
+        if (!args.SingleNonUnitArgument(diagnostics, nameof(Factorial), out result))
+            return false;
+        var value = args[0].Scalar;
+        result = new Quantity<Complex>(new(Math.Ceiling(value.Real), Math.Ceiling(value.Imaginary)), Unit.UnitNone);
+        return true;
+    }
+
+    /// <summary>
     /// Calculates the factorial of a number.
     /// </summary>
     /// <param name="args">The arguments.</param>
