@@ -337,16 +337,147 @@ public partial class SheetViewModel : ViewModelBase
         FocusLine(toIndex);
     }
 
+    // ---- Row selection ------------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the index of the line the whole-row selection started from, or <c>null</c> when no rows are
+    /// selected. The selection spans the inclusive range between this and <see cref="SelectionActive"/>.
+    /// </summary>
+    public int? SelectionAnchor { get; private set; }
+
+    /// <summary>
+    /// Gets the index of the moving end of the whole-row selection (the end Shift+Up/Down or a drag
+    /// moves), or <c>null</c> when no rows are selected.
+    /// </summary>
+    public int? SelectionActive { get; private set; }
+
+    /// <summary>
+    /// Gets whether one or more whole rows are selected.
+    /// </summary>
+    public bool HasRowSelection => SelectionAnchor is not null;
+
+    /// <summary>
+    /// Selects the inclusive range of rows between <paramref name="anchor"/> and <paramref name="active"/>
+    /// (in either order), both clamped to the sheet. Used by a drag across rows and Shift+click.
+    /// </summary>
+    /// <param name="anchor">The fixed end of the selection.</param>
+    /// <param name="active">The moving end of the selection.</param>
+    public void SelectRows(int anchor, int active)
+    {
+        if (Lines.Count == 0)
+            return;
+
+        SelectionAnchor = Math.Clamp(anchor, 0, Lines.Count - 1);
+        SelectionActive = Math.Clamp(active, 0, Lines.Count - 1);
+        ApplyRowSelection();
+    }
+
+    /// <summary>
+    /// Moves the active end of the row selection by <paramref name="delta"/> rows (Shift+Up/Down). With no
+    /// selection yet, one starts anchored at <paramref name="fromIndex"/> (the line being edited), so the
+    /// first press selects that line plus its neighbour — or just that line at the top/bottom of the sheet.
+    /// </summary>
+    /// <param name="fromIndex">The line to anchor a new selection at; ignored when one already exists.</param>
+    /// <param name="delta">The number of rows to move the active end (negative = up).</param>
+    public void ExtendRowSelection(int fromIndex, int delta)
+    {
+        if (SelectionAnchor is { } anchor && SelectionActive is { } active)
+            SelectRows(anchor, active + delta);
+        else if (fromIndex >= 0 && fromIndex < Lines.Count)
+            SelectRows(fromIndex, fromIndex + delta);
+    }
+
+    /// <summary>
+    /// Clears the whole-row selection, if any. Focus is left where it is.
+    /// </summary>
+    public void ClearRowSelection()
+    {
+        if (!HasRowSelection)
+            return;
+
+        SelectionAnchor = null;
+        SelectionActive = null;
+        ApplyRowSelection();
+    }
+
+    /// <summary>
+    /// Clears the whole-row selection and returns to editing: the line <paramref name="delta"/> rows from
+    /// the selection's active end (clamped to the sheet) is focused with its caret at the end. Escape and
+    /// Enter pass 0 (edit the active row); plain Up/Down pass ∓1.
+    /// </summary>
+    /// <param name="delta">The row offset from the active end to focus.</param>
+    public void CollapseRowSelection(int delta = 0)
+    {
+        if (SelectionActive is not { } active)
+            return;
+
+        BeginEdit(Math.Clamp(active + delta, 0, Lines.Count - 1));
+    }
+
+    /// <summary>
+    /// Removes every selected row (Delete / Backspace with rows selected) and re-evaluates once. Focus moves
+    /// to the line above the removed block for Backspace (caret at its end), or to the line that slid into
+    /// the block's place for Delete (caret at its start). Removing every row leaves a single empty line.
+    /// </summary>
+    /// <param name="backward"><c>true</c> for Backspace, <c>false</c> for Delete.</param>
+    public void DeleteSelectedLines(bool backward)
+    {
+        if (SelectionAnchor is not { } anchor || SelectionActive is not { } active)
+            return;
+
+        int start = Math.Min(anchor, active);
+        int end = Math.Max(anchor, active);
+        ClearRowSelection();
+
+        _suppressEvaluation = true;
+        try
+        {
+            for (int i = end; i >= start; i--)
+                Lines.RemoveAt(i);
+            if (Lines.Count == 0)
+                Lines.Add(new LineViewModel());
+        }
+        finally
+        {
+            _suppressEvaluation = false;
+        }
+
+        Evaluate();
+
+        if (backward && start > 0)
+            BeginEdit(start - 1);
+        else if (start < Lines.Count)
+            BeginEdit(start, 0);
+        else
+            BeginEdit(Lines.Count - 1);
+    }
+
+    // Pushes the anchor/active range onto each line's IsSelected flag.
+    private void ApplyRowSelection()
+    {
+        int start = -1, end = -1;
+        if (SelectionAnchor is { } anchor && SelectionActive is { } active)
+        {
+            start = Math.Min(anchor, active);
+            end = Math.Max(anchor, active);
+        }
+
+        for (int i = 0; i < Lines.Count; i++)
+            Lines[i].IsSelected = i >= start && i <= end;
+    }
+
     /// <summary>
     /// Moves keyboard focus to the line at <paramref name="index"/>, first switching a text line into
     /// its editable state (a rendered text line has no editor to focus until then). Shared by the
-    /// keyboard model and by click-to-edit.
+    /// keyboard model and by click-to-edit. Returning to editing drops any whole-row selection.
     /// </summary>
     /// <param name="index">The line to focus.</param>
     private void FocusLine(int index)
     {
         if (index < 0 || index >= Lines.Count)
             return;
+
+        ClearRowSelection();
 
         if (Lines[index].IsText)
             Lines[index].IsEditing = true;
@@ -470,6 +601,8 @@ public partial class SheetViewModel : ViewModelBase
                 line.PropertyChanged += OnLinePropertyChanged;
         }
 
+        // Selection indices go stale once rows shift (a split, merge, or a recalled sheet).
+        ClearRowSelection();
         Evaluate();
     }
 

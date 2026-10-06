@@ -6,7 +6,10 @@
              xmlns:controls="using:MaxwellCalc.Notebook.Controls"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="400"
              x:Class="MaxwellCalc.Notebook.Views.SheetView"
-             x:DataType="vm:SheetViewModel">
+             x:DataType="vm:SheetViewModel"
+             Focusable="True"
+             FocusAdorner="{x:Null}"
+             KeyDown="OnSheetKeyDown">
 
 	<!-- Step 6 — the notebook sheet: one row per line, the inline-highlighting editor on the left and
 	     the result gutter on the right. The editor is the HighlightedExpressionBox; Step 7 adds the
@@ -27,6 +30,10 @@
 		</Style>
 		<Style Selector="Border.row:focus-within">
 			<Setter Property="Background" Value="{DynamicResource ActiveTintBrush}" />
+		</Style>
+		<!-- Whole-row selection (Shift+Up/Down, drag across rows); Delete/Backspace removes the rows. -->
+		<Style Selector="Border.row.selected">
+			<Setter Property="Background" Value="{DynamicResource RowSelectionBrush}" />
 		</Style>
 
 		<!-- Auto-caption: tiny faint sans caption under the focused row when the output unit was
@@ -54,7 +61,7 @@
 	<ItemsControl Name="LinesHost" ItemsSource="{Binding Lines}">
 		<ItemsControl.ItemTemplate>
 			<DataTemplate x:DataType="vm:LineViewModel">
-				<Border Classes="row">
+				<Border Classes="row" Classes.selected="{Binding IsSelected}">
 					<StackPanel Spacing="2">
 						<Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
 
@@ -76,7 +83,9 @@
 										MergeBackRequested="OnMergeBackRequested"
 										MergeForwardRequested="OnMergeForwardRequested"
 										NavigateUpRequested="OnNavigateUpRequested"
-										NavigateDownRequested="OnNavigateDownRequested" />
+										NavigateDownRequested="OnNavigateDownRequested"
+										ExtendSelectionUpRequested="OnExtendSelectionUpRequested"
+										ExtendSelectionDownRequested="OnExtendSelectionDownRequested" />
 
 								<!-- Rendered prose (idle text line): literal text mixed with inline {…}
 								     results. Clicking it swaps back to the editor above. -->

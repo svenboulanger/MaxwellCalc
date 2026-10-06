@@ -41,6 +41,8 @@
 					<!-- Editor selection wash: translucent so the highlighted tokens show through the
 					     selection rectangle (the editor sits over the colored backdrop). -->
 					<SolidColorBrush x:Key="EditorSelectionBrush" Color="#4D2A78D6" /><!-- rgba(42,120,214,.3) -->
+					<!-- Whole-row selection wash (Shift+arrow / drag across rows). -->
+					<SolidColorBrush x:Key="RowSelectionBrush" Color="#242A78D6" /><!-- rgba(42,120,214,.14) -->
 
 					<!-- Unit-hue presets: oklch(0.52 0.13 H). Wash = same hue at ~0.12 alpha. -->
 					<SolidColorBrush x:Key="UnitHueAmberBrush" Color="#9D5300" />   <!-- H=60 -->
@@ -76,6 +78,8 @@
 					<!-- Editor selection wash: translucent so the highlighted tokens show through the
 					     selection rectangle (the editor sits over the colored backdrop). -->
 					<SolidColorBrush x:Key="EditorSelectionBrush" Color="#4D78AAFF" /><!-- rgba(120,170,255,.3) -->
+					<!-- Whole-row selection wash (Shift+arrow / drag across rows). -->
+					<SolidColorBrush x:Key="RowSelectionBrush" Color="#2E78AAFF" /><!-- rgba(120,170,255,.18) -->
 
 					<!-- Unit-hue presets: oklch(0.82 0.11 H). Wash = same hue at ~0.16 alpha. -->
 					<SolidColorBrush x:Key="UnitHueAmberBrush" Color="#F9B379" />   <!-- H=60 -->

@@ -88,6 +88,14 @@ public partial class LineViewModel : ViewModelBase
     private bool _isFocused;
 
     /// <summary>
+    /// Gets or sets whether this line is part of the sheet's whole-row selection (Shift+Up/Down or a
+    /// drag across rows). Owned by <see cref="SheetViewModel"/>; drives the row's selection wash.
+    /// </summary>
+    [ObservableProperty]
+    [property: System.Text.Json.Serialization.JsonIgnore]
+    private bool _isSelected;
+
+    /// <summary>
     /// Gets the joined diagnostic message for error lines, or <c>null</c>.
     /// </summary>
     [ObservableProperty]

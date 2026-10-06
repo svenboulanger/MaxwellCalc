@@ -67,6 +67,12 @@ public class HighlightedExpressionBox : TemplatedControl
     /// <summary>Raised when the Down arrow is pressed: the sheet moves focus to the next line.</summary>
     public event EventHandler? NavigateDownRequested;
 
+    /// <summary>Raised on Shift+Up: the sheet starts or extends a whole-row selection upward.</summary>
+    public event EventHandler? ExtendSelectionUpRequested;
+
+    /// <summary>Raised on Shift+Down: the sheet starts or extends a whole-row selection downward.</summary>
+    public event EventHandler? ExtendSelectionDownRequested;
+
     /// <summary>Identifies the <see cref="Text"/> property.</summary>
     public static readonly StyledProperty<string?> TextProperty =
         AvaloniaProperty.Register<HighlightedExpressionBox, string?>(
@@ -198,6 +204,14 @@ public class HighlightedExpressionBox : TemplatedControl
     // marked so the TextBox doesn't also process it.
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {
+        // Shift+Up/Down select whole rows rather than extending the text selection within this line.
+        if (e.KeyModifiers == KeyModifiers.Shift && e.Key is Key.Up or Key.Down)
+        {
+            (e.Key == Key.Up ? ExtendSelectionUpRequested : ExtendSelectionDownRequested)?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
+
         if (e.KeyModifiers != KeyModifiers.None)
             return;
 
