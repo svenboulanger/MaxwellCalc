@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text.Json;
 using System.Windows.Input;
 
@@ -289,6 +290,23 @@ public partial class SettingsViewModel : ViewModelBase
 
     /// <summary>Gets whether the Complex domain is selected in the new-workspace dialog.</summary>
     public bool IsNewComplex => NewWorkspaceDomain is WorkspaceDomain.Complex;
+
+    /// <summary>
+    /// Gets the app version shown in the Settings flyout ("v1.0.1"), taken from the entry assembly's
+    /// informational version (<c>&lt;Version&gt;</c> in the csproj) with any "+commit" suffix stripped.
+    /// </summary>
+    public static string AppVersion { get; } = GetAppVersion();
+
+    private static string GetAppVersion()
+    {
+        var version = Assembly.GetEntryAssembly()?
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
+        if (string.IsNullOrEmpty(version))
+            return string.Empty;
+        int plus = version.IndexOf('+');
+        return "v" + (plus >= 0 ? version[..plus] : version);
+    }
 
     /// <summary>Gets the theme-toggle glyph: a moon in light mode (switch to dark), a sun in dark mode.</summary>
     public MaterialIconKind ThemeToggleIcon =>

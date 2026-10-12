@@ -265,6 +265,19 @@
 											  FontSize="12"
 											  Foreground="{DynamicResource InkBrush}"
 											  Content="Auto-select output unit caption" />
+									<!-- Footer: app name + version, separated by a hairline. -->
+									<Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0"
+											Padding="0,9,0,0">
+										<Grid ColumnDefinitions="*,Auto">
+											<TextBlock Grid.Column="0" Classes="settingsLabel" Text="MAXWELLCALC"
+													   VerticalAlignment="Center" />
+											<TextBlock Grid.Column="1" Text="{x:Static vm:SettingsViewModel.AppVersion}"
+													   FontFamily="{DynamicResource MonoFontFamily}"
+													   FontSize="11"
+													   Foreground="{DynamicResource FaintBrush}"
+													   VerticalAlignment="Center" />
+										</Grid>
+									</Border>
 								</StackPanel>
 							</Flyout>
 						</Button.Flyout>

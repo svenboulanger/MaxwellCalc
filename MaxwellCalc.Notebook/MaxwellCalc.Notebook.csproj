@@ -20,7 +20,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>calculator; units; scientific; science; app; desktop</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
-    <AssemblyVersion></AssemblyVersion>
+    <Version>1.0.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <SignAssembly>False</SignAssembly>
     <AssemblyTitle>MaxwellCalc.Notebook</AssemblyTitle>

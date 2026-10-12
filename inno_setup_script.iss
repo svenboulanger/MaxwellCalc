@@ -3,10 +3,24 @@
 ; Non-commercial use only.
 
 #define MyAppName "Maxwell Notebook"
-#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Sven Boulanger"
 #define MyAppURL "https://github.com/svenboulanger/MaxwellCalc"
 #define MyAppExeName "MaxwellCalc.Notebook.exe"
+#define MyAppPublishDir "MaxwellCalc.Notebook\bin\Release\net10.0\publish\win-x64"
+
+; The version is read from the published executable, whose file version comes from <Version> in
+; MaxwellCalc.Notebook.csproj. Publish first:
+;   dotnet publish MaxwellCalc.Notebook -p:PublishProfile=FolderProfile
+#define MyAppExePath AddBackslash(SourcePath) + MyAppPublishDir + "\" + MyAppExeName
+#if !FileExists(MyAppExePath)
+  #error "Published executable not found. Run 'dotnet publish MaxwellCalc.Notebook -p:PublishProfile=FolderProfile' first."
+#endif
+#define VerMajor
+#define VerMinor
+#define VerRevision
+#define VerBuild
+#expr GetVersionComponents(MyAppExePath, VerMajor, VerMinor, VerRevision, VerBuild)
+#define MyAppVersion Str(VerMajor) + "." + Str(VerMinor) + "." + Str(VerRevision)
 #define DoubleAmp(Value) StringChange(Value, "&", "&&")
 #define EscapeConstArgument(Value) StringChange(StringChange(StringChange(Value, "%", "%25"), ",", "%2c"), "}", "%7d")
 
@@ -47,8 +61,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: ".\MaxwellCalc.Notebook\bin\Release\net10.0\publish\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\MaxwellCalc.Notebook\bin\Release\net10.0\publish\win-x64\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: ".\{#MyAppPublishDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\{#MyAppPublishDir}\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files.
 
 [Icons]
