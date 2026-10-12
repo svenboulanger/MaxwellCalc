@@ -1,5 +1,6 @@
 using MaxwellCalc.Core.Parsers;
 using MaxwellCalc.Core.Parsers.Nodes;
+using MaxwellCalc.Core.Units;
 using MaxwellCalc.Core.Workspaces;
 using MaxwellCalc.Core.Workspaces.Variables;
 using System;
@@ -179,7 +180,8 @@ public static class SheetEvaluator
 
             // Resolve and format. For an assignment this also binds the variable into the (transient)
             // scope so later lines can reference it.
-            if (!workspace.TryResolveAndFormat(node, format, CultureInfo.InvariantCulture, out var formatted) ||
+            if (!TryResolveOnce(workspace, node, out var quantity, out bool autoUnitSelected) ||
+                !workspace.Resolver.TryFormat(quantity, format, CultureInfo.InvariantCulture, out var formatted) ||
                 diagnostics.Count > 0)
             {
                 return LineResult.Error(JoinDiagnostics(diagnostics) ?? "Could not evaluate the expression.");
@@ -190,7 +192,7 @@ public static class SheetEvaluator
                 && node is VariableNode variable
                 && workspace.Constants.Local.ContainsKey(variable.Content.ToString());
 
-            bool autoUnitSelected = !isAssignment && DetectAutoUnitSelected(workspace, node, StoreDiagnostic);
+            autoUnitSelected &= !isAssignment;
 
             return new LineResult(
                 isAssignment ? LineKind.Assign : LineKind.Value,
@@ -207,40 +209,46 @@ public static class SheetEvaluator
     }
 
     /// <summary>
-    /// Determines whether the workspace auto-selected an output unit for this line (the "value ≥ 1"
-    /// rule). This is only meaningful for expressions that did not explicitly request a unit with the
-    /// <c>in</c> operator. Used by the Step 6 auto-caption; captured here so the data model is complete.
+    /// Resolves a node exactly once, and determines along the way whether the workspace auto-selected
+    /// an output unit for it (the "value ≥ 1" rule, used by the Step 6 auto-caption).
+    /// <para>
+    /// The node must only be resolved once: resolving has side effects (it updates the answer variable,
+    /// and binds any assignments embedded in the expression), so a second resolution would e.g. make
+    /// <c>ans*2</c> double <c>ans</c> twice. To still observe the auto-selection, the node is resolved
+    /// in base units and the output-unit step that <see cref="IWorkspace{T}.TryResolve"/> would otherwise
+    /// apply is done here instead.
+    /// </para>
     /// </summary>
-    private static bool DetectAutoUnitSelected<T>(IWorkspace<T> workspace, INode node, EventHandler<DiagnosticMessagePostedEventArgs> diagnosticHandler)
+    private static bool TryResolveOnce<T>(IWorkspace<T> workspace, INode node, out Quantity<T> result, out bool autoUnitSelected)
         where T : struct, IFormattable
     {
-        // An explicit "a in b" conversion is never an auto-selection.
-        if (node is BinaryNode { Type: BinaryOperatorTypes.InUnit })
-            return false;
+        autoUnitSelected = false;
 
-        // Probe the raw (base-unit) quantity without letting the probe's diagnostics leak into the
-        // line result, and without converting to an output unit.
-        workspace.DiagnosticMessagePosted -= diagnosticHandler;
-        var oldState = workspace.Restrict(
-            resolveInputUnits: workspace.ResolveInputUnits,
-            resolveOutputUnits: false,
-            allowUnits: workspace.AllowUnits,
-            allowVariables: workspace.AllowVariables,
-            allowUserFunctions: workspace.AllowUserFunctions);
+        // An explicit "a in b" conversion is never an auto-selection, and is fully handled by the workspace.
+        if (node is BinaryNode { Type: BinaryOperatorTypes.InUnit })
+            return workspace.TryResolve(node, out result);
+
+        bool resolveOutputUnits = workspace.ResolveOutputUnits;
+        workspace.ResolveOutputUnits = false;
+        Quantity<T> raw;
         try
         {
-            if (!workspace.TryResolve(node, out var raw))
+            if (!workspace.TryResolve(node, out raw))
+            {
+                result = default;
                 return false;
-            if (raw.Unit.Dimension is null || raw.Unit.Dimension.Count == 0)
-                return false;
-
-            return workspace.TryResolveOutputUnits(raw, out var converted) && converted.Unit != raw.Unit;
+            }
         }
         finally
         {
-            workspace.Restore(oldState);
-            workspace.DiagnosticMessagePosted += diagnosticHandler;
+            workspace.ResolveOutputUnits = resolveOutputUnits;
         }
+
+        // Mirror the output-unit step of the workspace's own resolution.
+        result = raw;
+        if (workspace.AllowUnits && resolveOutputUnits)
+            autoUnitSelected = workspace.TryResolveOutputUnits(raw, out result) && result.Unit != raw.Unit;
+        return true;
     }
 
     /// <summary>

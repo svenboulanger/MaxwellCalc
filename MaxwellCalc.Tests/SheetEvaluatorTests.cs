@@ -104,6 +104,31 @@ public class SheetEvaluatorTests
     }
 
     [Fact]
+    public void When_AnswerReferencedRepeatedly_Expect_EachLineEvaluatedOnce()
+    {
+        // Every line must only be resolved once, or the answer variable is updated twice per line
+        // and "ans*2" would multiply by 4.
+        var results = SheetEvaluator.Evaluate(NewWorkspace(), ["3", "ans*2", "ans*2", "ans*2"], Format);
+
+        Assert.Equal("3", results[0].Quantity.Scalar);
+        Assert.Equal("6", results[1].Quantity.Scalar);
+        Assert.Equal("12", results[2].Quantity.Scalar);
+        Assert.Equal("24", results[3].Quantity.Scalar);
+    }
+
+    [Fact]
+    public void When_OutputUnitAutoSelected_Expect_AutoUnitSelected()
+    {
+        var results = SheetEvaluator.Evaluate(NewWorkspace(), ["2000 m", "1 m/s in km/hour", "5", "d = 2000 m"], Format);
+
+        Assert.Equal("2", results[0].Quantity.Scalar);
+        Assert.True(results[0].AutoUnitSelected);
+        Assert.False(results[1].AutoUnitSelected);
+        Assert.False(results[2].AutoUnitSelected);
+        Assert.False(results[3].AutoUnitSelected);
+    }
+
+    [Fact]
     public void When_ConstantAlone_Expect_ConstBadge()
     {
         var results = SheetEvaluator.Evaluate(NewWorkspace(), ["pi"], Format);
